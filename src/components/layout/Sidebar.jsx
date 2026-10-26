@@ -29,7 +29,7 @@ export default function Sidebar({
       icon: Store,
       badge: pendingCount > 0 ? {
         text: `${pendingCount} ${lang === 'mr' ? 'प्रलंबित' : 'Pending'}`,
-        color: 'bg-rose-500 text-white animate-soft-pulse'
+        color: 'bg-rose-500 text-white'
       } : null,
     },
     {
@@ -130,15 +130,15 @@ export default function Sidebar({
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2 text-left">
+                    <Icon className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
                       isActive ? 'text-emerald-300' : 'text-slate-400 group-hover:text-[#2E7D32]'
                     }`} />
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate block">{item.label}</span>
                   </div>
 
                   {item.badge ? (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight shadow-xs ${item.badge.color}`}>
+                    <span className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight whitespace-nowrap shadow-xs ${item.badge.color}`}>
                       {item.badge.text}
                     </span>
                   ) : (

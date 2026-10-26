@@ -182,8 +182,8 @@ export default function OverviewView({
               <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping inline-block" />
               <span>
                 {lang === 'mr' 
-                  ? `${pendingCount} नवीन रोपवाटिका मंजुरीची वाट पाहत आहेत` 
-                  : `${pendingCount} new nursery applications are waiting for approval`}
+                  ? pendingCount === 1 ? '१ नवीन रोपवाटिका मंजुरीच्या प्रतीक्षेत आहे' : `${pendingCount} नवीन रोपवाटिका मंजुरीची वाट पाहत आहेत` 
+                  : pendingCount === 1 ? '1 new nursery application is waiting for approval' : `${pendingCount} new nursery applications are waiting for approval`}
               </span>
               <button
                 onClick={() => onNavigate('nurseries', 'pending')}
@@ -238,7 +238,7 @@ export default function OverviewView({
                 </span>
 
                 {card.alert && pendingCount > 0 ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white animate-soft-pulse">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white whitespace-nowrap inline-flex items-center">
                     {card.change}
                   </span>
                 ) : (
