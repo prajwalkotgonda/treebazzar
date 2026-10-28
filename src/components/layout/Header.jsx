@@ -271,27 +271,7 @@ export default function Header({
             )}
           </div>
 
-          {/* Admin Profile Pill */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-            <div className="relative">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1E5631] to-[#2E7D32] flex items-center justify-center text-white font-bold text-xs shadow-md shadow-emerald-950/20">
-                TB
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
-            </div>
-
-            <div className="hidden sm:block text-left">
-              <div className="flex items-center gap-1">
-                <span className="text-xs font-bold text-slate-900">Admin Sangli</span>
-                <ShieldCheck className="w-3.5 h-3.5 text-[#2E7D32]" />
-              </div>
-              <span className="text-[10px] text-slate-500 font-medium block">
-                {t('adminBadge')}
-              </span>
-            </div>
           </div>
-
-        </div>
 
       </div>
     </header>
