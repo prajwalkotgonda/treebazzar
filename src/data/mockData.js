@@ -1,31 +1,464 @@
-// Clean Data Store - All dummy/sample data removed
-export const INITIAL_NURSERIES = [];
+// Realistic Local Sample Data for TreeBazzar Admin Panel (Western Maharashtra: Sangli, Miraj, Kolhapur, Karad)
 
-export const INITIAL_PLANTS = [];
+export const INITIAL_NURSERIES = [
+  {
+    id: 'nursery-1',
+    name: 'Bhushan Hi-Tech Nursery',
+    nameMr: 'भूषण हाय-टेक रोपवाटिका',
+    ownerName: 'Bhushan Patil',
+    owner: 'Bhushan Patil',
+    city: 'Sangli',
+    district: 'Sangli',
+    phone: '9822145678',
+    whatsapp: '9822145678',
+    address: 'Kupwad Road, Near MIDC, Sangli, Maharashtra 416416',
+    establishedYear: 2017,
+    status: 'pending', // Pending approval
+    registrationDate: '2026-10-24',
+    totalPlants: 24,
+    specialties: ['Grafted Mango', 'Tissue Culture Bamboo', 'Exotic Fruit Varieties'],
+    location: { latitude: 16.8524, longitude: 74.5815 },
+    licenseNumber: 'MH-SAN-2017-0941',
+    image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&auto=format&fit=crop&q=80',
+    facilities: ['Home Delivery Available', 'Soil Testing Help', 'Drip Consultation']
+  },
+  {
+    id: 'nursery-2',
+    name: 'Shree Ganesh Nursery & Farm',
+    nameMr: 'श्री गणेश रोपवाटिका आणि फार्म',
+    ownerName: 'Ganesh Kadam',
+    owner: 'Ganesh Kadam',
+    city: 'Miraj',
+    district: 'Sangli',
+    phone: '9764512345',
+    whatsapp: '9764512345',
+    address: 'Near Railway Junction, Brahmanpuri, Miraj 416410',
+    establishedYear: 2012,
+    status: 'approved',
+    registrationDate: '2026-09-15',
+    totalPlants: 48,
+    specialties: ['Desi Flowering Shrubs', 'Indoor Plants', 'Sardar Guava Saplings'],
+    location: { latitude: 16.8286, longitude: 74.6469 },
+    licenseNumber: 'MH-MIR-2012-4412',
+    image: 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=800&auto=format&fit=crop&q=80',
+    facilities: ['Retail & Wholesale', 'Garden Landscaping', 'Free Seedling Advice']
+  },
+  {
+    id: 'nursery-3',
+    name: 'Krishna Agriculture Nursery',
+    nameMr: 'कृष्णा ॲग्रिकल्चर रोपवाटिका',
+    ownerName: 'Sanjay Deshmukh',
+    owner: 'Sanjay Deshmukh',
+    city: 'Sangli',
+    district: 'Sangli',
+    phone: '9423876543',
+    whatsapp: '9423876543',
+    address: 'Haripur Road, Sangli 416416',
+    establishedYear: 2015,
+    status: 'approved',
+    registrationDate: '2026-08-10',
+    totalPlants: 65,
+    specialties: ['Tissue Culture Sagwan (Teak)', 'Kesar Mango', 'Commercial Timber'],
+    location: { latitude: 16.8584, longitude: 74.5672 },
+    licenseNumber: 'MH-SAN-2015-8831',
+    image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&auto=format&fit=crop&q=80',
+    facilities: ['Agroforestry Guidance', 'Bulk Farm Transport', 'Government Scheme Subsidy Info']
+  },
+  {
+    id: 'nursery-4',
+    name: 'Kolhapur Royal Greenery',
+    nameMr: 'कोल्हापूर रॉयल ग्रीनरी',
+    ownerName: 'Rohan Bhosale',
+    owner: 'Rohan Bhosale',
+    city: 'Kolhapur',
+    district: 'Kolhapur',
+    phone: '9890123456',
+    whatsapp: '9890123456',
+    address: 'Shiroli Road, Near Highway, Kolhapur 416122',
+    establishedYear: 2019,
+    status: 'approved',
+    registrationDate: '2026-07-22',
+    totalPlants: 32,
+    specialties: ['Bonsai & Exotic Decor', 'Areca Palm', 'Ornamental Shrubs'],
+    location: { latitude: 16.7050, longitude: 74.2433 },
+    licenseNumber: 'MH-KOL-2019-1120',
+    image: 'https://images.unsplash.com/photo-1463936575829-25148e1db1b8?w=800&auto=format&fit=crop&q=80',
+    facilities: ['Potting Service', 'Office Plant Rental', 'Home Balcony Design']
+  },
+  {
+    id: 'nursery-5',
+    name: 'Green Paradise Flora',
+    nameMr: 'ग्रीन पॅराडाईज फ्लोरा',
+    ownerName: 'Sunita Mane',
+    owner: 'Sunita Mane',
+    city: 'Sangli',
+    district: 'Sangli',
+    phone: '9156789012',
+    whatsapp: '9156789012',
+    address: 'Gaonbhag, Sangli 416416',
+    establishedYear: 2021,
+    status: 'pending', // Pending approval
+    registrationDate: '2026-10-26',
+    totalPlants: 18,
+    specialties: ['Air Purifying Plants', 'Monstera & Philodendron', 'Succulents'],
+    location: { latitude: 16.8612, longitude: 74.5721 },
+    licenseNumber: 'MH-SAN-2021-3490',
+    image: 'https://images.unsplash.com/photo-1512428813834-c702c7702b78?w=800&auto=format&fit=crop&q=80',
+    facilities: ['Ceramic Planters', 'Plant Nutrition Kits', 'Home Delivery']
+  },
+  {
+    id: 'nursery-6',
+    name: 'Sahyadri Agro Plant Nursery',
+    nameMr: 'सह्याद्री ॲग्रो प्लांट नर्सरी',
+    ownerName: 'Anil Shinde',
+    owner: 'Anil Shinde',
+    city: 'Karad',
+    district: 'Satara',
+    phone: '9637890123',
+    whatsapp: '9637890123',
+    address: 'Old Pune-Bangalore Road, Karad 415110',
+    establishedYear: 2014,
+    status: 'rejected',
+    rejectionReason: 'Invalid or expired nursery registration / Udyam license document.',
+    registrationDate: '2026-06-18',
+    totalPlants: 12,
+    specialties: ['Fodder Grass', 'Bamboo Saplings', 'Farm Fencing Trees'],
+    location: { latitude: 17.2890, longitude: 74.1812 },
+    licenseNumber: 'MH-KAR-2014-0012',
+    image: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=800&auto=format&fit=crop&q=80',
+    facilities: ['Farm Delivery']
+  }
+];
 
-export const INITIAL_LEADS = [];
+export const INITIAL_PLANTS = [
+  {
+    id: 'plt-1',
+    nameEn: 'Kesar Mango Grafted Sapling',
+    nameMr: 'केसर आंबा (कलम रोपे)',
+    botanicalName: 'Mangifera indica',
+    category: 'Fruit Trees',
+    categoryMr: 'फळझाडे',
+    nurseryId: 'nursery-1',
+    nurseryName: 'Bhushan Hi-Tech Nursery',
+    priceMin: 120,
+    priceMax: 180,
+    stockStatus: 'in_stock',
+    stockCount: 350,
+    photoUrl: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'High yielding genuine Junagadh/Marathwada certified Kesar mango grafts. Ready for 2nd year fruiting.',
+    descriptionMr: 'उत्कृष्ट दर्जाची केसर आंबा कलमे. २ वर्षात फळधारणा सुरू होणारी खात्रीशीर रोपे.'
+  },
+  {
+    id: 'plt-2',
+    nameEn: 'Bhagwa Pomegranate (Dalimb)',
+    nameMr: 'भगवा डाळिंब रोपे',
+    botanicalName: 'Punica granatum',
+    category: 'Fruit Trees',
+    categoryMr: 'फळझाडे',
+    nurseryId: 'nursery-3',
+    nurseryName: 'Krishna Agriculture Nursery',
+    priceMin: 80,
+    priceMax: 120,
+    stockStatus: 'in_stock',
+    stockCount: 500,
+    photoUrl: 'https://images.unsplash.com/photo-1541344999736-83eca272f6fc?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'Disease resistant red Bhagwa variety pomegranate seedlings, ideal for Western Maharashtra black and red soil.',
+    descriptionMr: 'रोगप्रतिकारक भगवा जातीचे डाळिंब. पश्चिम महाराष्ट्रातील हवामानासाठी सर्वोत्तम.'
+  },
+  {
+    id: 'plt-3',
+    nameEn: 'Sardar Guava (L-49 Lucknow)',
+    nameMr: 'सरदार पेरू (एल-४९)',
+    botanicalName: 'Psidium guajava',
+    category: 'Fruit Trees',
+    categoryMr: 'फळझाडे',
+    nurseryId: 'nursery-2',
+    nurseryName: 'Shree Ganesh Nursery & Farm',
+    priceMin: 60,
+    priceMax: 90,
+    stockStatus: 'in_stock',
+    stockCount: 220,
+    photoUrl: 'https://images.unsplash.com/photo-1536511132770-e5058c7e8c46?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'Heavy bearing white pulp sweet Sardar Guava saplings with strong rootstock.',
+    descriptionMr: 'गोड व भरपूर उत्पादन देणारी सरदार लखनौ-४९ पेरूची मजबूत कलमे.'
+  },
+  {
+    id: 'plt-4',
+    nameEn: 'Monstera Deliciosa (Swiss Cheese Plant)',
+    nameMr: 'मॉन्स्टेरा डेलिसिओसा (इनडोअर)',
+    botanicalName: 'Monstera deliciosa',
+    category: 'Indoor Plants',
+    categoryMr: 'इनडोअर रोपे',
+    nurseryId: 'nursery-5',
+    nurseryName: 'Green Paradise Flora',
+    priceMin: 280,
+    priceMax: 450,
+    stockStatus: 'in_stock',
+    stockCount: 45,
+    photoUrl: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'Stunning tropical indoor air-purifier plant with iconic split leaves, grown in potting cocopeat mix.',
+    descriptionMr: 'घरातील आणि ऑफिसच्या शोभेसाठी सुंदर इनडोअर हवा शुद्ध करणारे मॉन्स्टेरा रोप.'
+  },
+  {
+    id: 'plt-5',
+    nameEn: 'Areca Palm (Indoor/Outdoor)',
+    nameMr: 'अरेका पाम',
+    botanicalName: 'Dypsis lutescens',
+    category: 'Indoor Plants',
+    categoryMr: 'इनडोअर रोपे',
+    nurseryId: 'nursery-4',
+    nurseryName: 'Kolhapur Royal Greenery',
+    priceMin: 150,
+    priceMax: 300,
+    stockStatus: 'in_stock',
+    stockCount: 90,
+    photoUrl: 'https://images.pexels.com/photos/3126442/pexels-photo-3126442.jpeg?auto=compress&cs=tinysrgb&w=600',
+    descriptionEn: 'Dense, lush tropical palm ideal for drawing rooms, office corners and balcony partitions.',
+    descriptionMr: 'हवा शुद्ध करणारा व आकर्षक दिसणारा हिरवागार अरेका पाम.'
+  },
+  {
+    id: 'plt-6',
+    nameEn: 'Snake Plant (Sansevieria Trifasciata)',
+    nameMr: 'स्नेक प्लांट (हवा शुद्धीकरण)',
+    botanicalName: 'Dracaena trifasciata',
+    category: 'Indoor Plants',
+    categoryMr: 'इनडोअर रोपे',
+    nurseryId: 'nursery-1',
+    nurseryName: 'Bhushan Hi-Tech Nursery',
+    priceMin: 110,
+    priceMax: 190,
+    stockStatus: 'out_of_stock',
+    stockCount: 0,
+    photoUrl: 'https://images.unsplash.com/photo-1547306720-ad507f7d4d7b?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'Zero-maintenance NASA approved oxygen release plant. Currently re-potting new batch.',
+    descriptionMr: 'कमी पाण्यात वाढणारे आणि रात्री ऑक्सिजन देणारे उत्तम इनडोअर रोप. सध्या स्टॉक संपला आहे.'
+  },
+  {
+    id: 'plt-7',
+    nameEn: 'Desi Rose (Sugandhi Gulaab)',
+    nameMr: 'देशी सुगंधी गुलाब',
+    botanicalName: 'Rosa damascena',
+    category: 'Flowering Plants',
+    categoryMr: 'फुलझाडे',
+    nurseryId: 'nursery-2',
+    nurseryName: 'Shree Ganesh Nursery & Farm',
+    priceMin: 40,
+    priceMax: 70,
+    stockStatus: 'in_stock',
+    stockCount: 160,
+    photoUrl: 'https://images.unsplash.com/photo-1518709779341-56cf4535e94b?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'Intensely fragrant traditional country pink rose, continuous blooming throughout the year.',
+    descriptionMr: 'वर्षभर भरपूर आणि सुगंधी फुले देणारा देशी गुलाबी गुलाब.'
+  },
+  {
+    id: 'plt-8',
+    nameEn: 'Mogra / Arabian Jasmine',
+    nameMr: 'मोगरा (सुगंधी वेल/झुडूप)',
+    botanicalName: 'Jasminum sambac',
+    category: 'Flowering Plants',
+    categoryMr: 'फुलझाडे',
+    nurseryId: 'nursery-3',
+    nurseryName: 'Krishna Agriculture Nursery',
+    priceMin: 50,
+    priceMax: 80,
+    stockStatus: 'in_stock',
+    stockCount: 130,
+    photoUrl: 'https://images.pexels.com/photos/54608/flower-jasmine-bush-white-54608.jpeg?auto=compress&cs=tinysrgb&w=600',
+    descriptionEn: 'Double petal heavy blooming Bela Mogra with soothing evening fragrance.',
+    descriptionMr: 'मोठ्या कळ्यांचा व अतिशय सुगंधी पांढऱ्या फुलांचा मोगरा.'
+  },
+  {
+    id: 'plt-9',
+    nameEn: 'Tissue Culture Sagwan (Teak Wood)',
+    nameMr: 'टिश्यू कल्चर सागवान',
+    botanicalName: 'Tectona grandis',
+    category: 'Farm Trees',
+    categoryMr: 'शेती झाडे',
+    nurseryId: 'nursery-3',
+    nurseryName: 'Krishna Agriculture Nursery',
+    priceMin: 35,
+    priceMax: 55,
+    stockStatus: 'in_stock',
+    stockCount: 1200,
+    photoUrl: 'https://images.pexels.com/photos/34506875/pexels-photo-34506875.jpeg?auto=compress&cs=tinysrgb&w=600',
+    descriptionEn: 'Fast growing straight pole clonal teak wood saplings for long-term farm boundary investment.',
+    descriptionMr: 'बांधावर लागवडीसाठी सरळ वाढणारे जलद व मजबूत लाकडाचे टिश्यू सागवान.'
+  },
+  {
+    id: 'plt-10',
+    nameEn: 'Tissue Bamboo (Manvel & Katang)',
+    nameMr: 'मानवेल व कटंग बांबू रोपे',
+    botanicalName: 'Dendrocalamus strictus',
+    category: 'Farm Trees',
+    categoryMr: 'शेती झाडे',
+    nurseryId: 'nursery-6',
+    nurseryName: 'Sahyadri Agro Plant Nursery',
+    priceMin: 45,
+    priceMax: 75,
+    stockStatus: 'out_of_stock',
+    stockCount: 0,
+    photoUrl: 'https://images.unsplash.com/photo-1583642037383-861ac716c3f0?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'Dense clump commercial bamboo saplings for windbreaks and fencing.',
+    descriptionMr: 'शेती कुंपणासाठी व व्यापारी उपयोगासाठी मानवेली बांबू रोपे.'
+  },
+  {
+    id: 'plt-11',
+    nameEn: 'F1 Hybrid Tomato Seedlings (Abhinav/Saaho)',
+    nameMr: 'एफ१ संकरित टोमॅटो रोपे',
+    botanicalName: 'Solanum lycopersicum',
+    category: 'Vegetables',
+    categoryMr: 'भाजीपाला',
+    nurseryId: 'nursery-1',
+    nurseryName: 'Bhushan Hi-Tech Nursery',
+    priceMin: 2,
+    priceMax: 3,
+    stockStatus: 'in_stock',
+    stockCount: 8500,
+    photoUrl: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'Pro-tray germinated disease-free tomato saplings ready for transplanting.',
+    descriptionMr: 'ट्रे मधील निरोगी व जोमदार टोमॅटो रोपे. थेट शेतात लागवडीस तयार.'
+  },
+  {
+    id: 'plt-12',
+    nameEn: 'Capsicum & Chilli Seedlings (Shimla Mirchi)',
+    nameMr: 'ढोबळी व तिखट मिरची रोपे',
+    botanicalName: 'Capsicum annuum',
+    category: 'Vegetables',
+    categoryMr: 'भाजीपाला',
+    nurseryId: 'nursery-2',
+    nurseryName: 'Shree Ganesh Nursery & Farm',
+    priceMin: 2.5,
+    priceMax: 4,
+    stockStatus: 'in_stock',
+    stockCount: 6000,
+    photoUrl: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=600&q=80',
+    descriptionEn: 'Sturdy tray-grown green bell pepper and hybrid chilli seedlings.',
+    descriptionMr: 'कमी रोगांना बळी पडणारी उत्कृष्ट प्रतीची ढोबळी मिरची व तिखट मिरची रोपे.'
+  }
+];
 
-export const CATEGORY_STATS = [];
+export const INITIAL_INQUIRIES = [
+  {
+    id: 'inq-1',
+    customerName: 'Rahul Patil',
+    customerPhone: '9822145678',
+    customerCity: 'Sangli',
+    plantName: 'Kesar Mango Grafted Sapling',
+    nurseryName: 'Bhushan Hi-Tech Nursery',
+    inquiryType: 'WhatsApp', // WhatsApp or Call
+    timestamp: '2026-10-29 10:15 AM',
+    status: 'New', // New, Contacted, Converted
+    notes: 'Inquired for 150 Kesar mango plants for 1-acre farm near Tasgaon.'
+  },
+  {
+    id: 'inq-2',
+    customerName: 'Amit Jadhav',
+    customerPhone: '9764512345',
+    customerCity: 'Miraj',
+    plantName: 'Sardar Guava (L-49)',
+    nurseryName: 'Shree Ganesh Nursery & Farm',
+    inquiryType: 'Call',
+    timestamp: '2026-10-29 11:30 AM',
+    status: 'Contacted',
+    notes: 'Customer called asking for wholesale rate and nursery delivery to Bedag village.'
+  },
+  {
+    id: 'inq-3',
+    customerName: 'Sneha Kulkarni',
+    customerPhone: '9423876543',
+    customerCity: 'Kolhapur',
+    plantName: 'Monstera Deliciosa & Areca Palm',
+    nurseryName: 'Green Paradise Flora',
+    inquiryType: 'WhatsApp',
+    timestamp: '2026-10-29 12:45 PM',
+    status: 'Converted',
+    notes: 'Ordered 3 indoor decorative plants with ceramic pots for home balcony in Tarabai Park.'
+  },
+  {
+    id: 'inq-4',
+    customerName: 'Sagar Shinde',
+    customerPhone: '9890123456',
+    customerCity: 'Karad',
+    plantName: 'Tissue Culture Sagwan (Teak Wood)',
+    nurseryName: 'Krishna Agriculture Nursery',
+    inquiryType: 'Call',
+    timestamp: '2026-10-29 01:20 PM',
+    status: 'New',
+    notes: 'Asked for quotation of 500 teak plants with transportation charges to Oglewadi.'
+  },
+  {
+    id: 'inq-5',
+    customerName: 'Priya Deshmukh',
+    customerPhone: '9156789012',
+    customerCity: 'Sangli',
+    plantName: 'Desi Rose & Mogra',
+    nurseryName: 'Shree Ganesh Nursery & Farm',
+    inquiryType: 'WhatsApp',
+    timestamp: '2026-10-29 02:05 PM',
+    status: 'Contacted',
+    notes: 'Wanted 10 blooming rose pots and mogra for terrace garden setup.'
+  },
+  {
+    id: 'inq-6',
+    customerName: 'Vikram Mohite',
+    customerPhone: '9637890123',
+    customerCity: 'Sangli',
+    plantName: 'F1 Hybrid Tomato Seedlings',
+    nurseryName: 'Bhushan Hi-Tech Nursery',
+    inquiryType: 'Call',
+    timestamp: '2026-10-29 03:40 PM',
+    status: 'New',
+    notes: 'Farmer asking for immediate delivery of 4 trays (400 seedlings) of Abhinav tomato.'
+  }
+];
 
-export const CITY_COVERAGE = [];
+export const PLANT_CATEGORIES = [
+  'Fruit Trees',
+  'Indoor Plants',
+  'Flowering Plants',
+  'Farm Trees',
+  'Vegetables'
+];
 
-export const RECENT_ACTIVITIES = [];
+export const RECENT_ACTIVITIES = [
+  {
+    id: 'act-1',
+    type: 'inquiry',
+    title: 'New WhatsApp Inquiry',
+    titleMr: 'नवीन व्हॉट्सॲप चौकशी',
+    desc: 'Rahul Patil asked for Kesar Mango at Bhushan Hi-Tech Nursery.',
+    descMr: 'राहुल पाटील यांनी केसर आंब्याची चौकशी केली.',
+    time: '15 mins ago'
+  },
+  {
+    id: 'act-2',
+    type: 'nursery',
+    title: 'New Nursery Application',
+    titleMr: 'नवीन रोपवाटिका अर्ज',
+    desc: 'Green Paradise Flora submitted registration documents for Sangli hub.',
+    descMr: 'ग्रीन पॅराडाईज फ्लोरा यांनी सांगली हबसाठी नोंदणी अर्ज सादर केला.',
+    time: '2 hours ago'
+  },
+  {
+    id: 'act-3',
+    type: 'approval',
+    title: 'Nursery Approved',
+    titleMr: 'रोपवाटिका मंजूर',
+    desc: 'Krishna Agriculture Nursery was successfully approved and verified.',
+    descMr: 'कृष्णा ॲग्रिकल्चर रोपवाटिका पडताळणी पूर्ण होऊन मंजूर झाली.',
+    time: 'Yesterday'
+  },
+  {
+    id: 'act-4',
+    type: 'plant',
+    title: 'New Plant Cataloged',
+    titleMr: 'नवीन वनस्पती समाविष्ट',
+    desc: 'Sardar Guava (L-49) added to Shree Ganesh Nursery.',
+    descMr: 'श्री गणेश रोपवाटिकेत सरदार पेरूची रोपे जोडली गेली.',
+    time: '2 days ago'
+  }
+];
 
 export const FALLBACK_PLANT_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='none' stroke='%232E7D32' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='100%25' height='100%25' fill='%23F0FDF4'/%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z'/%3E%3C/svg%3E";
 
 export const FALLBACK_NURSERY_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250' viewBox='0 0 24 24' fill='none' stroke='%231E5631' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='100%25' height='100%25' fill='%23E8F5E9'/%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E";
-
-export const PRESET_PLANT_PHOTOS = [
-  { label: 'Mango Tree', labelMr: 'आंबा (कलम)', url: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80' },
-  { label: 'Pomegranate', labelMr: 'डाळिंब (भगवा)', url: 'https://images.unsplash.com/photo-1541344999736-83eca272f6fc?auto=format&fit=crop&w=600&q=80' },
-  { label: 'Guava Fruit', labelMr: 'पेरू (सरदार)', url: 'https://images.unsplash.com/photo-1536511132770-e5058c7e8c46?auto=format&fit=crop&w=600&q=80' },
-  { label: 'Monstera Plant', labelMr: 'मॉन्स्टेरा', url: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=600&q=80' },
-  { label: 'Areca Palm', labelMr: 'अरेका पाम', url: 'https://images.pexels.com/photos/3126442/pexels-photo-3126442.jpeg?auto=compress&cs=tinysrgb&w=600' },
-  { label: 'Snake Plant', labelMr: 'स्नेक प्लांट', url: 'https://images.unsplash.com/photo-1547306720-ad507f7d4d7b?auto=format&fit=crop&w=600&q=80' },
-  { label: 'Desi Rose', labelMr: 'गुलाब (देशी)', url: 'https://images.unsplash.com/photo-1518709779341-56cf4535e94b?auto=format&fit=crop&w=600&q=80' },
-  { label: 'Jasmine / Mogra', labelMr: 'मोगरा / जाई', url: 'https://images.pexels.com/photos/54608/flower-jasmine-bush-white-54608.jpeg?auto=compress&cs=tinysrgb&w=600' },
-  { label: 'Teak / Sagwan', labelMr: 'सागवान (टिश्यू)', url: 'https://images.pexels.com/photos/34506875/pexels-photo-34506875.jpeg?auto=compress&cs=tinysrgb&w=600' },
-  { label: 'Bamboo Clump', labelMr: 'बांबू (मानवेल)', url: 'https://images.unsplash.com/photo-1583642037383-861ac716c3f0?auto=format&fit=crop&w=600&q=80' },
-  { label: 'Tomato Seedlings', labelMr: 'टोमॅटो रोपे', url: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80' },
-  { label: 'Capsicum / Chilli', labelMr: 'मिरची / ढोबळी', url: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=600&q=80' }
-];

@@ -1,511 +1,309 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Sprout, Search, Filter, Plus, CheckCircle2, AlertTriangle, 
-  Trash2, RefreshCw, Eye, Tag, Store, DollarSign, X, Check,
-  Leaf, Info, SearchX, Sparkles, RotateCcw
+  Sprout, Search, Plus, Edit2, Trash2, Tag, Check, X, 
+  ExternalLink, Building2, AlertCircle, RefreshCw
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { fuzzyFilter } from '../../utils/fuzzySearch';
+import { PLANT_CATEGORIES, FALLBACK_PLANT_IMAGE } from '../../data/mockData';
+import AddPlantModal from '../common/AddPlantModal';
+import EditPlantModal from '../common/EditPlantModal';
 
 export default function PlantCatalogView({ 
   plants = [], 
-  nurseries = [], 
-  onOpenAddModal, 
-  onToggleStock, 
+  nurseries = [],
+  onAddPlant,
+  onUpdatePlant,
   onDeletePlant,
-  onShowToast
+  onToggleStock,
+  onOpenAddModal,
+  isAddModalOpen,
+  onCloseAddModal,
+  searchQuery = ''
 }) {
   const { t, lang } = useLanguage();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedStock, setSelectedStock] = useState('all');
-  const [selectedNursery, setSelectedNursery] = useState('all');
-  const [inspectingPlant, setInspectingPlant] = useState(null);
+  const [selectedStock, setSelectedStock] = useState('all'); // 'all', 'in_stock', 'out_of_stock'
 
-  const categories = [
-    { id: 'all', labelEn: 'All Categories', labelMr: 'सर्व प्रकार' },
-    { id: 'Fruit Trees', labelEn: 'Fruit Trees', labelMr: 'फळझाडे' },
-    { id: 'Indoor', labelEn: 'Indoor Plants', labelMr: 'घरातील झाडे' },
-    { id: 'Flowers', labelEn: 'Flowers & Garden', labelMr: 'फुलझाडे' },
-    { id: 'Farm Trees', labelEn: 'Farm & Forestry Trees', labelMr: 'शेती झाडे' },
-    { id: 'Vegetables', labelEn: 'Vegetables', labelMr: 'भाजीपाला' },
-  ];
+  // Edit Modal State
+  const [editingPlant, setEditingPlant] = useState(null);
 
-  // 1. First apply Category, Stock, and Nursery dropdown filters
-  const categoryFilteredPlants = useMemo(() => {
-    return plants.filter((plant) => {
+  // Filter plants based on search, category, and stock
+  const filteredPlants = useMemo(() => {
+    const q = (localSearch || searchQuery).toLowerCase().trim();
+
+    return plants.filter(p => {
       // Category filter
-      if (selectedCategory !== 'all' && plant.category !== selectedCategory) {
+      if (selectedCategory !== 'all' && p.category !== selectedCategory) {
         return false;
       }
-      // Stock status filter
-      if (selectedStock === 'in_stock' && plant.stockStatus !== 'in_stock') return false;
-      if (selectedStock === 'out_of_stock' && plant.stockStatus !== 'out_of_stock') return false;
 
-      // Nursery filter
-      if (selectedNursery !== 'all' && plant.nurseryId !== selectedNursery) return false;
+      // Stock status filter
+      if (selectedStock !== 'all' && p.stockStatus !== selectedStock) {
+        return false;
+      }
+
+      // Search by name (English or Marathi), botanical name, nursery
+      if (q) {
+        const nameEn = (p.nameEn || p.name || '').toLowerCase();
+        const nameMr = (p.nameMr || '').toLowerCase();
+        const bot = (p.botanicalName || '').toLowerCase();
+        const nursery = (p.nurseryName || '').toLowerCase();
+
+        return nameEn.includes(q) || nameMr.includes(q) || bot.includes(q) || nursery.includes(q);
+      }
 
       return true;
     });
-  }, [plants, selectedCategory, selectedStock, selectedNursery]);
-
-  // 2. Apply Fuzzy Search with Typo Tolerance
-  const { results: filteredPlants, closestSuggestion } = useMemo(() => {
-    return fuzzyFilter(categoryFilteredPlants, searchQuery, (plant) => [
-      plant.nameEn,
-      plant.nameMr,
-      plant.botanicalName,
-      plant.category,
-      plant.categoryMr,
-      plant.nurseryName,
-      plant.descriptionEn,
-      plant.descriptionMr
-    ]);
-  }, [categoryFilteredPlants, searchQuery]);
-
-  // Detect if any items were matched via typo tolerance (not strict substring)
-  const isTypoTolerantMatch = useMemo(() => {
-    if (!searchQuery.trim() || filteredPlants.length === 0) return false;
-    const q = searchQuery.toLowerCase().trim();
-    // If none of the matched plants strictly contain the substring, it was a typo-tolerant match!
-    const hasExactSubstring = filteredPlants.some(p => 
-      p.nameEn?.toLowerCase().includes(q) ||
-      p.nameMr?.includes(q) ||
-      p.botanicalName?.toLowerCase().includes(q)
-    );
-    return !hasExactSubstring;
-  }, [searchQuery, filteredPlants]);
-
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('all');
-    setSelectedStock('all');
-    setSelectedNursery('all');
-  };
+  }, [plants, selectedCategory, selectedStock, localSearch, searchQuery]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-5">
       
-      {/* Header & Add Plant Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Title & Add Plant Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <Sprout className="w-6 h-6 text-[#1E5631]" />
-            {t('catalogTitle')}
+            {t('plantCatalogTitle')}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            {t('catalogSubtitle')}
+          <p className="text-xs text-slate-500 mt-0.5">
+            {t('plantCatalogSubtitle')}
           </p>
         </div>
 
         <button
           onClick={onOpenAddModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-950/20 transition-all active:scale-95"
+          className="px-4 py-2 rounded-xl bg-[#1E5631] hover:bg-[#2E7D32] text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
         >
-          <Plus className="w-4 h-4 text-emerald-300" />
-          <span>{t('btnAddPlant')}</span>
+          <Plus className="w-4 h-4" />
+          <span>{t('btnAddNewPlant')}</span>
         </button>
       </div>
 
-      {/* Category Pills Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {categories.map((cat) => {
-          const isSelected = selectedCategory === cat.id;
-          const count = cat.id === 'all' 
-            ? plants.length 
-            : plants.filter(p => p.category === cat.id).length;
-
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                isSelected
-                  ? 'bg-[#1E5631] text-white shadow-sm'
-                  : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
-              }`}
-            >
-              <span>{lang === 'mr' ? cat.labelMr : cat.labelEn}</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-              }`}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Search & Stock Filter Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
-        {/* Search with Typo Tolerance Indicator */}
-        <div className="sm:col-span-2 relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
+      {/* Filter Toolbar (Section 6 Requirement) */}
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        
+        {/* Search Input */}
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('searchPlantPlaceholder')}
-            className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-[#F8FAF9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/20 focus:border-[#2E7D32] transition-all text-slate-800"
+            value={localSearch}
+            onChange={e => setLocalSearch(e.target.value)}
+            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#2E7D32]"
           />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-              title="Clear search"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
         </div>
 
-        {/* Stock Filter */}
-        <div className="relative">
+        {/* Category & Stock Dropdowns */}
+        <div className="flex items-center gap-2 flex-wrap">
+          
+          {/* Category Dropdown */}
           <select
-            value={selectedStock}
-            onChange={(e) => setSelectedStock(e.target.value)}
-            className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-[#F8FAF9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/20 focus:border-[#2E7D32] transition-all text-slate-700"
+            value={selectedCategory}
+            onChange={e => setSelectedCategory(e.target.value)}
+            className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#2E7D32] bg-white text-slate-700"
           >
-            <option value="all">{t('allStock')}</option>
-            <option value="in_stock">{t('stockInStock')}</option>
-            <option value="out_of_stock">{t('stockOutOfStock')}</option>
-          </select>
-        </div>
-
-        {/* Source Nursery Filter */}
-        <div className="relative">
-          <select
-            value={selectedNursery}
-            onChange={(e) => setSelectedNursery(e.target.value)}
-            className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-[#F8FAF9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/20 focus:border-[#2E7D32] transition-all text-slate-700"
-          >
-            <option value="all">{lang === 'mr' ? 'सर्व रोपवाटिका' : 'All Nurseries'}</option>
-            {nurseries.map((n) => (
-              <option key={n.id} value={n.id}>
-                {lang === 'mr' && n.nameMr ? n.nameMr : (n.name || n.nurseryName || 'Nursery')}
+            <option value="all">{t('filterAllCategories')}</option>
+            {PLANT_CATEGORIES.map(cat => (
+              <option key={cat} value={cat}>
+                {lang === 'mr' ? (
+                  cat === 'Fruit Trees' ? t('catFruitTrees') :
+                  cat === 'Indoor Plants' ? t('catIndoorPlants') :
+                  cat === 'Flowering Plants' ? t('catFloweringPlants') :
+                  cat === 'Farm Trees' ? t('catFarmTrees') : t('catVegetables')
+                ) : cat}
               </option>
             ))}
           </select>
+
+          {/* Stock Dropdown */}
+          <select
+            value={selectedStock}
+            onChange={e => setSelectedStock(e.target.value)}
+            className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#2E7D32] bg-white text-slate-700"
+          >
+            <option value="all">{t('filterAllStock')}</option>
+            <option value="in_stock">{t('filterInStock')}</option>
+            <option value="out_of_stock">{t('filterOutOfStock')}</option>
+          </select>
+
+          {(selectedCategory !== 'all' || selectedStock !== 'all' || localSearch) && (
+            <button
+              onClick={() => {
+                setSelectedCategory('all');
+                setSelectedStock('all');
+                setLocalSearch('');
+              }}
+              className="text-xs text-rose-600 font-semibold px-2 py-1 hover:underline cursor-pointer"
+            >
+              {t('clearFilters')}
+            </button>
+          )}
+
         </div>
+
       </div>
 
-      {/* Typo Tolerance Notice Banner when spelling mistake was corrected */}
-      {isTypoTolerantMatch && (
-        <div className="px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between text-xs text-amber-900 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>
-              <b>{lang === 'mr' ? 'स्पेलिंग जुळवणी:' : 'Spelling Match:'}</b> {t('searchTypoNotice')} (<b>"{searchQuery}"</b>)
-            </span>
-          </div>
-          <span className="font-semibold text-amber-800">
-            {filteredPlants.length} {lang === 'mr' ? 'झाडे सापडली' : 'plants matched'}
-          </span>
-        </div>
-      )}
-
-      {/* Master Plant Table or "Not Found" State */}
+      {/* Plants Table (Section 6 Requirement) */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        
-        {filteredPlants.length === 0 ? (
-          /* PRODUCT NOT FOUND BANNER & EMPTY STATE */
-          <div className="p-8 sm:p-12 text-center">
-            <div className="w-20 h-20 rounded-3xl bg-amber-50 border-2 border-amber-200/80 flex items-center justify-center mx-auto text-amber-700 mb-4 shadow-sm animate-in zoom-in-90">
-              <SearchX className="w-10 h-10" />
-            </div>
-
-            <div className="inline-block px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 mb-3">
-              {t('productNotFound')}
-            </div>
-
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">
-              {searchQuery ? (
-                <>
-                  {t('noResultsFor')} <span className="text-[#1E5631]">"{searchQuery}"</span>
-                </>
-              ) : (
-                lang === 'mr' ? 'कोणतीही वनस्पती उपलब्ध नाही' : 'No plants match the selected criteria'
-              )}
-            </h3>
-
-            {/* Did you mean suggestion if available */}
-            {closestSuggestion && (
-              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs">
-                <span className="text-emerald-900 font-medium">{t('didYouMean')}</span>
-                <button
-                  onClick={() => setSearchQuery(closestSuggestion)}
-                  className="font-bold text-[#1E5631] underline hover:text-[#2E7D32]"
-                >
-                  "{closestSuggestion}"
-                </button>
-              </div>
-            )}
-
-            <p className="text-xs sm:text-sm text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
-              {t('searchTip')}
-            </p>
-
-            {/* Quick Action Buttons */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all flex items-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4 text-slate-600" />
-                  <span>{t('clearSearch')}</span>
-                </button>
-              )}
-
-              {(selectedCategory !== 'all' || selectedStock !== 'all' || selectedNursery !== 'all') && (
-                <button
-                  onClick={handleClearFilters}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all"
-                >
-                  {lang === 'mr' ? 'सर्व फिल्टर काढा' : 'Clear All Filters'}
-                </button>
-              )}
-
-              <button
-                onClick={onOpenAddModal}
-                className="px-5 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-md shadow-emerald-950/20 transition-all flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4 text-emerald-300" />
-                <span>{t('btnAddPlant')}</span>
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* TABLE WITH RESULTS */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#F8FAF9] text-slate-500 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                <tr>
-                  <th className="py-3.5 px-4">{t('tablePhoto')}</th>
-                  <th className="py-3.5 px-4">{t('tablePlantName')}</th>
-                  <th className="py-3.5 px-4">{t('tableCategory')}</th>
-                  <th className="py-3.5 px-4">{t('tableNursery')}</th>
-                  <th className="py-3.5 px-4">{t('tablePrice')}</th>
-                  <th className="py-3.5 px-4">{t('tableStock')}</th>
-                  <th className="py-3.5 px-4 text-right">{t('tableActions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {filteredPlants.map((plant) => {
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+              <tr>
+                <th className="py-3 px-4">{t('thPhoto')}</th>
+                <th className="py-3 px-4">{t('thPlantName')}</th>
+                <th className="py-3 px-4">{t('thCategory')}</th>
+                <th className="py-3 px-4">{t('thNursery')}</th>
+                <th className="py-3 px-4">{t('thPrice')}</th>
+                <th className="py-3 px-4">{t('thStock')}</th>
+                <th className="py-3 px-4 text-right">{t('thActions')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredPlants.length > 0 ? (
+                filteredPlants.map(plant => {
                   const isInStock = plant.stockStatus === 'in_stock';
-                  const plantNamePrimary = lang === 'mr' && plant.nameMr ? plant.nameMr : plant.nameEn;
-                  const plantNameSecondary = lang === 'mr' && plant.nameMr ? plant.nameEn : plant.nameMr;
 
                   return (
-                    <tr 
-                      key={plant.id} 
-                      className={`hover:bg-slate-50/80 transition-colors ${!isInStock ? 'bg-slate-50/40 opacity-80' : ''}`}
-                    >
+                    <tr key={plant.id} className="hover:bg-slate-50/70 transition-colors">
+                      
                       {/* Photo */}
-                      <td className="py-3.5 px-4">
-                        <div 
-                          className="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-200 shadow-xs group cursor-pointer bg-slate-100"
-                          onClick={() => setInspectingPlant(plant)}
-                        >
+                      <td className="py-3 px-4">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shrink-0">
                           <img
-                            src={plant.photoUrl || plant.images?.[0] || 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80'}
-                            alt={plant.nameEn || plant.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            src={plant.photoUrl || FALLBACK_PLANT_IMAGE}
+                            alt={plant.nameEn}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.currentTarget.src = FALLBACK_PLANT_IMAGE; }}
                           />
-                          {!isInStock && (
-                            <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center">
-                              <span className="text-[8px] font-black uppercase text-white tracking-tighter">
-                                {lang === 'mr' ? 'संपला' : 'Out'}
-                              </span>
-                            </div>
-                          )}
                         </div>
                       </td>
 
-                      {/* Plant Name (Bilingual) */}
-                      <td className="py-3.5 px-4 max-w-xs">
-                        <div className="flex flex-col">
-                          <button
-                            onClick={() => setInspectingPlant(plant)}
-                            className="text-left font-bold text-slate-900 text-sm hover:text-[#1E5631] transition-colors"
-                          >
-                            {plantNamePrimary}
-                          </button>
-                          {plantNameSecondary && (
-                            <span className="text-xs text-slate-500 font-medium">
-                              {plantNameSecondary}
-                            </span>
-                          )}
-                          {plant.botanicalName && (
-                            <span className="text-[11px] text-emerald-700/80 italic font-serif mt-0.5">
-                              {plant.botanicalName}
-                            </span>
-                          )}
+                      {/* English & Marathi Name */}
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-slate-900 text-xs">
+                          {plant.nameEn}
                         </div>
+                        <div className="font-medium text-slate-600 text-[11px] mt-0.5">
+                          {plant.nameMr}
+                        </div>
+                        {plant.botanicalName && (
+                          <div className="text-[10px] text-slate-400 italic">
+                            {plant.botanicalName}
+                          </div>
+                        )}
                       </td>
 
                       {/* Category */}
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-block px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${
-                          plant.category === 'Fruit Trees' ? 'bg-emerald-50 text-[#1E5631] border-emerald-200' :
-                          plant.category === 'Indoor' ? 'bg-teal-50 text-teal-800 border-teal-200' :
-                          plant.category === 'Flowers' ? 'bg-rose-50 text-rose-800 border-rose-200' :
-                          plant.category === 'Farm Trees' ? 'bg-green-50 text-green-900 border-green-300' :
-                          'bg-amber-50 text-amber-900 border-amber-200'
-                        }`}>
-                          {lang === 'mr' ? plant.categoryMr || plant.category : plant.category}
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
+                          <Tag className="w-3 h-3 text-[#2E7D32]" />
+                          {lang === 'mr' ? (
+                            plant.category === 'Fruit Trees' ? t('catFruitTrees') :
+                            plant.category === 'Indoor Plants' ? t('catIndoorPlants') :
+                            plant.category === 'Flowering Plants' ? t('catFloweringPlants') :
+                            plant.category === 'Farm Trees' ? t('catFarmTrees') : t('catVegetables')
+                          ) : plant.category}
                         </span>
                       </td>
 
                       {/* Nursery Name */}
-                      <td className="py-3.5 px-4 font-semibold text-slate-800 max-w-[160px] truncate" title={plant.nurseryName}>
+                      <td className="py-3 px-4 font-semibold text-slate-700">
                         <div className="flex items-center gap-1.5">
-                          <Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span className="truncate">{plant.nurseryName || 'Local Nursery'}</span>
+                          <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{plant.nurseryName}</span>
                         </div>
                       </td>
 
                       {/* Price Range */}
-                      <td className="py-3.5 px-4">
-                        <span className="text-sm font-black text-slate-900">
-                          ₹{plant.priceMin ?? plant.price ?? 100} - ₹{plant.priceMax ?? plant.price ?? 150}
-                        </span>
-                        <span className="text-[10px] text-slate-400 block">
-                          {plant.unit || t('perUnit')}
-                        </span>
+                      <td className="py-3 px-4 font-bold text-slate-900 font-mono">
+                        ₹{plant.priceMin} - ₹{plant.priceMax}
                       </td>
 
-                      {/* Stock Status Pill & Quick Toggle */}
-                      <td className="py-3.5 px-4">
+                      {/* Stock Status Badge & Quick Toggle */}
+                      <td className="py-3 px-4">
                         <button
                           onClick={() => onToggleStock(plant.id)}
-                          title={t('toggleStock')}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-xs ${
-                            isInStock
-                              ? 'bg-emerald-100 hover:bg-emerald-200 text-[#1E5631] border border-emerald-300/80'
-                              : 'bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300/80'
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                            isInStock 
+                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' 
+                              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                           }`}
+                          title={t('toggleStock')}
                         >
-                          <span className={`w-2 h-2 rounded-full ${isInStock ? 'bg-emerald-600' : 'bg-rose-600'}`} />
-                          <span>{isInStock ? t('stockInStock') : t('stockOutOfStock')}</span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isInStock ? 'bg-emerald-600' : 'bg-slate-500'}`} />
+                          {isInStock ? t('stockIn') : t('stockOut')}
                         </button>
                       </td>
 
-                      {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* Inspect Info */}
+                      {/* Actions: Edit & Delete */}
+                      <td className="py-3 px-4 text-right">
+                        <div className="inline-flex items-center gap-1.5 justify-end">
+                          
+                          {/* Edit Action Button */}
                           <button
-                            onClick={() => setInspectingPlant(plant)}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors"
-                            title="View description & specs"
+                            onClick={() => setEditingPlant(plant)}
+                            className="p-1.5 text-slate-600 hover:text-[#1E5631] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                            title={t('btnEdit')}
                           >
-                            <Info className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
 
-                          {/* Quick Toggle Stock */}
+                          {/* Delete Action Button */}
                           <button
-                            onClick={() => onToggleStock(plant.id)}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors"
-                            title={t('toggleStock')}
+                            onClick={() => {
+                              if (window.confirm(lang === 'mr' ? 'तुम्हाला ही वनस्पती कॅटलॉगमधून काढून टाकायची आहे का?' : 'Are you sure you want to delete this plant?')) {
+                                onDeletePlant(plant.id);
+                              }
+                            }}
+                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title={t('btnDelete')}
                           >
-                            <RefreshCw className="w-4 h-4 text-[#2E7D32]" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
 
-                          {/* Delete Variety */}
-                          <button
-                            onClick={() => onDeletePlant(plant.id)}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-rose-50 text-rose-600 transition-colors"
-                            title="Remove from catalog"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </div>
                       </td>
+
                     </tr>
                   );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                })
+              ) : (
+                <tr>
+                  <td colSpan="7" className="py-12 text-center text-slate-400">
+                    <Sprout className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-semibold">{t('noResultsFound')}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{t('noResultsDesc')}</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Quick Plant Details Modal */}
-      {inspectingPlant && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="relative h-48 bg-slate-900">
-              <img 
-                src={inspectingPlant.photoUrl || 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80'} 
-                alt={inspectingPlant.nameEn} 
-                className="w-full h-full object-cover" 
-              />
-              <button
-                onClick={() => setInspectingPlant(null)}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/80"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* Add Plant Modal */}
+      {isAddModalOpen && (
+        <AddPlantModal
+          isOpen={isAddModalOpen}
+          onClose={onCloseAddModal}
+          onAddPlant={onAddPlant}
+          nurseries={nurseries}
+        />
+      )}
 
-            <div className="p-5 space-y-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#1E5631] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                  {inspectingPlant.category}
-                </span>
-                <h3 className="text-lg font-black text-slate-900 mt-1">
-                  {lang === 'mr' && inspectingPlant.nameMr ? inspectingPlant.nameMr : inspectingPlant.nameEn}
-                </h3>
-                {inspectingPlant.botanicalName && (
-                  <p className="text-xs text-slate-500 font-serif italic">
-                    {inspectingPlant.botanicalName}
-                  </p>
-                )}
-              </div>
-
-              <div className="p-3 bg-[#F8FAF9] rounded-xl border border-slate-200 space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">{t('tableNursery')}:</span>
-                  <span className="font-bold text-slate-800">{inspectingPlant.nurseryName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">{t('tablePrice')}:</span>
-                  <span className="font-black text-[#1E5631]">₹{inspectingPlant.priceMin} - ₹{inspectingPlant.priceMax}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">{t('unitType')}:</span>
-                  <span className="font-semibold text-slate-700">{inspectingPlant.unit}</span>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold uppercase text-slate-400 mb-1">
-                  {lang === 'mr' ? 'वर्णन' : 'Description'}
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {lang === 'mr' && inspectingPlant.descriptionMr ? inspectingPlant.descriptionMr : inspectingPlant.descriptionEn}
-                </p>
-              </div>
-
-              <div className="pt-2 flex items-center justify-between border-t border-slate-100">
-                <button
-                  onClick={() => onToggleStock(inspectingPlant.id)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 transition-colors"
-                >
-                  {t('toggleStock')}
-                </button>
-                <button
-                  onClick={() => setInspectingPlant(null)}
-                  className="px-4 py-2 rounded-xl bg-[#1E5631] text-white text-xs font-bold hover:bg-[#184729] transition-colors"
-                >
-                  {t('closeModal')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Edit Plant Modal */}
+      {editingPlant && (
+        <EditPlantModal
+          plant={editingPlant}
+          isOpen={Boolean(editingPlant)}
+          onClose={() => setEditingPlant(null)}
+          onUpdatePlant={onUpdatePlant}
+          nurseries={nurseries}
+        />
       )}
 
     </div>

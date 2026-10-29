@@ -1,23 +1,26 @@
 import React, { useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
 
-export default function Toast({ toast, onClose }) {
+export default function Toast({ toast, onClose, type, title, message }) {
+  const finalType = type || toast?.type || 'success';
+  const finalTitle = title || toast?.title || '';
+  const finalMessage = message || toast?.message || '';
+
   useEffect(() => {
-    if (!toast) return;
     const timer = setTimeout(() => {
-      onClose();
+      if (onClose) onClose();
     }, 4000);
     return () => clearTimeout(timer);
-  }, [toast, onClose]);
+  }, [onClose, finalTitle]);
 
-  if (!toast) return null;
+  if (!toast && !title) return null;
 
-  const isSuccess = toast.type === 'success';
-  const isError = toast.type === 'error';
+  const isSuccess = finalType === 'success';
+  const isError = finalType === 'error';
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 max-w-md animate-bounce-subtle">
-      <div className={`flex items-start gap-3 p-4 rounded-xl shadow-xl border backdrop-blur-md transition-all ${
+    <div className="fixed bottom-6 right-6 z-50 max-w-md animate-in fade-in slide-in-from-bottom-5">
+      <div className={`flex items-start gap-3 p-4 rounded-2xl shadow-xl border backdrop-blur-md transition-all ${
         isSuccess 
           ? 'bg-[#1E5631]/95 text-white border-emerald-500/50' 
           : isError 
@@ -31,9 +34,9 @@ export default function Toast({ toast, onClose }) {
         </div>
         
         <div className="flex-1 pr-2">
-          <p className="text-sm font-semibold">{toast.title}</p>
-          {toast.message && (
-            <p className="text-xs text-slate-200 mt-0.5 leading-relaxed">{toast.message}</p>
+          <p className="text-xs font-bold">{finalTitle}</p>
+          {finalMessage && (
+            <p className="text-[11px] text-slate-200 mt-0.5 leading-relaxed">{finalMessage}</p>
           )}
         </div>
 
