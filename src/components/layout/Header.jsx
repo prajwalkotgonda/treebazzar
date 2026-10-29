@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Search, Bell, Languages, Menu, X, ArrowRight, ShieldCheck 
+  Search, Bell, Languages, Menu, X, ArrowRight, ShieldCheck, LogOut 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -10,7 +10,8 @@ export default function Header({
   pendingCount = 0, 
   onNavigate, 
   searchQuery,
-  onSearchChange
+  onSearchChange,
+  onLogout
 }) {
   const { lang, toggleLanguage, t } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -155,6 +156,19 @@ export default function Header({
                 {t('adminRole')}
               </span>
             </div>
+
+            {/* Logout Button */}
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                title={t('logoutBtn')}
+                className="p-1.5 ml-1 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border border-transparent hover:border-rose-100"
+                aria-label="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
         </div>

@@ -203,6 +203,17 @@ export const translations = {
     toastInquiryStatusUpdated: 'Inquiry Status Updated',
     toastDemoReset: 'Demo Data Restored',
 
+    // Auth & Login
+    loginPrompt: 'Sign in to access your local nursery marketplace admin dashboard.',
+    emailLabel: 'Email Address or Username',
+    passwordLabel: 'Password',
+    rememberMe: 'Remember me on this browser',
+    signInBtn: 'Sign In to Dashboard',
+    demoLoginBtn: '1-Click Quick Demo Login',
+    invalidCreds: 'Invalid credentials. Use admin@treebazzar.com / admin123 or click Quick Demo.',
+    logoutBtn: 'Logout',
+    logoutSuccess: 'Logged Out Successfully',
+
     // Categories
     catFruitTrees: 'Fruit Trees',
     catIndoorPlants: 'Indoor Plants',
@@ -410,6 +421,17 @@ export const translations = {
     toastStockToggled: 'स्टॉक स्थिती बदलली',
     toastInquiryStatusUpdated: 'चौकशी स्थिती अद्ययावत केली',
     toastDemoReset: 'नमुना डेटा पूर्ववत केला',
+
+    // Auth & Login
+    loginPrompt: 'स्थानिक रोपवाटिका ॲडमिन पॅनेलमध्ये प्रवेश करण्यासाठी लॉगिन करा.',
+    emailLabel: 'ईमेल किंवा युझरनेम',
+    passwordLabel: 'पासवर्ड',
+    rememberMe: 'माझे लॉगिन लक्षात ठेवा',
+    signInBtn: 'डॅशबोर्डवर लॉगिन करा',
+    demoLoginBtn: '१-क्लिक झटपट डेमो लॉगिन',
+    invalidCreds: 'चुकीची माहिती. admin@treebazzar.com / admin123 वापरा किंवा डेमो लॉगिनवर क्लिक करा.',
+    logoutBtn: 'लॉगआउट',
+    logoutSuccess: 'यशस्वीरित्या लॉगआउट झाले',
 
     // Categories
     catFruitTrees: 'फळझाडे',

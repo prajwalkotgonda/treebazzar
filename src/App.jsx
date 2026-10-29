@@ -6,6 +6,7 @@ import OverviewView from './components/dashboard/OverviewView';
 import NurseryManagementView from './components/nurseries/NurseryManagementView';
 import PlantCatalogView from './components/plants/PlantCatalogView';
 import CustomerLeadsView from './components/leads/CustomerLeadsView';
+import LoginPage from './components/auth/LoginPage';
 import Toast from './components/common/Toast';
 import { 
   INITIAL_NURSERIES, 
@@ -14,7 +15,7 @@ import {
 } from './data/mockData';
 import { Info } from 'lucide-react';
 
-function DashboardContent() {
+function DashboardContent({ onLogout }) {
   const { t, lang } = useLanguage();
 
   // Navigation & View State
@@ -217,6 +218,7 @@ function DashboardContent() {
           onNavigate={handleNavigate}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          onLogout={onLogout}
         />
 
         {/* Demo Data Disclaimer Banner */}
@@ -310,10 +312,78 @@ function DashboardContent() {
   );
 }
 
+function AppRoot() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('tb_admin_auth') === 'true' || 
+           sessionStorage.getItem('tb_admin_auth') === 'true';
+  });
+  const [authToast, setAuthToast] = useState(null);
+  const { lang, t } = useLanguage();
+
+  const handleLogin = ({ email, rememberMe }) => {
+    if (rememberMe) {
+      localStorage.setItem('tb_admin_auth', 'true');
+    } else {
+      sessionStorage.setItem('tb_admin_auth', 'true');
+    }
+    setIsAuthenticated(true);
+    setAuthToast({
+      type: 'success',
+      title: lang === 'mr' ? 'स्वागत आहे!' : 'Welcome Back!',
+      message: lang === 'mr' 
+        ? 'ट्री बाजार ॲडमिन पॅनेलमध्ये आपले स्वागत आहे.' 
+        : `Signed in successfully as ${email}`
+    });
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('tb_admin_auth');
+    sessionStorage.removeItem('tb_admin_auth');
+    setIsAuthenticated(false);
+    setAuthToast({
+      type: 'info',
+      title: t('logoutSuccess'),
+      message: lang === 'mr' 
+        ? 'तुम्ही यशस्वीरित्या लॉगआउट झाला आहात.' 
+        : 'You have been signed out safely.'
+    });
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <LoginPage onLogin={handleLogin} />
+        {authToast && (
+          <Toast
+            type={authToast.type}
+            title={authToast.title}
+            message={authToast.message}
+            onClose={() => setAuthToast(null)}
+          />
+        )}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <DashboardContent onLogout={handleLogout} />
+      {authToast && (
+        <Toast
+          type={authToast.type}
+          title={authToast.title}
+          message={authToast.message}
+          onClose={() => setAuthToast(null)}
+        />
+      )}
+    </>
+  );
+}
+
 export default function App() {
   return (
     <LanguageProvider>
-      <DashboardContent />
+      <AppRoot />
     </LanguageProvider>
   );
 }
