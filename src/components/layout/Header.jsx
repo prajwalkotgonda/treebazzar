@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Search, Bell, Languages, Menu, X, ArrowRight, ShieldCheck, 
-  Store, Sprout, MessageSquare, LayoutDashboard, Settings
+  Search, Bell, Languages, Menu, X, ArrowRight, ShieldCheck 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -21,8 +20,7 @@ export default function Header({
     dashboard: t('navDashboard'),
     nurseries: t('navNurseries'),
     plants: t('navPlants'),
-    inquiries: t('navInquiries'),
-    settings: t('navSettings')
+    inquiries: t('navInquiries')
   }[activeView] || t('navDashboard');
 
   return (
@@ -33,7 +31,7 @@ export default function Header({
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label="Toggle Navigation Sidebar"
           >
             <Menu className="w-5 h-5" />
@@ -64,7 +62,7 @@ export default function Header({
             {searchQuery && (
               <button
                 onClick={() => onSearchChange('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -127,7 +125,7 @@ export default function Header({
                           setShowNotifications(false);
                           onNavigate('nurseries', 'pending');
                         }}
-                        className="w-full py-1.5 px-3 bg-[#1E5631] hover:bg-[#2E7D32] text-white rounded-lg text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-1.5 px-3 bg-[#1E5631] hover:bg-[#2E7D32] text-white rounded-lg text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <span>{t('viewAllAlerts')}</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -143,7 +141,7 @@ export default function Header({
             )}
           </div>
 
-          {/* Admin Profile Avatar & Name (Section 9 Requirement) */}
+          {/* Admin Profile Avatar & Name */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1E5631] to-[#2E7D32] flex items-center justify-center text-white font-bold text-xs shadow-xs">
               AS

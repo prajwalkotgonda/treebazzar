@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  LayoutDashboard, Store, Sprout, MessageSquare, Settings, LogOut, 
+  LayoutDashboard, Store, Sprout, MessageSquare, 
   Leaf, ChevronRight, Sparkles, MapPin, X
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
@@ -11,8 +11,7 @@ export default function Sidebar({
   pendingCount = 0,
   leadsCount = 0,
   isOpen, 
-  onClose,
-  onOpenLogout
+  onClose
 }) {
   const { t, lang } = useLanguage();
 
@@ -46,12 +45,6 @@ export default function Sidebar({
         text: `${leadsCount}`,
         color: 'bg-emerald-600 text-white'
       } : null,
-    },
-    {
-      id: 'settings',
-      label: t('navSettings'),
-      icon: Settings,
-      badge: null,
     },
   ];
 
@@ -100,7 +93,7 @@ export default function Sidebar({
 
             <button
               onClick={onClose}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"
+              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -134,7 +127,7 @@ export default function Sidebar({
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all group ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
                     isActive
                       ? 'bg-[#1E5631] text-white shadow-md shadow-emerald-950/20'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
@@ -162,22 +155,8 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {/* Bottom Section: Logout & Status Card */}
-        <div className="p-4 border-t border-slate-100 space-y-2">
-          
-          {/* Logout Button (Section 3 Requirement) */}
-          <button
-            onClick={() => {
-              if (onOpenLogout) onOpenLogout();
-              if (onClose) onClose();
-            }}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-rose-600 hover:bg-rose-50/80 hover:text-rose-700 transition-colors"
-          >
-            <LogOut className="w-4 h-4 text-rose-500 shrink-0" />
-            <span>{t('navLogout')}</span>
-          </button>
-
-          {/* Simple Demo Mode Badge */}
+        {/* Bottom Section: Clean Status Card */}
+        <div className="p-4 border-t border-slate-100">
           <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 text-[11px] text-slate-600">
             <div className="flex items-center justify-between font-bold text-[#1E5631] mb-0.5">
               <span className="flex items-center gap-1.5">
@@ -192,7 +171,6 @@ export default function Sidebar({
               {lang === 'mr' ? 'स्थानिक नमुना डेटा चालू आहे.' : 'Local demo data active.'}
             </p>
           </div>
-
         </div>
 
       </aside>

@@ -6,21 +6,19 @@ import OverviewView from './components/dashboard/OverviewView';
 import NurseryManagementView from './components/nurseries/NurseryManagementView';
 import PlantCatalogView from './components/plants/PlantCatalogView';
 import CustomerLeadsView from './components/leads/CustomerLeadsView';
-import SettingsView from './components/settings/SettingsView';
-import LogoutModal from './components/common/LogoutModal';
 import Toast from './components/common/Toast';
 import { 
   INITIAL_NURSERIES, 
   INITIAL_PLANTS, 
   INITIAL_INQUIRIES 
 } from './data/mockData';
-import { Info, LogIn } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 function DashboardContent() {
   const { t, lang } = useLanguage();
 
   // Navigation & View State
-  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard', 'nurseries', 'plants', 'inquiries', 'settings'
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard', 'nurseries', 'plants', 'inquiries'
   const [nurseryInitialTab, setNurseryInitialTab] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,8 +30,6 @@ function DashboardContent() {
 
   // Modals & UI States
   const [addPlantModalOpen, setAddPlantModalOpen] = useState(false);
-  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
-  const [isLoggedOut, setIsLoggedOut] = useState(false);
   const [toast, setToast] = useState(null);
 
   const pendingCount = nurseries.filter(n => n.status === 'pending').length;
@@ -189,21 +185,6 @@ function DashboardContent() {
     });
   };
 
-  // ----------------------------------------------------
-  // Demo Data Reset Action
-  // ----------------------------------------------------
-  const handleResetDemoData = () => {
-    setNurseries(INITIAL_NURSERIES);
-    setPlants(INITIAL_PLANTS);
-    setInquiries(INITIAL_INQUIRIES);
-
-    showToast({
-      type: 'success',
-      title: t('toastDemoReset'),
-      message: t('demoDataResetMsg')
-    });
-  };
-
   // Navigation Helper
   const handleNavigate = (view, subTab = 'all') => {
     setActiveView(view);
@@ -212,35 +193,10 @@ function DashboardContent() {
     }
   };
 
-  // If user simulated logout
-  if (isLoggedOut) {
-    return (
-      <div className="min-h-screen bg-[#F8FAF9] flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xl max-w-md w-full text-center">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-[#1E5631] flex items-center justify-center mx-auto mb-4 border border-emerald-100">
-            <LogIn className="w-7 h-7" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">
-            TreeBazzar Admin
-          </h2>
-          <p className="text-xs text-slate-500 mb-6">
-            {t('loggedOutNotice')}
-          </p>
-          <button
-            onClick={() => setIsLoggedOut(false)}
-            className="w-full py-2.5 px-4 bg-[#1E5631] hover:bg-[#2E7D32] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
-          >
-            {t('btnReLogin')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#F8FAF9] flex flex-col font-sans selection:bg-[#2E7D32]/20 selection:text-[#1E5631]">
       
-      {/* Sidebar Navigation (Section 3 Requirement) */}
+      {/* Sidebar Navigation */}
       <Sidebar
         activeView={activeView}
         onSelectView={setActiveView}
@@ -248,13 +204,12 @@ function DashboardContent() {
         leadsCount={inquiries.length}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        onOpenLogout={() => setLogoutModalOpen(true)}
       />
 
       {/* Main App Content Area */}
       <div className="lg:pl-72 flex-1 flex flex-col min-w-0">
         
-        {/* Top Header (Section 9 Requirement) */}
+        {/* Top Header */}
         <Header
           activeView={activeView}
           onToggleSidebar={() => setSidebarOpen(prev => !prev)}
@@ -264,7 +219,7 @@ function DashboardContent() {
           onSearchChange={setSearchQuery}
         />
 
-        {/* Demo Data Disclaimer Banner (Section 10 Requirement) */}
+        {/* Demo Data Disclaimer Banner */}
         <div className="bg-emerald-900/90 text-emerald-100 px-4 py-1.5 text-[11px] font-medium flex items-center justify-between border-b border-emerald-950/20">
           <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
             <Info className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
@@ -325,13 +280,6 @@ function DashboardContent() {
             />
           )}
 
-          {/* 5. Settings */}
-          {activeView === 'settings' && (
-            <SettingsView
-              onResetDemoData={handleResetDemoData}
-            />
-          )}
-
         </main>
 
         {/* Clean Footer */}
@@ -347,13 +295,6 @@ function DashboardContent() {
         </footer>
 
       </div>
-
-      {/* Logout Confirmation Modal */}
-      <LogoutModal
-        isOpen={logoutModalOpen}
-        onClose={() => setLogoutModalOpen(false)}
-        onConfirm={() => setIsLoggedOut(true)}
-      />
 
       {/* Global Toast Notification */}
       {toast && (
