@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import { 
   Store, AlertCircle, Sprout, MapPin, MessageSquare, Plus, 
-  ShieldCheck, ArrowRight, Clock, CheckCircle2, AlertTriangle, ExternalLink
+  ShieldCheck, ArrowRight, CheckCircle2, AlertTriangle, ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { PLANT_CATEGORIES, RECENT_ACTIVITIES } from '../../data/mockData';
+import { PLANT_CATEGORIES } from '../../data/mockData';
 
 export default function OverviewView({ 
   nurseries = [], 
@@ -282,40 +282,6 @@ export default function OverviewView({
           </div>
         </div>
 
-      </div>
-
-      {/* Recent Activities Timeline (Section 4 Requirement) */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">
-              {t('recentActivityTitle')}
-            </h3>
-            <p className="text-xs text-slate-400">
-              {t('recentActivitySubtitle')}
-            </p>
-          </div>
-          <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            {lang === 'mr' ? 'थेट अपडेट्स' : 'Live Timeline'}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {RECENT_ACTIVITIES.map((act) => (
-            <div key={act.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center justify-between text-[11px] mb-1">
-                <span className="font-bold text-slate-800">
-                  {lang === 'mr' ? act.titleMr : act.title}
-                </span>
-                <span className="text-slate-400 text-[10px]">{act.time}</span>
-              </div>
-              <p className="text-xs text-slate-600 leading-snug">
-                {lang === 'mr' ? act.descMr : act.desc}
-              </p>
-            </div>
-          ))}
-        </div>
       </div>
 
     </div>
