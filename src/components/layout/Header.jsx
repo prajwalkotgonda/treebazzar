@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Search, Bell, Languages, Menu, X, ArrowRight, ShieldCheck, LogOut 
+  Search, Bell, Languages, Menu, X, ArrowRight, ShieldCheck, LogOut, Globe 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -11,7 +11,8 @@ export default function Header({
   onNavigate, 
   searchQuery,
   onSearchChange,
-  onLogout
+  onLogout,
+  onViewWebsite
 }) {
   const { lang, toggleLanguage, t } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -71,9 +72,24 @@ export default function Header({
           </div>
         </div>
 
-        {/* Right Section: Language Toggle, Notifications, Admin Profile */}
+        {/* Right Section: View Website, Language Toggle, Notifications, Admin Profile */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           
+          {/* View Public Website Button */}
+          {onViewWebsite && (
+            <button
+              type="button"
+              onClick={onViewWebsite}
+              title={t('landingViewSite')}
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs transition-all active:scale-95 cursor-pointer shadow-2xs"
+            >
+              <Globe className="w-4 h-4 text-[#2E7D32]" />
+              <span className="text-[11px] hidden md:inline">
+                {t('landingViewSite')}
+              </span>
+            </button>
+          )}
+
           {/* English / Marathi Language Switcher */}
           <button
             onClick={toggleLanguage}

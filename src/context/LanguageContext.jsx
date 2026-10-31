@@ -219,7 +219,79 @@ export const translations = {
     catIndoorPlants: 'Indoor Plants',
     catFloweringPlants: 'Flowering Plants',
     catFarmTrees: 'Farm Trees',
-    catVegetables: 'Vegetables'
+    catVegetables: 'Vegetables',
+
+    // Landing Page
+    landingNavHome: 'Home',
+    landingNavNurseries: 'Local Nurseries',
+    landingNavPlants: 'Plant Catalog',
+    landingNavCategories: 'Categories',
+    landingNavHowItWorks: 'How It Works',
+    landingNavAdmin: 'Admin Portal',
+    landingBackToSite: 'Back to Marketplace',
+    landingViewSite: 'View Public Site',
+
+    // Hero Section
+    heroBadge: 'Regional Botanical Marketplace • Sangli • Miraj • Kolhapur',
+    heroTitleLine1: 'Discover Local Nurseries & Quality Plants',
+    heroTitleLine2: 'Across Western Maharashtra',
+    heroSubtitle: 'Directly browse genuine saplings, fruit trees, and indoor greenery from verified growers in Sangli, Miraj, Kolhapur, and Karad with zero middleman commissions.',
+    heroSearchPlaceholder: 'Search plants, mango, teak, rose, or nursery name...',
+    heroAllCities: 'All Cities',
+    heroCitySangli: 'Sangli',
+    heroCityMiraj: 'Miraj',
+    heroCityKolhapur: 'Kolhapur',
+    heroCityKarad: 'Karad',
+    heroSearchBtn: 'Find Plants',
+    heroPopularTags: 'Popular Searches:',
+    heroStatNurseries: 'Verified Nurseries',
+    heroStatPlants: 'Live Plant Varieties',
+    heroStatCities: 'Active Regional Cities',
+    heroStatDirectConnect: '100% Direct Connect',
+
+    // Categories Section
+    categoriesTitle: 'Browse by Plant Category',
+    categoriesSubtitle: 'Find the exact plants suited for your farm, home garden, or commercial landscaping.',
+    categoryAll: 'All Categories',
+
+    // Featured Nurseries
+    nurseriesTitle: 'Verified Local Nurseries',
+    nurseriesSubtitle: 'Trusted growers offering healthy stock, authentic varieties, and agricultural advice.',
+    nurseryVerifiedBadge: 'Verified Nursery',
+    nurseryEst: 'Est.',
+    nurseryPlantsAvailable: 'varieties available',
+    nurseryCallBtn: 'Call Nursery',
+    nurseryWhatsAppBtn: 'Chat on WhatsApp',
+
+    // Featured Plants
+    plantsTitle: 'Popular Plant Varieties',
+    plantsSubtitle: 'Real-time catalog from local nurseries with genuine transparent pricing.',
+    plantInStock: 'In Stock',
+    plantOutOfStock: 'Out of Stock',
+    plantInquireWhatsApp: 'Inquire on WhatsApp',
+    plantPriceLabel: 'Price',
+
+    // Why TreeBazzar
+    whyTitle: 'Why Choose TreeBazzar?',
+    whySubtitle: 'Bridging local plant nurseries directly with farmers, urban gardeners, and nature lovers.',
+    why1Title: '100% Local & Verified',
+    why1Desc: 'Every nursery is verified with genuine physical location and quality plant standards.',
+    why2Title: 'Zero Brokerage / Direct Rates',
+    why2Desc: 'Connect directly to nursery owners. Pay fair local prices without any middlemen.',
+    why3Title: 'Instant WhatsApp Connect',
+    why3Desc: 'Send pre-filled plant inquiries in 1 click and receive live sapling photos or quotes.',
+
+    // Partner CTA
+    ctaTitle: 'Are You a Nursery Owner in Western Maharashtra?',
+    ctaSubtitle: 'Join TreeBazzar today to showcase your plants to thousands of local buyers, farmers, and landscape designers.',
+    ctaButton: 'Register Your Nursery Free',
+
+    // Footer
+    footerRights: 'TreeBazzar • Local Nursery Marketplace & Plant Discovery',
+    footerQuickLinks: 'Quick Links',
+    footerRegions: 'Regional Coverage',
+    footerContact: 'Support & Help',
+    footerAdminLogin: 'Admin Sign In'
   },
 
   mr: {
@@ -438,7 +510,79 @@ export const translations = {
     catIndoorPlants: 'इनडोअर रोपे',
     catFloweringPlants: 'फुलझाडे',
     catFarmTrees: 'शेती झाडे',
-    catVegetables: 'भाजीपाला'
+    catVegetables: 'भाजीपाला',
+
+    // Landing Page
+    landingNavHome: 'मुख्यपृष्ठ',
+    landingNavNurseries: 'स्थानिक रोपवाटिका',
+    landingNavPlants: 'वनस्पती कॅटलॉग',
+    landingNavCategories: 'श्रेणी',
+    landingNavHowItWorks: 'हे कसे कार्य करते',
+    landingNavAdmin: 'ॲडमिन पोर्टल',
+    landingBackToSite: 'मुख्यपृष्ठावर जा',
+    landingViewSite: 'पब्लिक साइट पहा',
+
+    // Hero Section
+    heroBadge: 'स्थानिक रोपवाटिका बाजारपेठ • सांगली • मिरज • कोल्हापूर • कराड',
+    heroTitleLine1: 'स्थानिक रोपवाटिका आणि दर्जेदार वनस्पती',
+    heroTitleLine2: 'थेट तुमच्या जवळ शोधा',
+    heroSubtitle: 'सांगली, मिरज, कोल्हापूर आणि कराडमधील पडताळणी केलेल्या रोपवाटिकांकडून थेट दर्जेदार रोपे, फळझाडे आणि इनडोअर झाडे निवडा व व्हॉट्सॲपवर संपर्क साधा.',
+    heroSearchPlaceholder: 'झाडे, आंबा, सागवान, गुलाब किंवा नर्सरीचे नाव शोधा...',
+    heroAllCities: 'सर्व शहरे',
+    heroCitySangli: 'सांगली',
+    heroCityMiraj: 'मिरज',
+    heroCityKolhapur: 'कोल्हापूर',
+    heroCityKarad: 'कराड',
+    heroSearchBtn: 'शोधा',
+    heroPopularTags: 'लोकप्रिय शोध:',
+    heroStatNurseries: 'पडताळणी केलेल्या रोपवाटिका',
+    heroStatPlants: 'विविध वनस्पती प्रकार',
+    heroStatCities: 'सक्रिय शहरे',
+    heroStatDirectConnect: '१००% थेट संवाद',
+
+    // Categories Section
+    categoriesTitle: 'वनस्पतींच्या श्रेणीनुसार शोधा',
+    categoriesSubtitle: 'तुमची शेती, होम गार्डन किंवा लँडस्केपिंगसाठी आवश्यक असणारी झाडे निवडा.',
+    categoryAll: 'सर्व प्रकार',
+
+    // Featured Nurseries
+    nurseriesTitle: 'पडताळणी केलेल्या स्थानिक रोपवाटिका',
+    nurseriesSubtitle: 'विश्वसनीय उत्पादक, निरोगी झाडे आणि अस्सल कलमांचा दर्जेदार संग्रह.',
+    nurseryVerifiedBadge: 'पडताळणी पूर्ण',
+    nurseryEst: 'स्थापना',
+    nurseryPlantsAvailable: 'झाडांचे प्रकार उपलब्ध',
+    nurseryCallBtn: 'फोन करा',
+    nurseryWhatsAppBtn: 'व्हॉट्सॲपवर चॅट करा',
+
+    // Featured Plants
+    plantsTitle: 'लोकप्रिय वनस्पती व रोपे',
+    plantsSubtitle: 'स्थानिक रोपवाटिकांमधील थेट स्टॉक आणि वाजवी पारदर्शक दर.',
+    plantInStock: 'उपलब्ध',
+    plantOutOfStock: 'स्टॉक संपला',
+    plantInquireWhatsApp: 'व्हॉट्सॲपवर चौकशी करा',
+    plantPriceLabel: 'किंमत',
+
+    // Why TreeBazzar
+    whyTitle: 'ट्री बाजार का निवडावे?',
+    whySubtitle: 'शेतकरी, बागकाम प्रेमी आणि स्थानिक रोपवाटिका यांना जोडणारा विश्वासाचा पूल.',
+    why1Title: '१००% स्थानिक व विश्वासार्ह',
+    why1Desc: 'प्रत्येक रोपवाटिकेची प्रत्यक्ष ठिकाण आणि झाडांच्या दर्जेनुसार पडताळणी.',
+    why2Title: 'शून्य कमिशन / थेट वाजवी दर',
+    why2Desc: 'कोणत्याही मध्यस्थाशिवाय थेट रोपवाटिका चालकांशी संपर्क साधा व खरेदी करा.',
+    why3Title: 'झटपट व्हॉट्सॲप संवाद',
+    why3Desc: 'एका क्लिकमध्ये झाडांचे फोटो आणि दर थेट व्हॉट्सॲपवर मिळवा.',
+
+    // Partner CTA
+    ctaTitle: 'तुम्ही सांगली, मिरज किंवा कोल्हापुरात रोपवाटिका चालक आहात का?',
+    ctaSubtitle: 'ट्री बाजारशी जोडून तुमची झाडे हजारो स्थानिक शेतकरी आणि ग्राहकांपर्यंत थेट पोहोचवा.',
+    ctaButton: 'मोफत रोपवाटिका नोंदणी करा',
+
+    // Footer
+    footerRights: 'ट्री बाजार • स्थानिक रोपवाटिका बाजारपेठ व वनस्पती शोध मंच',
+    footerQuickLinks: 'महत्त्वाच्या लिंक्स',
+    footerRegions: 'कार्यक्षेत्र',
+    footerContact: 'मदत व संपर्क',
+    footerAdminLogin: 'ॲडमिन लॉगिन'
   }
 };
 

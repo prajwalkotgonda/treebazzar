@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { 
   Leaf, Mail, Lock, Eye, EyeOff, LogIn, Sparkles, 
-  Languages, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight
+  Languages, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
-export default function LoginPage({ onLogin }) {
+export default function LoginPage({ onLogin, onBackToLanding }) {
   const { lang, toggleLanguage, t } = useLanguage();
 
   const [email, setEmail] = useState('');
@@ -66,15 +66,28 @@ export default function LoginPage({ onLogin }) {
         <Leaf className="w-full h-full text-[#1E5631] -rotate-45 stroke-[1]" />
       </div>
 
-      {/* Top Bar with Language Toggle */}
+      {/* Top Bar with Language Toggle and Back to Site */}
       <div className="w-full max-w-5xl mx-auto flex items-center justify-between z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#1E5631] to-[#2E7D32] flex items-center justify-center text-white shadow-xs">
-            <Leaf className="w-4 h-4 fill-white/20 stroke-[2.2]" />
+        <div className="flex items-center gap-3">
+          {onBackToLanding && (
+            <button
+              type="button"
+              onClick={onBackToLanding}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 transition-all cursor-pointer shadow-2xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-[#1E5631]" />
+              <span>{t('landingBackToSite')}</span>
+            </button>
+          )}
+
+          <div className="hidden sm:flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#1E5631] to-[#2E7D32] flex items-center justify-center text-white shadow-xs">
+              <Leaf className="w-4 h-4 fill-white/20 stroke-[2.2]" />
+            </div>
+            <span className="font-extrabold text-slate-900 text-sm tracking-tight">
+              TreeBazzar
+            </span>
           </div>
-          <span className="font-extrabold text-slate-900 text-sm tracking-tight">
-            TreeBazzar
-          </span>
         </div>
 
         {/* Seamless Language Toggle */}

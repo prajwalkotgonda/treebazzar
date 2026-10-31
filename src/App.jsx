@@ -7,6 +7,7 @@ import NurseryManagementView from './components/nurseries/NurseryManagementView'
 import PlantCatalogView from './components/plants/PlantCatalogView';
 import CustomerLeadsView from './components/leads/CustomerLeadsView';
 import LoginPage from './components/auth/LoginPage';
+import LandingPage from './components/landing/LandingPage';
 import Toast from './components/common/Toast';
 import { 
   INITIAL_NURSERIES, 
@@ -15,7 +16,17 @@ import {
 } from './data/mockData';
 import { Info } from 'lucide-react';
 
-function DashboardContent({ onLogout }) {
+function DashboardContent({ 
+  onLogout, 
+  onViewWebsite,
+  nurseries,
+  setNurseries,
+  plants,
+  setPlants,
+  inquiries,
+  setInquiries,
+  showToast
+}) {
   const { t, lang } = useLanguage();
 
   // Navigation & View State
@@ -24,20 +35,10 @@ function DashboardContent({ onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Primary Data State (Initialized with realistic local sample data)
-  const [nurseries, setNurseries] = useState(INITIAL_NURSERIES);
-  const [plants, setPlants] = useState(INITIAL_PLANTS);
-  const [inquiries, setInquiries] = useState(INITIAL_INQUIRIES);
-
   // Modals & UI States
   const [addPlantModalOpen, setAddPlantModalOpen] = useState(false);
-  const [toast, setToast] = useState(null);
 
   const pendingCount = nurseries.filter(n => n.status === 'pending').length;
-
-  const showToast = ({ type = 'success', title, message }) => {
-    setToast({ type, title, message });
-  };
 
   // ----------------------------------------------------
   // Nursery Actions
@@ -219,6 +220,7 @@ function DashboardContent({ onLogout }) {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onLogout={onLogout}
+          onViewWebsite={onViewWebsite}
         />
 
         {/* Demo Data Disclaimer Banner */}
@@ -298,16 +300,6 @@ function DashboardContent({ onLogout }) {
 
       </div>
 
-      {/* Global Toast Notification */}
-      {toast && (
-        <Toast
-          type={toast.type}
-          title={toast.title}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
-      )}
-
     </div>
   );
 }
@@ -317,8 +309,20 @@ function AppRoot() {
     return localStorage.getItem('tb_admin_auth') === 'true' || 
            sessionStorage.getItem('tb_admin_auth') === 'true';
   });
-  const [authToast, setAuthToast] = useState(null);
+
+  // Current view navigation: 'landing' (default) | 'login' | 'admin'
+  const [currentView, setCurrentView] = useState('landing');
+  const [toast, setToast] = useState(null);
   const { lang, t } = useLanguage();
+
+  // Shared Data State
+  const [nurseries, setNurseries] = useState(INITIAL_NURSERIES);
+  const [plants, setPlants] = useState(INITIAL_PLANTS);
+  const [inquiries, setInquiries] = useState(INITIAL_INQUIRIES);
+
+  const showToast = ({ type = 'success', title, message }) => {
+    setToast({ type, title, message });
+  };
 
   const handleLogin = ({ email, rememberMe }) => {
     if (rememberMe) {
@@ -327,7 +331,8 @@ function AppRoot() {
       sessionStorage.setItem('tb_admin_auth', 'true');
     }
     setIsAuthenticated(true);
-    setAuthToast({
+    setCurrentView('admin');
+    showToast({
       type: 'success',
       title: lang === 'mr' ? 'स्वागत आहे!' : 'Welcome Back!',
       message: lang === 'mr' 
@@ -340,7 +345,8 @@ function AppRoot() {
     localStorage.removeItem('tb_admin_auth');
     sessionStorage.removeItem('tb_admin_auth');
     setIsAuthenticated(false);
-    setAuthToast({
+    setCurrentView('landing');
+    showToast({
       type: 'info',
       title: t('logoutSuccess'),
       message: lang === 'mr' 
@@ -349,31 +355,96 @@ function AppRoot() {
     });
   };
 
-  if (!isAuthenticated) {
-    return (
-      <>
-        <LoginPage onLogin={handleLogin} />
-        {authToast && (
-          <Toast
-            type={authToast.type}
-            title={authToast.title}
-            message={authToast.message}
-            onClose={() => setAuthToast(null)}
-          />
-        )}
-      </>
-    );
-  }
+  // Nursery partner registration from public landing page
+  const handlePartnerAddNursery = (newNurseryData) => {
+    const newEntry = {
+      ...newNurseryData,
+      id: `nursery-${Date.now()}`,
+      status: 'pending',
+      registrationDate: new Date().toISOString().split('T')[0]
+    };
+    setNurseries(prev => [newEntry, ...prev]);
+    showToast({
+      type: 'success',
+      title: lang === 'mr' ? 'रोपवाटिका नोंदणी अर्ज प्राप्त' : 'Nursery Application Received',
+      message: lang === 'mr'
+        ? `${newEntry.name} चा अर्ज ॲडमिन मंजुरीसाठी पाठवला आहे.`
+        : `${newEntry.name} submitted for admin verification.`
+    });
+  };
+
+  // Customer contact lead logging (WhatsApp / Call click)
+  const handleContactLead = (leadData) => {
+    const newInquiry = {
+      id: `inq-${Date.now()}`,
+      customerName: leadData.customerName || 'Website Visitor',
+      customerPhone: leadData.customerPhone || '+91 9822145678',
+      customerCity: leadData.customerCity || 'Sangli',
+      inquiryType: leadData.type || 'whatsapp',
+      plantOrNursery: leadData.plantOrNursery || 'Plant Inquiry',
+      notes: leadData.notes || 'Inquiry initiated from TreeBazzar public website',
+      date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      status: 'new'
+    };
+    setInquiries(prev => [newInquiry, ...prev]);
+  };
 
   return (
     <>
-      <DashboardContent onLogout={handleLogout} />
-      {authToast && (
+      {/* 1. Public Customer Landing Page */}
+      {currentView === 'landing' && (
+        <LandingPage
+          nurseries={nurseries}
+          plants={plants}
+          onOpenLogin={() => {
+            if (isAuthenticated) {
+              setCurrentView('admin');
+            } else {
+              setCurrentView('login');
+            }
+          }}
+          onAddNursery={handlePartnerAddNursery}
+          onContactLead={handleContactLead}
+        />
+      )}
+
+      {/* 2. Admin Login Page */}
+      {currentView === 'login' && (
+        <LoginPage
+          onLogin={handleLogin}
+          onBackToLanding={() => setCurrentView('landing')}
+        />
+      )}
+
+      {/* 3. Admin Dashboard */}
+      {currentView === 'admin' && (
+        isAuthenticated ? (
+          <DashboardContent
+            onLogout={handleLogout}
+            onViewWebsite={() => setCurrentView('landing')}
+            nurseries={nurseries}
+            setNurseries={setNurseries}
+            plants={plants}
+            setPlants={setPlants}
+            inquiries={inquiries}
+            setInquiries={setInquiries}
+            showToast={showToast}
+          />
+        ) : (
+          <LoginPage
+            onLogin={handleLogin}
+            onBackToLanding={() => setCurrentView('landing')}
+          />
+        )
+      )}
+
+      {/* Global Toast Notifications */}
+      {toast && (
         <Toast
-          type={authToast.type}
-          title={authToast.title}
-          message={authToast.message}
-          onClose={() => setAuthToast(null)}
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast(null)}
         />
       )}
     </>
