@@ -3,6 +3,7 @@ import {
   Search, MapPin, Leaf, CheckCircle2, PhoneCall, Sparkles, Store, Sprout, ArrowRight 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import heroBg from '../../assets/landing-bg.jpg';
 
 export default function HeroSection({ 
   searchQuery, 
@@ -46,21 +47,24 @@ export default function HeroSection({
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-emerald-50/30 to-[#F8FAF9] pt-10 pb-16 sm:pt-16 sm:pb-24 border-b border-emerald-950/5">
+    <section className="relative overflow-hidden pt-10 pb-16 sm:pt-16 sm:pb-24 border-b border-emerald-950/10">
       
-      {/* Background Subtle Leaf Motifs */}
-      <div className="absolute top-0 right-0 w-80 h-80 opacity-5 pointer-events-none -translate-y-1/4 translate-x-1/4">
-        <Leaf className="w-full h-full text-[#1E5631] rotate-45 stroke-[1]" />
-      </div>
-      <div className="absolute bottom-0 left-0 w-72 h-72 opacity-5 pointer-events-none translate-y-1/4 -translate-x-1/4">
-        <Leaf className="w-full h-full text-[#1E5631] -rotate-45 stroke-[1]" />
+      {/* Botanical Background Image with Luminous Overlay */}
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+        <img 
+          src={heroBg} 
+          alt="TreeBazzar Botanical Nursery Background" 
+          className="w-full h-full object-cover object-center sm:object-bottom"
+        />
+        {/* Soft, vibrant gradient overlay for crisp typography and contrast */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/55 to-[#F8FAF9]/95 backdrop-blur-[0.5px]" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Top Regional Badge */}
         <div className="flex justify-center mb-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[#1E5631] shadow-2xs">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-emerald-200/90 text-[#1E5631] shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse" />
             <span className="text-[11px] font-black tracking-wide uppercase">
               {t('heroBadge')}
@@ -76,7 +80,7 @@ export default function HeroSection({
               {t('heroTitleLine2')}
             </span>
           </h1>
-          <p className="mt-4 text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-4 text-xs sm:text-sm text-slate-700 font-medium max-w-2xl mx-auto leading-relaxed">
             {t('heroSubtitle')}
           </p>
         </div>
@@ -85,7 +89,7 @@ export default function HeroSection({
         <div className="max-w-3xl mx-auto mb-6">
           <form 
             onSubmit={handleSubmit}
-            className="bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-xl shadow-emerald-950/8 border border-slate-200/90 flex flex-col sm:flex-row items-stretch gap-2.5"
+            className="bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-xl shadow-emerald-950/10 border border-white/90 flex flex-col sm:flex-row items-stretch gap-2.5"
           >
             {/* City Selector */}
             <div className="relative sm:w-48 shrink-0 flex items-center border-b sm:border-b-0 sm:border-r border-slate-200 pb-2 sm:pb-0 px-2">
@@ -147,57 +151,57 @@ export default function HeroSection({
         {/* 4 Trust & Metrics Badges */}
         <div className="max-w-4xl mx-auto mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           
-          <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100/80 flex items-center justify-center text-[#1E5631] shrink-0">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3.5 border border-white/80 shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100/90 flex items-center justify-center text-[#1E5631] shrink-0">
               <Store className="w-5 h-5 text-[#2E7D32]" />
             </div>
             <div>
               <div className="text-base font-black text-slate-900 leading-tight">
                 {totalNurseries > 0 ? `${totalNurseries}+` : '20+'}
               </div>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight">
+              <p className="text-[10px] text-slate-600 font-semibold leading-tight">
                 {t('heroStatNurseries')}
               </p>
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100/80 flex items-center justify-center text-[#1E5631] shrink-0">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3.5 border border-white/80 shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100/90 flex items-center justify-center text-[#1E5631] shrink-0">
               <Sprout className="w-5 h-5 text-[#2E7D32]" />
             </div>
             <div>
               <div className="text-base font-black text-slate-900 leading-tight">
                 {totalPlants > 0 ? `${totalPlants}+` : '150+'}
               </div>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight">
+              <p className="text-[10px] text-slate-600 font-semibold leading-tight">
                 {t('heroStatPlants')}
               </p>
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100/80 flex items-center justify-center text-[#1E5631] shrink-0">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3.5 border border-white/80 shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100/90 flex items-center justify-center text-[#1E5631] shrink-0">
               <MapPin className="w-5 h-5 text-[#2E7D32]" />
             </div>
             <div>
               <div className="text-base font-black text-slate-900 leading-tight">
                 4 Hubs
               </div>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight">
+              <p className="text-[10px] text-slate-600 font-semibold leading-tight">
                 Sangli, Miraj, Kolhapur, Karad
               </p>
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100/80 flex items-center justify-center text-[#1E5631] shrink-0">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3.5 border border-white/80 shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100/90 flex items-center justify-center text-[#1E5631] shrink-0">
               <CheckCircle2 className="w-5 h-5 text-[#2E7D32]" />
             </div>
             <div>
               <div className="text-base font-black text-slate-900 leading-tight">
                 100% Direct
               </div>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight">
+              <p className="text-[10px] text-slate-600 font-semibold leading-tight">
                 Zero Commission WhatsApp & Calls
               </p>
             </div>

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  Leaf, Languages, ShieldCheck, Menu, X, ArrowRight, Store, Sprout 
+  Leaf, Languages, ShieldCheck, Menu, X, ArrowRight, Store, Sprout, Plus 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
-export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
+export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery, onOpenAddPlant }) {
   const { lang, toggleLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -86,6 +86,18 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
               </button>
             )}
 
+            {/* Add Plant CTA */}
+            {onOpenAddPlant && (
+              <button
+                type="button"
+                onClick={onOpenAddPlant}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#2E7D32]" />
+                <span>{lang === 'mr' ? 'वनस्पती जोडा' : 'Add Plant'}</span>
+              </button>
+            )}
+
             {/* Admin Portal Button */}
             <button
               type="button"
@@ -144,6 +156,20 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
               >
                 <Store className="w-4 h-4 text-[#2E7D32]" />
                 <span>{lang === 'mr' ? 'रोपवाटिका नोंदणी करा' : 'Register Your Nursery'}</span>
+              </button>
+            )}
+
+            {onOpenAddPlant && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAddPlant();
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-emerald-100/70 text-emerald-900 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-[#2E7D32]" />
+                <span>{lang === 'mr' ? 'वनस्पती जोडा (Add Plant)' : 'Add Plant Variety'}</span>
               </button>
             )}
 

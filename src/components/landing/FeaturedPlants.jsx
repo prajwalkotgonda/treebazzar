@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Sprout, MessageSquare, Check, X, Tag, Store, Search, Filter 
+  Sprout, MessageSquare, Check, X, Tag, Store, Search, Filter, Plus, Sparkles 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_PLANT_IMAGE } from '../../data/mockData';
@@ -12,7 +12,8 @@ export default function FeaturedPlants({
   onSelectCategory,
   searchQuery = '', 
   selectedCity = 'all',
-  onContactLead 
+  onContactLead,
+  onOpenAddPlant
 }) {
   const { lang, t } = useLanguage();
   const [stockOnly, setStockOnly] = useState(false);
@@ -130,10 +131,10 @@ export default function FeaturedPlants({
         </div>
 
         {/* Filter Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-8 bg-[#F8FAF9] p-3 rounded-2xl border border-slate-200/80">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 mb-8 bg-[#F8FAF9] p-3 rounded-2xl border border-slate-200/80">
           
           {/* Category Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
             {categories.map((cat) => (
               <button
                 key={cat.id}
@@ -150,16 +151,31 @@ export default function FeaturedPlants({
             ))}
           </div>
 
-          {/* In Stock Only Checkbox */}
-          <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-700 font-semibold shrink-0">
-            <input
-              type="checkbox"
-              checked={stockOnly}
-              onChange={(e) => setStockOnly(e.target.checked)}
-              className="rounded border-slate-300 text-[#1E5631] focus:ring-[#2E7D32] w-4 h-4 cursor-pointer"
-            />
-            <span>{lang === 'mr' ? 'फक्त उपलब्ध झाडे (In Stock)' : 'In Stock Only'}</span>
-          </label>
+          {/* Right Actions: In Stock Toggle + Add Plant Button */}
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/60">
+            {/* In Stock Only Checkbox */}
+            <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-700 font-semibold shrink-0">
+              <input
+                type="checkbox"
+                checked={stockOnly}
+                onChange={(e) => setStockOnly(e.target.checked)}
+                className="rounded border-slate-300 text-[#1E5631] focus:ring-[#2E7D32] w-4 h-4 cursor-pointer"
+              />
+              <span>{lang === 'mr' ? 'फक्त उपलब्ध झाडे (In Stock)' : 'In Stock Only'}</span>
+            </label>
+
+            {/* Add Plant Button for Nursery Owners */}
+            {onOpenAddPlant && (
+              <button
+                type="button"
+                onClick={onOpenAddPlant}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#1E5631] hover:bg-[#2E7D32] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{lang === 'mr' ? 'वनस्पती जोडा' : 'Add Plant'}</span>
+              </button>
+            )}
+          </div>
 
         </div>
 
@@ -178,7 +194,7 @@ export default function FeaturedPlants({
               return (
                 <div
                   key={plant.id}
-                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-lg hover:shadow-emerald-950/8 transition-all flex flex-col group"
+                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-lg hover:shadow-emerald-950/8 transition-all flex flex-col group relative"
                 >
                   {/* Plant Image */}
                   <div className="relative h-44 w-full overflow-hidden bg-slate-100">
@@ -190,8 +206,13 @@ export default function FeaturedPlants({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-                    {/* Stock Status Badge */}
-                    <div className="absolute top-2.5 left-2.5">
+                    {/* Stock Status & New Badge */}
+                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                      {plant.isNew && (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black shadow-md animate-pulse">
+                          {lang === 'mr' ? 'नवीन' : 'NEW'}
+                        </span>
+                      )}
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-xs flex items-center gap-1 ${
                         isInStock 
                           ? 'bg-emerald-600 text-white' 

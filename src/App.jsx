@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -315,10 +315,55 @@ function AppRoot() {
   const [toast, setToast] = useState(null);
   const { lang, t } = useLanguage();
 
-  // Shared Data State
-  const [nurseries, setNurseries] = useState(INITIAL_NURSERIES);
-  const [plants, setPlants] = useState(INITIAL_PLANTS);
-  const [inquiries, setInquiries] = useState(INITIAL_INQUIRIES);
+  // Shared Data State with LocalStorage Persistence
+  const [nurseries, setNurseries] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tb_nurseries');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return INITIAL_NURSERIES;
+  });
+
+  const [plants, setPlants] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tb_plants');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return INITIAL_PLANTS;
+  });
+
+  const [inquiries, setInquiries] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tb_inquiries');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return INITIAL_INQUIRIES;
+  });
+
+  // Sync state changes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('tb_nurseries', JSON.stringify(nurseries));
+    } catch (e) {}
+  }, [nurseries]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tb_plants', JSON.stringify(plants));
+    } catch (e) {}
+  }, [plants]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tb_inquiries', JSON.stringify(inquiries));
+    } catch (e) {}
+  }, [inquiries]);
 
   const showToast = ({ type = 'success', title, message }) => {
     setToast({ type, title, message });
@@ -355,22 +400,53 @@ function AppRoot() {
     });
   };
 
-  // Nursery partner registration from public landing page
+  // Nursery partner registration from public landing page (immediately visible & approved)
   const handlePartnerAddNursery = (newNurseryData) => {
     const newEntry = {
       ...newNurseryData,
       id: `nursery-${Date.now()}`,
-      status: 'pending',
+      status: 'approved',
+      verified: true,
+      isNew: true,
       registrationDate: new Date().toISOString().split('T')[0]
     };
     setNurseries(prev => [newEntry, ...prev]);
     showToast({
       type: 'success',
-      title: lang === 'mr' ? 'रोपवाटिका नोंदणी अर्ज प्राप्त' : 'Nursery Application Received',
+      title: lang === 'mr' ? 'रोपवाटिका यशस्वीरित्या जोडली गेली!' : 'Nursery Successfully Added!',
       message: lang === 'mr'
-        ? `${newEntry.name} चा अर्ज ॲडमिन मंजुरीसाठी पाठवला आहे.`
-        : `${newEntry.name} submitted for admin verification.`
+        ? `${newEntry.name} आता थेट स्थानिक रोपवाटिकांच्या यादीमध्ये दिसत आहे.`
+        : `${newEntry.name} is now live in the local nurseries directory.`
     });
+
+    // Smooth scroll to nurseries section so owner immediately sees their nursery
+    setTimeout(() => {
+      const elem = document.getElementById('nurseries');
+      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+  };
+
+  // Direct plant addition from public landing page (immediately visible in catalog)
+  const handleAddPlantFromLanding = (newPlantData) => {
+    const newEntry = {
+      ...newPlantData,
+      id: `plt-${Date.now()}`,
+      isNew: true
+    };
+    setPlants(prev => [newEntry, ...prev]);
+    showToast({
+      type: 'success',
+      title: lang === 'mr' ? 'नवीन वनस्पती कॅटलॉगमध्ये जोडली गेली!' : 'Plant Added to Catalog!',
+      message: lang === 'mr'
+        ? `${newEntry.nameMr || newEntry.nameEn} वनस्पती कॅटलॉगमध्ये थेट समाविष्ट झाली आहे.`
+        : `${newEntry.nameEn} is now live in the plant catalog.`
+    });
+
+    // Smooth scroll to plants section so owner immediately sees their plant
+    setTimeout(() => {
+      const elem = document.getElementById('plants');
+      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
   };
 
   // Customer contact lead logging (WhatsApp / Call click)
@@ -404,6 +480,7 @@ function AppRoot() {
             }
           }}
           onAddNursery={handlePartnerAddNursery}
+          onAddPlant={handleAddPlantFromLanding}
           onContactLead={handleContactLead}
         />
       )}

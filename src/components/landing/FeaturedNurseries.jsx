@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Store, MapPin, Phone, MessageSquare, ShieldCheck, 
-  ExternalLink, CheckCircle2, Calendar, Sprout, ArrowRight 
+  ExternalLink, CheckCircle2, Calendar, Sprout, ArrowRight, Sparkles, Plus 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
@@ -11,15 +11,16 @@ export default function FeaturedNurseries({
   selectedCity, 
   onCityChange, 
   onSelectNursery,
-  onContactLead 
+  onContactLead,
+  onOpenRegisterNursery
 }) {
   const { lang, t } = useLanguage();
 
   const cities = ['all', 'Sangli', 'Miraj', 'Kolhapur', 'Karad'];
 
-  // Filter approved nurseries matching city
+  // Show all active and newly registered nurseries
   const displayNurseries = nurseries
-    .filter(n => n.status === 'approved' || !n.status) // show verified/approved
+    .filter(n => n.status !== 'rejected')
     .filter(n => selectedCity === 'all' || !selectedCity || n.city?.toLowerCase() === selectedCity.toLowerCase());
 
   const handleWhatsApp = (e, nursery) => {
@@ -85,24 +86,37 @@ export default function FeaturedNurseries({
             </p>
           </div>
 
-          {/* City Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {cities.map((city) => (
+          {/* City Filter Pills & Add Nursery Action */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {cities.map((city) => (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() => onCityChange(city)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    selectedCity === city
+                      ? 'bg-[#1E5631] text-white shadow-xs'
+                      : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+                  }`}
+                >
+                  {city === 'all' 
+                    ? t('heroAllCities') 
+                    : city}
+                </button>
+              ))}
+            </div>
+
+            {onOpenRegisterNursery && (
               <button
-                key={city}
                 type="button"
-                onClick={() => onCityChange(city)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  selectedCity === city
-                    ? 'bg-[#1E5631] text-white shadow-xs'
-                    : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
-                }`}
+                onClick={onOpenRegisterNursery}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200/80 text-xs font-bold transition-all cursor-pointer shadow-2xs"
               >
-                {city === 'all' 
-                  ? t('heroAllCities') 
-                  : city}
+                <Plus className="w-3.5 h-3.5 text-[#2E7D32]" />
+                <span>{lang === 'mr' ? 'रोपवाटिका जोडा' : 'Add Nursery'}</span>
               </button>
-            ))}
+            )}
           </div>
         </div>
 
@@ -118,7 +132,7 @@ export default function FeaturedNurseries({
                 <div
                   key={nursery.id}
                   onClick={() => onSelectNursery && onSelectNursery(nursery)}
-                  className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-emerald-950/10 transition-all flex flex-col group cursor-pointer"
+                  className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-emerald-950/10 transition-all flex flex-col group cursor-pointer relative"
                 >
                   {/* Nursery Image & Badges */}
                   <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-slate-100">
@@ -130,10 +144,17 @@ export default function FeaturedNurseries({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-                    {/* Verified Badge */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1E5631]/90 backdrop-blur-md text-white text-[10px] font-bold shadow-xs">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-                      <span>{t('nurseryVerifiedBadge')}</span>
+                    {/* Verified or New Badge */}
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                      {nursery.isNew && (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black shadow-md animate-pulse">
+                          {lang === 'mr' ? 'नवीन' : 'NEW'}
+                        </span>
+                      )}
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1E5631]/90 backdrop-blur-md text-white text-[10px] font-bold shadow-xs">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                        <span>{t('nurseryVerifiedBadge')}</span>
+                      </div>
                     </div>
 
                     {/* City Badge */}

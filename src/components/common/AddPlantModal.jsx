@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Sprout, Image, DollarSign, Building2, Tag } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { PLANT_CATEGORIES, FALLBACK_PLANT_IMAGE } from '../../data/mockData';
@@ -27,6 +27,18 @@ export default function AddPlantModal({
   });
 
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (isOpen && (!formData.nurseryId || !nurseries.find(n => n.id === formData.nurseryId))) {
+      if (nurseries.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          nurseryId: nurseries[0].id,
+          nurseryName: nurseries[0].name
+        }));
+      }
+    }
+  }, [isOpen, nurseries]);
 
   if (!isOpen) return null;
 
@@ -72,7 +84,8 @@ export default function AddPlantModal({
       ...formData,
       priceMin: Number(formData.priceMin),
       priceMax: Number(formData.priceMax),
-      photoUrl: formData.photoUrl.trim() || FALLBACK_PLANT_IMAGE
+      photoUrl: formData.photoUrl.trim() || FALLBACK_PLANT_IMAGE,
+      isNew: true
     });
 
     onClose();
