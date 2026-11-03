@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   LayoutDashboard, Store, Sprout, ShoppingBag, Users, 
-  MessageSquare, BarChart3, Leaf, ChevronRight, Sparkles, MapPin, X, Globe
+  MessageSquare, BarChart3, Leaf, ChevronRight, MapPin, X, Globe
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -201,9 +201,9 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {/* Bottom Section: View Public Website & Info */}
-        <div className="p-4 border-t border-slate-100 space-y-2.5">
-          {onViewWebsite && (
+        {/* Bottom Section: View Public Website */}
+        {onViewWebsite && (
+          <div className="p-4 border-t border-slate-100">
             <button
               onClick={onViewWebsite}
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 text-xs font-bold transition-all cursor-pointer active:scale-95"
@@ -211,18 +211,8 @@ export default function Sidebar({
               <Globe className="w-4 h-4 text-[#2E7D32]" />
               <span>{lang === 'mr' ? 'पब्लिक वेबसाइट पहा' : 'View Public Website'}</span>
             </button>
-          )}
-
-          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] text-slate-500 flex items-center justify-between">
-            <span className="flex items-center gap-1.5 font-medium text-slate-700">
-              <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
-              TreeBazzar
-            </span>
-            <span className="text-[10px] bg-emerald-100 text-[#1E5631] font-bold px-1.5 py-0.5 rounded">
-              v2.0 Clean
-            </span>
           </div>
-        </div>
+        )}
 
       </aside>
     </>
