@@ -25,6 +25,26 @@ import {
   INITIAL_INQUIRIES,
   INITIAL_CITIES 
 } from './data/mockData';
+import { 
+  syncAllData,
+  subscribeToCollection,
+  saveNurseryToFirestore,
+  updateNurseryInFirestore,
+  deleteNurseryFromFirestore,
+  addPlantToFirestore,
+  updatePlantStockInFirestore,
+  deletePlantFromFirestore,
+  addLeadToFirestore,
+  updateLeadStatusInFirestore,
+  deleteLeadFromFirestore,
+  saveOrderToFirestore,
+  deleteOrderFromFirestore,
+  saveCustomerToFirestore,
+  deleteCustomerFromFirestore,
+  saveCityToFirestore,
+  deleteCityFromFirestore,
+  clearAllFirestoreCollections
+} from './services/firebase';
 import { Info, RotateCcw } from 'lucide-react';
 
 function DashboardContent({ 
@@ -83,6 +103,8 @@ function DashboardContent({
       return n;
     }));
 
+    updateNurseryInFirestore(nurseryId, { status: 'approved', rejectionReason: '' }).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'रोपवाटिका मंजूर केली' : 'Nursery Approved',
@@ -104,6 +126,8 @@ function DashboardContent({
       return n;
     }));
 
+    updateNurseryInFirestore(nurseryId, { status: 'rejected', rejectionReason: reason }).catch(console.warn);
+
     showToast({
       type: 'error',
       title: lang === 'mr' ? 'रोपवाटिका नाकारली' : 'Nursery Rejected',
@@ -120,6 +144,7 @@ function DashboardContent({
     };
 
     setNurseries(prev => [newEntry, ...prev]);
+    saveNurseryToFirestore(newEntry).catch(console.warn);
 
     showToast({
       type: 'success',
@@ -130,6 +155,9 @@ function DashboardContent({
 
   const handleUpdateNursery = (nurseryId, updatedData) => {
     setNurseries(prev => prev.map(n => n.id === nurseryId ? { ...n, ...updatedData } : n));
+    const target = nurseries.find(n => n.id === nurseryId);
+    saveNurseryToFirestore({ ...(target || {}), ...updatedData, id: nurseryId }).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'रोपवाटिका अपडेट केली' : 'Nursery Updated',
@@ -140,6 +168,8 @@ function DashboardContent({
   const handleDeleteNursery = (nurseryId) => {
     const target = nurseries.find(n => n.id === nurseryId);
     setNurseries(prev => prev.filter(n => n.id !== nurseryId));
+    deleteNurseryFromFirestore(nurseryId).catch(console.warn);
+
     showToast({
       type: 'info',
       title: lang === 'mr' ? 'रोपवाटिका हटवली' : 'Nursery Deleted',
@@ -157,6 +187,7 @@ function DashboardContent({
     };
 
     setPlants(prev => [newEntry, ...prev]);
+    addPlantToFirestore(newEntry).catch(console.warn);
 
     showToast({
       type: 'success',
@@ -167,6 +198,8 @@ function DashboardContent({
 
   const handleUpdatePlant = (plantId, updatedData) => {
     setPlants(prev => prev.map(p => p.id === plantId ? { ...p, ...updatedData } : p));
+    const target = plants.find(p => p.id === plantId);
+    addPlantToFirestore({ ...(target || {}), ...updatedData, id: plantId }).catch(console.warn);
 
     showToast({
       type: 'success',
@@ -178,6 +211,7 @@ function DashboardContent({
   const handleDeletePlant = (plantId) => {
     const targetPlant = plants.find(p => p.id === plantId);
     setPlants(prev => prev.filter(p => p.id !== plantId));
+    deletePlantFromFirestore(plantId).catch(console.warn);
 
     showToast({
       type: 'info',
@@ -199,6 +233,8 @@ function DashboardContent({
       return p;
     }));
 
+    updatePlantStockInFirestore(plantId, nextStatus).catch(console.warn);
+
     showToast({
       type: 'info',
       title: lang === 'mr' ? 'स्टॉक स्थिती बदलली' : 'Stock Status Changed',
@@ -211,6 +247,7 @@ function DashboardContent({
   // ----------------------------------------------------
   const handleAddOrder = (newOrder) => {
     setOrders(prev => [newOrder, ...prev]);
+    saveOrderToFirestore(newOrder).catch(console.warn);
 
     // Also auto-add customer if not existing
     if (newOrder.customerName && newOrder.customerPhone) {
@@ -229,6 +266,7 @@ function DashboardContent({
             joinedDate: new Date().toISOString().split('T')[0],
             notes: 'Created via order placement'
           };
+          saveCustomerToFirestore(newCust).catch(console.warn);
           return [newCust, ...prev];
         }
         return prev;
@@ -244,6 +282,9 @@ function DashboardContent({
 
   const handleUpdateOrder = (orderId, updatedData) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updatedData } : o));
+    const target = orders.find(o => o.id === orderId);
+    saveOrderToFirestore({ ...(target || {}), ...updatedData, id: orderId }).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'ऑर्डर अपडेट केली' : 'Order Updated',
@@ -253,6 +294,8 @@ function DashboardContent({
 
   const handleDeleteOrder = (orderId) => {
     setOrders(prev => prev.filter(o => o.id !== orderId));
+    deleteOrderFromFirestore(orderId).catch(console.warn);
+
     showToast({
       type: 'info',
       title: lang === 'mr' ? 'ऑर्डर हटवली' : 'Order Deleted',
@@ -262,6 +305,8 @@ function DashboardContent({
 
   const handleApproveOrder = (orderId) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'confirmed' } : o));
+    saveOrderToFirestore({ id: orderId, status: 'confirmed' }).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'ऑर्डर निश्चित केली' : 'Order Confirmed',
@@ -271,6 +316,8 @@ function DashboardContent({
 
   const handleRejectOrder = (orderId) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o));
+    saveOrderToFirestore({ id: orderId, status: 'cancelled' }).catch(console.warn);
+
     showToast({
       type: 'info',
       title: lang === 'mr' ? 'ऑर्डर रद्द केली' : 'Order Cancelled',
@@ -283,6 +330,8 @@ function DashboardContent({
   // ----------------------------------------------------
   const handleAddCustomer = (newCustomer) => {
     setCustomers(prev => [newCustomer, ...prev]);
+    saveCustomerToFirestore(newCustomer).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'ग्राहक नोंदवला' : 'Customer Registered',
@@ -292,6 +341,9 @@ function DashboardContent({
 
   const handleEditCustomer = (customerId, updatedData) => {
     setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, ...updatedData } : c));
+    const target = customers.find(c => c.id === customerId);
+    saveCustomerToFirestore({ ...(target || {}), ...updatedData, id: customerId }).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'ग्राहक अपडेट केला' : 'Customer Updated',
@@ -302,6 +354,8 @@ function DashboardContent({
   const handleDeleteCustomer = (customerId) => {
     const target = customers.find(c => c.id === customerId);
     setCustomers(prev => prev.filter(c => c.id !== customerId));
+    deleteCustomerFromFirestore(customerId).catch(console.warn);
+
     showToast({
       type: 'info',
       title: lang === 'mr' ? 'ग्राहक हटवला' : 'Customer Removed',
@@ -314,6 +368,8 @@ function DashboardContent({
   // ----------------------------------------------------
   const handleAddEnquiry = (newEnquiry) => {
     setInquiries(prev => [newEnquiry, ...prev]);
+    addLeadToFirestore(newEnquiry).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'चौकशी नोंदवली' : 'Enquiry Logged',
@@ -323,6 +379,9 @@ function DashboardContent({
 
   const handleEditEnquiry = (inquiryId, updatedData) => {
     setInquiries(prev => prev.map(i => i.id === inquiryId ? { ...i, ...updatedData } : i));
+    const target = inquiries.find(i => i.id === inquiryId);
+    addLeadToFirestore({ ...(target || {}), ...updatedData, id: inquiryId }).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'चौकशी अपडेट केली' : 'Enquiry Updated',
@@ -332,6 +391,8 @@ function DashboardContent({
 
   const handleDeleteEnquiry = (inquiryId) => {
     setInquiries(prev => prev.filter(i => i.id !== inquiryId));
+    deleteLeadFromFirestore(inquiryId).catch(console.warn);
+
     showToast({
       type: 'info',
       title: lang === 'mr' ? 'चौकशी हटवली' : 'Enquiry Deleted',
@@ -346,6 +407,7 @@ function DashboardContent({
       }
       return inq;
     }));
+    updateLeadStatusInFirestore(inquiryId, status).catch(console.warn);
 
     showToast({
       type: 'success',
@@ -393,15 +455,15 @@ function DashboardContent({
           onViewWebsite={onViewWebsite}
         />
 
-        {/* Demo Mode & Quick Reset Strip */}
+        {/* Firebase Live Cloud Status & Quick Reset Strip */}
         <div className="bg-emerald-950 text-emerald-100 px-4 py-1.5 text-[11px] font-medium border-b border-emerald-900 flex items-center justify-between">
           <div className="flex items-center gap-2 max-w-7xl mx-auto w-full justify-between">
             <div className="flex items-center gap-2 truncate">
-              <Info className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
               <span className="truncate">
                 {lang === 'mr' 
-                  ? 'डेमो मोड: पश्चिम महाराष्ट्र (सांगली, मिरज, कोल्हापूर, कराड) लाइव्ह नमुना डेटा.' 
-                  : 'Demo Mode: Live local nursery data across Western Maharashtra (Sangli, Miraj, Kolhapur, Karad).'}
+                  ? 'फायरबेस लाइव्ह सिंक: मोबाईल ॲप आणि वेबसाईट कनेक्टेड (treebazzar-f4780).' 
+                  : 'Firebase Live Sync: Mobile App & Website Connected (treebazzar-f4780).'}
               </span>
             </div>
 
@@ -700,6 +762,55 @@ function AppRoot() {
     try { localStorage.setItem('tb_cities', JSON.stringify(cities)); } catch (e) {}
   }, [cities]);
 
+  // Live Firebase Synchronisation with mobile app & Firestore
+  useEffect(() => {
+    let isSubscribed = true;
+
+    // 1. Initial sync from Firestore
+    syncAllData().then(({ nurseries: fbNurseries, plants: fbPlants, leads: fbLeads }) => {
+      if (!isSubscribed) return;
+      if (fbNurseries && fbNurseries.length > 0) {
+        setNurseries(fbNurseries);
+      }
+      if (fbPlants && fbPlants.length > 0) {
+        setPlants(fbPlants);
+      }
+      if (fbLeads && fbLeads.length > 0) {
+        setInquiries(fbLeads);
+      }
+    }).catch(err => console.warn('Initial Firestore sync error:', err));
+
+    // 2. Real-time subscriptions for nurseries, plants, and leads
+    let unsubNurseries = () => {};
+    let unsubPlants = () => {};
+    let unsubLeads = () => {};
+
+    subscribeToCollection('nurseries', (data) => {
+      if (isSubscribed && data && data.length > 0) {
+        setNurseries(data);
+      }
+    }).then(unsub => { if (unsub) unsubNurseries = unsub; }).catch(console.warn);
+
+    subscribeToCollection('plants', (data) => {
+      if (isSubscribed && data && data.length > 0) {
+        setPlants(data);
+      }
+    }).then(unsub => { if (unsub) unsubPlants = unsub; }).catch(console.warn);
+
+    subscribeToCollection('leads', (data) => {
+      if (isSubscribed && data && data.length > 0) {
+        setInquiries(data);
+      }
+    }).then(unsub => { if (unsub) unsubLeads = unsub; }).catch(console.warn);
+
+    return () => {
+      isSubscribed = false;
+      try { unsubNurseries(); } catch (e) {}
+      try { unsubPlants(); } catch (e) {}
+      try { unsubLeads(); } catch (e) {}
+    };
+  }, []);
+
   const showToast = ({ type = 'success', title, message }) => {
     setToast({ type, title, message });
   };
@@ -764,6 +875,8 @@ function AppRoot() {
       registrationDate: new Date().toISOString().split('T')[0]
     };
     setNurseries(prev => [newEntry, ...prev]);
+    saveNurseryToFirestore(newEntry).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'रोपवाटिका जोडली गेली!' : 'Nursery Successfully Added!',
@@ -778,6 +891,8 @@ function AppRoot() {
       isNew: true
     };
     setPlants(prev => [newEntry, ...prev]);
+    addPlantToFirestore(newEntry).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'वनस्पती जोडली गेली!' : 'Plant Added to Catalog!',
@@ -800,6 +915,7 @@ function AppRoot() {
       status: 'New'
     };
     setInquiries(prev => [newInquiry, ...prev]);
+    addLeadToFirestore(newInquiry).catch(console.warn);
   };
 
   const handleAddCity = (cityData) => {
@@ -808,6 +924,8 @@ function AppRoot() {
       id: `city-${Date.now()}`
     };
     setCities(prev => [...prev, newCity]);
+    saveCityToFirestore(newCity).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'नवीन शहर जोडले!' : 'City Added!',
@@ -817,6 +935,9 @@ function AppRoot() {
 
   const handleEditCity = (cityId, updatedData) => {
     setCities(prev => prev.map(c => c.id === cityId ? { ...c, ...updatedData } : c));
+    const target = cities.find(c => c.id === cityId);
+    saveCityToFirestore({ ...(target || {}), ...updatedData, id: cityId }).catch(console.warn);
+
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'शहर अपडेट केले' : 'City Updated',
@@ -827,6 +948,8 @@ function AppRoot() {
   const handleDeleteCity = (cityId) => {
     const target = cities.find(c => c.id === cityId);
     setCities(prev => prev.filter(c => c.id !== cityId));
+    deleteCityFromFirestore(cityId).catch(console.warn);
+
     showToast({
       type: 'info',
       title: lang === 'mr' ? 'शहर हटवले' : 'City Removed',

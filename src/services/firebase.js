@@ -96,15 +96,15 @@ export function normalizePlant(data, id) {
   if (!data) return null;
   const docId = id || data.id || `plt-${Date.now()}`;
   const nameEn = data.nameEn || data.name || 'Plant Variety';
-  const nameMr = data.nameMr || nameEn;
-  const botanicalName = data.botanicalName || 'Botanical var. sp.';
+  const nameMr = data.nameMr || data.name || nameEn;
+  const botanicalName = data.botanicalName || data.scientificName || 'Botanical var. sp.';
   const category = data.category || 'Fruit Trees';
   const categoryMr = data.categoryMr || category;
   const nurseryId = data.nurseryId || 'nur-01';
   const nurseryName = data.nurseryName || 'Master Nursery';
-  const priceMin = Number(data.priceMin) || Number(data.price) || 150;
-  const priceMax = Number(data.priceMax) || Number(data.price) || priceMin;
-  const photoUrl = data.photoUrl || data.images?.[0] || 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=800&auto=format&fit=crop&q=80';
+  const priceMin = Number(data.priceMin) || Number(data.price) || Number(data.varieties?.[0]?.price) || 150;
+  const priceMax = Number(data.priceMax) || Number(data.price) || Number(data.varieties?.[0]?.price) || priceMin;
+  const photoUrl = data.photoUrl || data.imageUrl || data.images?.[0] || 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=800&auto=format&fit=crop&q=80';
   const stockStatus = data.stockStatus || (data.isActive !== false ? 'in_stock' : 'out_of_stock');
   const isActive = stockStatus === 'in_stock' && data.isActive !== false;
   const unit = data.unit || 'Sapling';
@@ -123,6 +123,7 @@ export function normalizePlant(data, id) {
     nameEn,
     nameMr,
     botanicalName,
+    scientificName: botanicalName,
     category,
     categoryMr,
     nurseryId,
@@ -136,6 +137,7 @@ export function normalizePlant(data, id) {
     isActive,
     stockCount,
     photoUrl,
+    imageUrl: photoUrl,
     images: data.images || [photoUrl],
     descriptionEn,
     descriptionMr,
@@ -648,12 +650,139 @@ export async function updateLeadStatusInFirestore(leadId, status) {
 }
 
 /**
+ * Delete customer lead / inquiry from Firestore
+ */
+export async function deleteLeadFromFirestore(leadId) {
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.deleteDoc) {
+    try {
+      await fb.deleteDoc(fb.doc(fb.db, 'leads', leadId));
+      return true;
+    } catch (err) {}
+  }
+  return await deleteDocumentViaRest('leads', leadId);
+}
+
+/**
+ * Delete nursery from Firestore
+ */
+export async function deleteNurseryFromFirestore(nurseryId) {
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.deleteDoc) {
+    try {
+      await fb.deleteDoc(fb.doc(fb.db, 'nurseries', nurseryId));
+      logFirebaseEvent('nursery_deleted', { nurseryId });
+      return true;
+    } catch (err) {
+      console.warn('Firestore deleteNursery failed, using REST fallback:', err);
+    }
+  }
+  return await deleteDocumentViaRest('nurseries', nurseryId);
+}
+
+/**
+ * Save Order to Firestore
+ */
+export async function saveOrderToFirestore(order) {
+  const payload = sanitizePayload({
+    ...order,
+    updatedAt: new Date().toISOString()
+  });
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.setDoc) {
+    try {
+      await fb.setDoc(fb.doc(fb.db, 'orders', order.id), payload, { merge: true });
+      return true;
+    } catch (err) {}
+  }
+  return await saveDocumentViaRest('orders', order.id, payload);
+}
+
+/**
+ * Delete Order from Firestore
+ */
+export async function deleteOrderFromFirestore(orderId) {
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.deleteDoc) {
+    try {
+      await fb.deleteDoc(fb.doc(fb.db, 'orders', orderId));
+      return true;
+    } catch (err) {}
+  }
+  return await deleteDocumentViaRest('orders', orderId);
+}
+
+/**
+ * Save Customer to Firestore
+ */
+export async function saveCustomerToFirestore(customer) {
+  const payload = sanitizePayload({
+    ...customer,
+    updatedAt: new Date().toISOString()
+  });
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.setDoc) {
+    try {
+      await fb.setDoc(fb.doc(fb.db, 'customers', customer.id), payload, { merge: true });
+      return true;
+    } catch (err) {}
+  }
+  return await saveDocumentViaRest('customers', customer.id, payload);
+}
+
+/**
+ * Delete Customer from Firestore
+ */
+export async function deleteCustomerFromFirestore(customerId) {
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.deleteDoc) {
+    try {
+      await fb.deleteDoc(fb.doc(fb.db, 'customers', customerId));
+      return true;
+    } catch (err) {}
+  }
+  return await deleteDocumentViaRest('customers', customerId);
+}
+
+/**
+ * Save City Hub to Firestore
+ */
+export async function saveCityToFirestore(city) {
+  const payload = sanitizePayload({
+    ...city,
+    updatedAt: new Date().toISOString()
+  });
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.setDoc) {
+    try {
+      await fb.setDoc(fb.doc(fb.db, 'cities', city.id), payload, { merge: true });
+      return true;
+    } catch (err) {}
+  }
+  return await saveDocumentViaRest('cities', city.id, payload);
+}
+
+/**
+ * Delete City Hub from Firestore
+ */
+export async function deleteCityFromFirestore(cityId) {
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.deleteDoc) {
+    try {
+      await fb.deleteDoc(fb.doc(fb.db, 'cities', cityId));
+      return true;
+    } catch (err) {}
+  }
+  return await deleteDocumentViaRest('cities', cityId);
+}
+
+/**
  * Delete all dummy data from Firestore collections
  */
 export async function clearAllFirestoreCollections() {
   const fb = await getFirebase();
   let deletedCount = 0;
-  const collectionsToClear = ['nurseries', 'plants', 'leads'];
+  const collectionsToClear = ['nurseries', 'plants', 'leads', 'orders', 'customers'];
 
   if (fb && fb.db && fb.getDocs && fb.deleteDoc) {
     for (const colName of collectionsToClear) {

@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, MapPin, Leaf, CheckCircle2, PhoneCall, Sparkles, Store, Sprout, ArrowRight 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import heroBg from '../../assets/landing-bg.jpg';
+
+// Helper to safely split text into natural grapheme clusters (supports Devanagari/Marathi & English)
+function getGraphemes(text) {
+  if (!text) return [];
+  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+    const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+    return Array.from(segmenter.segment(text), s => s.segment);
+  }
+  return Array.from(text);
+}
 
 export default function HeroSection({ 
   searchQuery, 
@@ -16,6 +26,70 @@ export default function HeroSection({
   cities = []
 }) {
   const { lang, t } = useLanguage();
+
+  // Typewriter effect state for hero title
+  const targetLine1 = t('heroTitleLine1');
+  const targetLine2 = t('heroTitleLine2');
+
+  const [displayedLine1, setDisplayedLine1] = useState('');
+  const [displayedLine2, setDisplayedLine2] = useState('');
+  const [currentStep, setCurrentStep] = useState('line1'); // 'line1' | 'pause' | 'line2' | 'done'
+
+  useEffect(() => {
+    let isCancelled = false;
+    let timer = null;
+
+    setDisplayedLine1('');
+    setDisplayedLine2('');
+    setCurrentStep('line1');
+
+    const graphemes1 = getGraphemes(targetLine1);
+    const graphemes2 = getGraphemes(targetLine2);
+
+    // Proper slow typing cadence (adjusted for natural reading and Devanagari/English graphemes)
+    const charDelay1 = lang === 'mr' ? 85 : 68;
+    const charDelay2 = lang === 'mr' ? 90 : 72;
+    const pauseBetweenLines = 450;
+    const startDelay = 350;
+
+    let i = 0;
+    let j = 0;
+
+    const typeLine1 = () => {
+      if (isCancelled) return;
+      if (i < graphemes1.length) {
+        i++;
+        setDisplayedLine1(graphemes1.slice(0, i).join(''));
+        timer = setTimeout(typeLine1, charDelay1);
+      } else {
+        setCurrentStep('pause');
+        timer = setTimeout(() => {
+          if (isCancelled) return;
+          setCurrentStep('line2');
+          typeLine2();
+        }, pauseBetweenLines);
+      }
+    };
+
+    const typeLine2 = () => {
+      if (isCancelled) return;
+      if (j < graphemes2.length) {
+        j++;
+        setDisplayedLine2(graphemes2.slice(0, j).join(''));
+        timer = setTimeout(typeLine2, charDelay2);
+      } else {
+        setCurrentStep('done');
+      }
+    };
+
+    // Deliberate initial pause on load so user clearly witnesses the typing start
+    timer = setTimeout(typeLine1, startDelay);
+
+    return () => {
+      isCancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [targetLine1, targetLine2, lang]);
 
   const cityOptions = [
     { value: 'all', label: t('heroAllCities') },
@@ -86,12 +160,31 @@ export default function HeroSection({
           </div>
         </div>
 
-        {/* Hero Headline */}
+        {/* Hero Headline with Animated Typewriter Effect */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
-          <h1 className="text-3xl sm:text-5xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight sm:leading-none">
-            {t('heroTitleLine1')}{' '}
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#1E5631] to-[#2E7D32] mt-1 sm:mt-2">
-              {t('heroTitleLine2')}
+          <h1 
+            className="text-3xl sm:text-5xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight sm:leading-none"
+            aria-label={`${targetLine1} ${targetLine2}`}
+          >
+            <span>
+              {displayedLine1}
+              {(currentStep === 'line1' || currentStep === 'pause') && (
+                <span 
+                  className="inline-block w-[3px] sm:w-[4px] h-[0.82em] bg-slate-900 ml-1 sm:ml-1.5 align-middle rounded-xs animate-typewriter-cursor" 
+                  aria-hidden="true"
+                />
+              )}
+            </span>
+            <span className="block mt-1 sm:mt-2 min-h-[1.25em]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E5631] to-[#2E7D32]">
+                {displayedLine2 || '\u00A0'}
+              </span>
+              {(currentStep === 'line2' || currentStep === 'done') && (
+                <span 
+                  className="inline-block w-[3px] sm:w-[4px] h-[0.82em] bg-[#2E7D32] ml-1 sm:ml-1.5 align-middle rounded-xs animate-typewriter-cursor" 
+                  aria-hidden="true"
+                />
+              )}
             </span>
           </h1>
           <p className="mt-4 text-xs sm:text-sm text-slate-700 font-medium max-w-2xl mx-auto leading-relaxed">
