@@ -12,11 +12,25 @@ export default function FeaturedNurseries({
   onCityChange, 
   onSelectNursery,
   onContactLead,
-  onOpenRegisterNursery
+  onOpenRegisterNursery,
+  cities = []
 }) {
   const { lang, t } = useLanguage();
 
-  const cities = ['all', 'Sangli', 'Miraj', 'Kolhapur', 'Karad'];
+  const cityFilterOptions = [
+    { value: 'all', label: t('heroAllCities') },
+    ...(cities.length > 0
+      ? cities.map(c => ({
+          value: c.nameEn,
+          label: lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn
+        }))
+      : [
+          { value: 'Sangli', label: 'Sangli' },
+          { value: 'Miraj', label: 'Miraj' },
+          { value: 'Kolhapur', label: 'Kolhapur' },
+          { value: 'Karad', label: 'Karad' }
+        ])
+  ];
 
   // Show all active and newly registered nurseries
   const displayNurseries = nurseries
@@ -34,11 +48,12 @@ export default function FeaturedNurseries({
         : `Hello ${nurseryName}, I found your nursery on TreeBazzar. I would like to inquire about your available plant varieties and saplings.`
     );
     
+    const defaultCity = cities[0]?.nameEn || 'Sangli';
     if (onContactLead) {
       onContactLead({
         customerName: 'Website Visitor',
         customerPhone: '+91 98XXXXXX',
-        customerCity: selectedCity !== 'all' ? selectedCity : 'Sangli',
+        customerCity: selectedCity !== 'all' ? selectedCity : defaultCity,
         type: 'whatsapp',
         plantOrNursery: nurseryName,
         notes: `Direct inquiry from TreeBazzar landing page to ${nurseryName}`
@@ -52,12 +67,13 @@ export default function FeaturedNurseries({
     e.stopPropagation();
     const phone = (nursery.phone || '9822145678').replace(/\D/g, '');
     const nurseryName = lang === 'mr' && nursery.nameMr ? nursery.nameMr : nursery.name;
+    const defaultCity = cities[0]?.nameEn || 'Sangli';
 
     if (onContactLead) {
       onContactLead({
         customerName: 'Website Visitor',
         customerPhone: '+91 98XXXXXX',
-        customerCity: selectedCity !== 'all' ? selectedCity : 'Sangli',
+        customerCity: selectedCity !== 'all' ? selectedCity : defaultCity,
         type: 'call',
         plantOrNursery: nurseryName,
         notes: `Direct phone call lead from TreeBazzar landing page to ${nurseryName}`
@@ -89,20 +105,18 @@ export default function FeaturedNurseries({
           {/* City Filter Pills & Add Nursery Action */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex flex-wrap items-center gap-1.5">
-              {cities.map((city) => (
+              {cityFilterOptions.map((item) => (
                 <button
-                  key={city}
+                  key={item.value}
                   type="button"
-                  onClick={() => onCityChange(city)}
+                  onClick={() => onCityChange(item.value)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    selectedCity === city
+                    selectedCity === item.value
                       ? 'bg-[#1E5631] text-white shadow-xs'
                       : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
                   }`}
                 >
-                  {city === 'all' 
-                    ? t('heroAllCities') 
-                    : city}
+                  {item.label}
                 </button>
               ))}
             </div>

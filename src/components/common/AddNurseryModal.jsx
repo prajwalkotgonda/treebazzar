@@ -3,7 +3,7 @@ import { X, Store, MapPin, Phone, MessageSquare, Check, User, ShieldCheck } from
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
 
-export default function AddNurseryModal({ isOpen, onClose, onAddNursery }) {
+export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities = [] }) {
   const { lang } = useLanguage();
 
   const [formData, setFormData] = useState({
@@ -12,7 +12,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery }) {
     ownerName: '',
     phone: '',
     whatsapp: '',
-    city: 'Sangli',
+    city: cities[0]?.nameEn || 'Sangli',
     address: '',
     status: 'approved',
     specialties: ['Grafted Fruit Trees', 'Indoor Plants'],
@@ -178,13 +178,20 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery }) {
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                 className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
               >
-                <option value="Sangli">Sangli (सांगली)</option>
-                <option value="Miraj">Miraj (मिरज)</option>
-                <option value="Kolhapur">Kolhapur (कोल्हापूर)</option>
-                <option value="Tasgaon">Tasgaon (तासगाव)</option>
-                <option value="Satara">Satara (सातारा)</option>
-                <option value="Pune">Pune (पुणे)</option>
-                <option value="Solapur">Solapur (सोलापूर)</option>
+                {cities && cities.length > 0 ? (
+                  cities.map(c => (
+                    <option key={c.id || c.nameEn} value={c.nameEn}>
+                      {c.nameEn} {c.nameMr ? `(${c.nameMr})` : ''}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Sangli">Sangli (सांगली)</option>
+                    <option value="Miraj">Miraj (मिरज)</option>
+                    <option value="Kolhapur">Kolhapur (कोल्हापूर)</option>
+                    <option value="Karad">Karad (कराड)</option>
+                  </>
+                )}
               </select>
             </div>
 

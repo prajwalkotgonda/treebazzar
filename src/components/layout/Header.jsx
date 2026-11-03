@@ -19,10 +19,14 @@ export default function Header({
 
   // Derive current page title dynamically
   const pageTitle = {
-    dashboard: t('navDashboard'),
-    nurseries: t('navNurseries'),
-    plants: t('navPlants'),
-    inquiries: t('navInquiries')
+    dashboard: t('navDashboard') || 'Dashboard',
+    nurseries: t('navNurseries') || 'Nursery Management',
+    plants: t('navPlants') || 'Plant Management',
+    orders: t('navOrders') || 'Orders',
+    customers: t('navCustomers') || 'Customers',
+    inquiries: t('navInquiries') || 'Enquiries',
+    reports: t('navReports') || 'Reports',
+    cities: t('navCities') || 'Cities & Hubs'
   }[activeView] || t('navDashboard');
 
   return (

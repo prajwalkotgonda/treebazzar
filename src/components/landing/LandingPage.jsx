@@ -14,6 +14,7 @@ import NurseryDetailsModal from '../common/NurseryDetailsModal';
 export default function LandingPage({ 
   nurseries = [], 
   plants = [], 
+  cities = [],
   onOpenLogin, 
   onAddNursery,
   onAddPlant,
@@ -58,6 +59,7 @@ export default function LandingPage({
         onCityChange={setSelectedCity}
         totalNurseries={nurseries.length}
         totalPlants={plants.length}
+        cities={cities}
       />
 
       {/* 3. Category Showcase Grid */}
@@ -75,6 +77,7 @@ export default function LandingPage({
         onSelectNursery={(n) => setSelectedNursery(n)}
         onContactLead={onContactLead}
         onOpenRegisterNursery={() => setRegisterModalOpen(true)}
+        cities={cities}
       />
 
       {/* 5. Live Plant Catalog & WhatsApp Inquiries */}
@@ -100,6 +103,7 @@ export default function LandingPage({
       {/* 8. Footer */}
       <LandingFooter 
         onOpenLogin={onOpenLogin}
+        cities={cities}
       />
 
       {/* Nursery Registration Modal (for growers onboarding) */}
@@ -107,6 +111,7 @@ export default function LandingPage({
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
         onAddNursery={handleRegisterNurserySubmit}
+        cities={cities}
       />
 
       {/* Add Plant Modal (for adding plant varieties directly) */}

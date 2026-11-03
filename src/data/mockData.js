@@ -462,3 +462,209 @@ export const RECENT_ACTIVITIES = [
 export const FALLBACK_PLANT_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='none' stroke='%232E7D32' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='100%25' height='100%25' fill='%23F0FDF4'/%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z'/%3E%3C/svg%3E";
 
 export const FALLBACK_NURSERY_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250' viewBox='0 0 24 24' fill='none' stroke='%231E5631' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='100%25' height='100%25' fill='%23E8F5E9'/%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E";
+
+export const INITIAL_CITIES = [
+  { id: 'city-1', nameEn: 'Sangli', nameMr: 'सांगली' },
+  { id: 'city-2', nameEn: 'Miraj', nameMr: 'मिरज' },
+  { id: 'city-3', nameEn: 'Kolhapur', nameMr: 'कोल्हापूर' },
+  { id: 'city-4', nameEn: 'Karad', nameMr: 'कराड' }
+];
+
+export const INITIAL_ORDERS = [
+  {
+    id: 'ORD-101',
+    customerName: 'Rahul Patil',
+    customerPhone: '9822145678',
+    customerCity: 'Sangli',
+    nurseryId: 'nursery-1',
+    nurseryName: 'Bhushan Hi-Tech Nursery',
+    plantName: 'Kesar Mango Grafted Sapling',
+    quantity: 50,
+    unitPrice: 140,
+    totalAmount: 7000,
+    paymentMethod: 'Cash on Delivery',
+    status: 'pending',
+    date: '2026-11-01',
+    deliveryAddress: 'Farm No. 14, Tasgaon Road, Sangli',
+    notes: 'Farmer requested early morning nursery pickup/delivery.'
+  },
+  {
+    id: 'ORD-102',
+    customerName: 'Amit Jadhav',
+    customerPhone: '9764512345',
+    customerCity: 'Miraj',
+    nurseryId: 'nursery-2',
+    nurseryName: 'Shree Ganesh Nursery & Farm',
+    plantName: 'Sardar Guava (L-49)',
+    quantity: 25,
+    unitPrice: 90,
+    totalAmount: 2250,
+    paymentMethod: 'UPI Transfer',
+    status: 'confirmed',
+    date: '2026-10-31',
+    deliveryAddress: 'Bedag Village, Near Post Office, Miraj',
+    notes: 'Payment confirmed via UPI.'
+  },
+  {
+    id: 'ORD-103',
+    customerName: 'Sneha Kulkarni',
+    customerPhone: '9423876543',
+    customerCity: 'Kolhapur',
+    nurseryId: 'nursery-4',
+    nurseryName: 'Kolhapur Royal Greenery',
+    plantName: 'Monstera Deliciosa (Swiss Cheese)',
+    quantity: 3,
+    unitPrice: 450,
+    totalAmount: 1350,
+    paymentMethod: 'UPI Transfer',
+    status: 'dispatched',
+    date: '2026-10-30',
+    deliveryAddress: 'Plot 42, Tarabai Park, Kolhapur',
+    notes: 'Packed safely with ceramic decorative planters.'
+  },
+  {
+    id: 'ORD-104',
+    customerName: 'Sagar Shinde',
+    customerPhone: '9890123456',
+    customerCity: 'Karad',
+    nurseryId: 'nursery-3',
+    nurseryName: 'Krishna Agriculture Nursery',
+    plantName: 'Tissue Culture Sagwan (Teak Wood)',
+    quantity: 200,
+    unitPrice: 45,
+    totalAmount: 9000,
+    paymentMethod: 'Bank Transfer',
+    status: 'delivered',
+    date: '2026-10-28',
+    deliveryAddress: 'Oglewadi Highway, Karad',
+    notes: 'Delivered in tractor trailer successfully.'
+  },
+  {
+    id: 'ORD-105',
+    customerName: 'Priya Deshmukh',
+    customerPhone: '9156789012',
+    customerCity: 'Sangli',
+    nurseryId: 'nursery-2',
+    nurseryName: 'Shree Ganesh Nursery & Farm',
+    plantName: 'Desi Country Rose (Gulab)',
+    quantity: 10,
+    unitPrice: 60,
+    totalAmount: 600,
+    paymentMethod: 'Cash on Delivery',
+    status: 'delivered',
+    date: '2026-10-27',
+    deliveryAddress: 'Vasant Colony, Market Yard, Sangli',
+    notes: 'Terrace flower pots.'
+  },
+  {
+    id: 'ORD-106',
+    customerName: 'Vikram Mohite',
+    customerPhone: '9637890123',
+    customerCity: 'Sangli',
+    nurseryId: 'nursery-1',
+    nurseryName: 'Bhushan Hi-Tech Nursery',
+    plantName: 'F1 Hybrid Tomato Seedlings',
+    quantity: 400,
+    unitPrice: 2.5,
+    totalAmount: 1000,
+    paymentMethod: 'Cash on Delivery',
+    status: 'pending',
+    date: '2026-11-02',
+    deliveryAddress: 'Haripur Farm Sector 2, Sangli',
+    notes: 'Vegetable seedling pro-trays ready for transplant.'
+  },
+  {
+    id: 'ORD-107',
+    customerName: 'Mahesh Pawar',
+    customerPhone: '9823011223',
+    customerCity: 'Kolhapur',
+    nurseryId: 'nursery-4',
+    nurseryName: 'Kolhapur Royal Greenery',
+    plantName: 'Golden Areca Palm',
+    quantity: 6,
+    unitPrice: 280,
+    totalAmount: 1680,
+    paymentMethod: 'UPI Transfer',
+    status: 'cancelled',
+    date: '2026-10-25',
+    deliveryAddress: 'Rajarampuri 5th Lane, Kolhapur',
+    notes: 'Customer changed requirements to fruit trees.'
+  }
+];
+
+export const INITIAL_CUSTOMERS = [
+  {
+    id: 'CUST-1',
+    name: 'Rahul Patil',
+    phone: '9822145678',
+    email: 'rahul.patil@agrimail.com',
+    city: 'Sangli',
+    address: 'Farm No. 14, Tasgaon Road, Sangli',
+    totalOrders: 3,
+    totalSpent: 14500,
+    joinedDate: '2026-08-12',
+    notes: 'Commercial mango & pomegranate orchard grower.'
+  },
+  {
+    id: 'CUST-2',
+    name: 'Amit Jadhav',
+    phone: '9764512345',
+    email: 'amit.jadhav@gmail.com',
+    city: 'Miraj',
+    address: 'Bedag Village, Near Post Office, Miraj',
+    totalOrders: 2,
+    totalSpent: 4200,
+    joinedDate: '2026-09-04',
+    notes: 'Guava and citrus fruit buyer.'
+  },
+  {
+    id: 'CUST-3',
+    name: 'Sneha Kulkarni',
+    phone: '9423876543',
+    email: 'sneha.kulkarni@yahoo.com',
+    city: 'Kolhapur',
+    address: 'Plot 42, Tarabai Park, Kolhapur',
+    totalOrders: 4,
+    totalSpent: 6800,
+    joinedDate: '2026-07-19',
+    notes: 'Indoor plants, balconies and planters buyer.'
+  },
+  {
+    id: 'CUST-4',
+    name: 'Sagar Shinde',
+    phone: '9890123456',
+    email: 'sagar.shinde@agrocorp.in',
+    city: 'Karad',
+    address: 'Oglewadi Highway, Karad',
+    totalOrders: 2,
+    totalSpent: 18000,
+    joinedDate: '2026-06-11',
+    notes: 'Agroforestry and teak timber plantations.'
+  },
+  {
+    id: 'CUST-5',
+    name: 'Priya Deshmukh',
+    phone: '9156789012',
+    email: 'priya.deshmukh@gmail.com',
+    city: 'Sangli',
+    address: 'Vasant Colony, Market Yard, Sangli',
+    totalOrders: 1,
+    totalSpent: 600,
+    joinedDate: '2026-10-15',
+    notes: 'Flowering shrubs and decorative plants.'
+  },
+  {
+    id: 'CUST-6',
+    name: 'Vikram Mohite',
+    phone: '9637890123',
+    email: 'vikram.mohite@rediffmail.com',
+    city: 'Sangli',
+    address: 'Haripur Farm Sector 2, Sangli',
+    totalOrders: 5,
+    totalSpent: 8900,
+    joinedDate: '2026-05-20',
+    notes: 'Frequent buyer of high-yield vegetable seedlings.'
+  }
+];
+
+

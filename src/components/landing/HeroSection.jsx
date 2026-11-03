@@ -12,17 +12,30 @@ export default function HeroSection({
   onCityChange,
   totalNurseries = 0,
   totalPlants = 0,
-  onSearchSubmit
+  onSearchSubmit,
+  cities = []
 }) {
   const { lang, t } = useLanguage();
 
-  const cities = [
+  const cityOptions = [
     { value: 'all', label: t('heroAllCities') },
-    { value: 'Sangli', label: t('heroCitySangli') },
-    { value: 'Miraj', label: t('heroCityMiraj') },
-    { value: 'Kolhapur', label: t('heroCityKolhapur') },
-    { value: 'Karad', label: t('heroCityKarad') }
+    ...(cities.length > 0
+      ? cities.map(c => ({
+          value: c.nameEn,
+          label: lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn
+        }))
+      : [
+          { value: 'Sangli', label: t('heroCitySangli') },
+          { value: 'Miraj', label: t('heroCityMiraj') },
+          { value: 'Kolhapur', label: t('heroCityKolhapur') },
+          { value: 'Karad', label: t('heroCityKarad') }
+        ])
   ];
+
+  const hubsCount = cities.length > 0 ? cities.length : 4;
+  const hubsNames = cities.length > 0
+    ? cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(', ')
+    : 'Sangli, Miraj, Kolhapur, Karad';
 
   const popularTags = [
     { en: 'Kesar Mango', mr: 'केशर आंबा' },
@@ -99,7 +112,7 @@ export default function HeroSection({
                 onChange={(e) => onCityChange(e.target.value)}
                 className="w-full text-xs font-bold text-slate-800 bg-transparent focus:outline-hidden cursor-pointer"
               >
-                {cities.map(c => (
+                {cityOptions.map(c => (
                   <option key={c.value} value={c.value}>
                     {c.label}
                   </option>
@@ -183,12 +196,12 @@ export default function HeroSection({
             <div className="w-10 h-10 rounded-xl bg-emerald-100/90 flex items-center justify-center text-[#1E5631] shrink-0">
               <MapPin className="w-5 h-5 text-[#2E7D32]" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="text-base font-black text-slate-900 leading-tight">
-                4 Hubs
+                {hubsCount} {lang === 'mr' ? 'हब्स' : 'Hubs'}
               </div>
-              <p className="text-[10px] text-slate-600 font-semibold leading-tight">
-                Sangli, Miraj, Kolhapur, Karad
+              <p className="text-[10px] text-slate-600 font-semibold leading-tight line-clamp-1 truncate" title={hubsNames}>
+                {hubsNames}
               </p>
             </div>
           </div>

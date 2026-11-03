@@ -2,7 +2,7 @@ import React from 'react';
 import { Leaf, ShieldCheck, MapPin, Mail, Phone, Heart } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
-export default function LandingFooter({ onOpenLogin }) {
+export default function LandingFooter({ onOpenLogin, cities = [] }) {
   const { lang, t } = useLanguage();
 
   const handleScrollTo = (e, href) => {
@@ -12,6 +12,10 @@ export default function LandingFooter({ onOpenLogin }) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const hubsText = cities.length > 0
+    ? cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ') + (lang === 'mr' ? ' प्रादेशिक हब' : ' Regional Hub')
+    : 'Sangli • Miraj • Kolhapur • Karad Regional Hub';
 
   return (
     <footer className="bg-slate-900 text-white pt-14 pb-8 border-t border-slate-800">
@@ -38,7 +42,7 @@ export default function LandingFooter({ onOpenLogin }) {
 
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span>Sangli • Miraj • Kolhapur • Karad Regional Hub</span>
+              <span>{hubsText}</span>
             </div>
           </div>
 

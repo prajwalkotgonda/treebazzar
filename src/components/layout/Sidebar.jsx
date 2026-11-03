@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
-  LayoutDashboard, Store, Sprout, MessageSquare, 
-  Leaf, ChevronRight, Sparkles, MapPin, X
+  LayoutDashboard, Store, Sprout, ShoppingBag, Users, 
+  MessageSquare, BarChart3, Leaf, ChevronRight, Sparkles, MapPin, X, Globe
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -9,42 +9,66 @@ export default function Sidebar({
   activeView, 
   onSelectView, 
   pendingCount = 0,
+  pendingOrdersCount = 0,
   leadsCount = 0,
   isOpen, 
-  onClose
+  onClose,
+  cities = [],
+  onViewWebsite
 }) {
   const { t, lang } = useLanguage();
 
   const navItems = [
     {
       id: 'dashboard',
-      label: t('navDashboard'),
+      label: t('navDashboard') || 'Dashboard',
       icon: LayoutDashboard,
       badge: null,
     },
     {
       id: 'nurseries',
-      label: t('navNurseries'),
+      label: t('navNurseries') || 'Nursery Management',
       icon: Store,
       badge: pendingCount > 0 ? {
         text: `${pendingCount}`,
-        color: 'bg-rose-500 text-white'
+        color: 'bg-amber-500 text-white'
       } : null,
     },
     {
       id: 'plants',
-      label: t('navPlants'),
+      label: t('navPlants') || 'Plant Management',
       icon: Sprout,
       badge: null,
     },
     {
+      id: 'orders',
+      label: t('navOrders') || 'Orders',
+      icon: ShoppingBag,
+      badge: pendingOrdersCount > 0 ? {
+        text: `${pendingOrdersCount}`,
+        color: 'bg-emerald-600 text-white'
+      } : null,
+    },
+    {
+      id: 'customers',
+      label: t('navCustomers') || 'Customers',
+      icon: Users,
+      badge: null,
+    },
+    {
       id: 'inquiries',
-      label: t('navInquiries'),
+      label: t('navInquiries') || 'Enquiries',
       icon: MessageSquare,
       badge: leadsCount > 0 ? {
         text: `${leadsCount}`,
-        color: 'bg-emerald-600 text-white'
+        color: 'bg-teal-600 text-white'
       } : null,
+    },
+    {
+      id: 'reports',
+      label: t('navReports') || 'Reports',
+      icon: BarChart3,
+      badge: null,
     },
   ];
 
@@ -69,9 +93,9 @@ export default function Sidebar({
       }`}>
         
         {/* Top Logo and Navigation */}
-        <div>
+        <div className="overflow-y-auto flex-1">
           {/* Logo Bar */}
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#1E5631] via-[#246b3c] to-[#2E7D32] flex items-center justify-center text-white shadow-md shadow-emerald-950/20">
                 <Leaf className="w-5 h-5 fill-white/20 stroke-[2.2]" />
@@ -86,7 +110,7 @@ export default function Sidebar({
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  {lang === 'mr' ? 'स्थानिक रोपवाटिका बाजारपेठ' : 'Local Nursery Marketplace'}
+                  {lang === 'mr' ? 'स्थानिक रोपवाटिका ॲडमिन' : 'Simple Nursery Admin'}
                 </p>
               </div>
             </div>
@@ -99,12 +123,14 @@ export default function Sidebar({
             </button>
           </div>
 
-          {/* Hub Location Badge */}
-          <div className="mx-4 mt-3 px-3 py-2 rounded-xl bg-[#F8FAF9] border border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
+          {/* Active Hub Cities Badge */}
+          <div className="mx-4 mt-3 px-3 py-2 rounded-xl bg-emerald-50/50 border border-emerald-100/80 flex items-center justify-between text-xs text-slate-600">
             <div className="flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5 text-[#2E7D32]" />
-              <span className="font-semibold text-slate-800 text-[11px]">
-                {lang === 'mr' ? 'सांगली • मिरज • कोल्हापूर' : 'Sangli • Miraj • Kolhapur'}
+              <MapPin className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />
+              <span className="font-semibold text-slate-800 text-[11px] truncate max-w-[170px]" title={cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ')}>
+                {cities.length > 0 
+                  ? cities.slice(0, 3).map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ') + (cities.length > 3 ? '...' : '')
+                  : (lang === 'mr' ? 'सांगली • मिरज • कोल्हापूर' : 'Sangli • Miraj • Kolhapur')}
               </span>
             </div>
             <span className="flex h-2 w-2 relative">
@@ -113,10 +139,10 @@ export default function Sidebar({
             </span>
           </div>
 
-          {/* Navigation Links */}
+          {/* 7 Core Navigation Links */}
           <nav className="p-3 space-y-1 mt-2">
             <div className="px-3 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              {t('mainMenu')}
+              {t('mainMenu') || 'Main Menu'}
             </div>
 
             {navItems.map((item) => {
@@ -130,7 +156,7 @@ export default function Sidebar({
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
                     isActive
                       ? 'bg-[#1E5631] text-white shadow-md shadow-emerald-950/20'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-emerald-50/60'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1 mr-2 text-left">
@@ -152,24 +178,49 @@ export default function Sidebar({
                 </button>
               );
             })}
+
+            {/* Optional Hub Cities View */}
+            <div className="pt-2 border-t border-slate-100 mt-2">
+              <button
+                onClick={() => handleNavClick('cities')}
+                className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                  activeView === 'cities'
+                    ? 'bg-[#1E5631] text-white shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{t('navCities') || 'Cities & Hubs'}</span>
+                </div>
+                <span className="text-[10px] text-slate-400">
+                  {cities.length}
+                </span>
+              </button>
+            </div>
           </nav>
         </div>
 
-        {/* Bottom Section: Clean Status Card */}
-        <div className="p-4 border-t border-slate-100">
-          <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 text-[11px] text-slate-600">
-            <div className="flex items-center justify-between font-bold text-[#1E5631] mb-0.5">
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
-                TreeBazzar
-              </span>
-              <span className="text-[10px] bg-emerald-200/60 px-1.5 py-0.2 rounded text-emerald-900">
-                Demo
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-500 leading-tight">
-              {lang === 'mr' ? 'स्थानिक नमुना डेटा चालू आहे.' : 'Local demo data active.'}
-            </p>
+        {/* Bottom Section: View Public Website & Info */}
+        <div className="p-4 border-t border-slate-100 space-y-2.5">
+          {onViewWebsite && (
+            <button
+              onClick={onViewWebsite}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 text-xs font-bold transition-all cursor-pointer active:scale-95"
+            >
+              <Globe className="w-4 h-4 text-[#2E7D32]" />
+              <span>{lang === 'mr' ? 'पब्लिक वेबसाइट पहा' : 'View Public Website'}</span>
+            </button>
+          )}
+
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] text-slate-500 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 font-medium text-slate-700">
+              <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
+              TreeBazzar
+            </span>
+            <span className="text-[10px] bg-emerald-100 text-[#1E5631] font-bold px-1.5 py-0.5 rounded">
+              v2.0 Clean
+            </span>
           </div>
         </div>
 

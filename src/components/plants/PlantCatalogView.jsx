@@ -7,6 +7,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { PLANT_CATEGORIES, FALLBACK_PLANT_IMAGE } from '../../data/mockData';
 import AddPlantModal from '../common/AddPlantModal';
 import EditPlantModal from '../common/EditPlantModal';
+import DeleteConfirmModal from '../common/DeleteConfirmModal';
 
 export default function PlantCatalogView({ 
   plants = [], 
@@ -26,8 +27,9 @@ export default function PlantCatalogView({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStock, setSelectedStock] = useState('all'); // 'all', 'in_stock', 'out_of_stock'
 
-  // Edit Modal State
+  // Edit & Delete Modal State
   const [editingPlant, setEditingPlant] = useState(null);
+  const [deletingPlant, setDeletingPlant] = useState(null);
 
   // Filter plants based on search, category, and stock
   const filteredPlants = useMemo(() => {
@@ -254,13 +256,9 @@ export default function PlantCatalogView({
 
                           {/* Delete Action Button */}
                           <button
-                            onClick={() => {
-                              if (window.confirm(lang === 'mr' ? 'तुम्हाला ही वनस्पती कॅटलॉगमधून काढून टाकायची आहे का?' : 'Are you sure you want to delete this plant?')) {
-                                onDeletePlant(plant.id);
-                              }
-                            }}
-                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                            title={t('btnDelete')}
+                            onClick={() => setDeletingPlant(plant)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-rose-100"
+                            title={t('btnDelete') || 'Delete'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -303,6 +301,20 @@ export default function PlantCatalogView({
           onClose={() => setEditingPlant(null)}
           onUpdatePlant={onUpdatePlant}
           nurseries={nurseries}
+        />
+      )}
+
+      {/* Delete Plant Modal */}
+      {deletingPlant && (
+        <DeleteConfirmModal
+          isOpen={Boolean(deletingPlant)}
+          onClose={() => setDeletingPlant(null)}
+          onConfirm={() => onDeletePlant && onDeletePlant(deletingPlant.id)}
+          title={lang === 'mr' ? 'वनस्पती हटवा' : 'Delete Plant from Catalog'}
+          itemName={deletingPlant.nameEn || deletingPlant.name}
+          message={lang === 'mr'
+            ? `"${deletingPlant.nameMr || deletingPlant.nameEn}" ही वनस्पती कॅटलॉगमधून कायमस्वरूपी काढून टाकली जाईल.`
+            : `"${deletingPlant.nameEn}" will be permanently removed from the catalog.`}
         />
       )}
 
