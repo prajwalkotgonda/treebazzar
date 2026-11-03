@@ -69,8 +69,9 @@ export default function HeroSection({
           alt="TreeBazzar Botanical Nursery Background" 
           className="w-full h-full object-cover object-center sm:object-bottom"
         />
-        {/* Soft, vibrant gradient overlay for crisp typography and contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/55 to-[#F8FAF9]/95 backdrop-blur-[0.5px]" />
+        {/* Natural Botanical Overlay: Preserves rich green foliage & nursery saplings while keeping center readable */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/45 via-white/15 to-white/40" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,_rgba(255,255,255,0.65)_0%,_rgba(255,255,255,0.2)_55%,_transparent_100%)]" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -224,31 +225,52 @@ export default function HeroSection({
 
       </div>
 
-      {/* Multi-Layer Botanical Wave Divider Transition */}
+      {/* Multi-Layer Botanical Wave Divider Transition: Matches background greenery & smoothly transitions into white */}
       <div className="absolute -bottom-px left-0 right-0 w-full overflow-hidden leading-none pointer-events-none z-10">
         <svg
-          className="relative block w-full h-12 sm:h-16 lg:h-20"
+          className="relative block w-full h-10 sm:h-14 lg:h-16"
           viewBox="0 0 1440 120"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="none"
         >
-          {/* Layer 1: Subtle Botanical Emerald Wave */}
+          <defs>
+            {/* Deep forest nursery green matching background leaves */}
+            <linearGradient id="waveForestGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#1E5631" stopOpacity="0.45" />
+              <stop offset="50%" stopColor="#2E7D32" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#1E5631" stopOpacity="0.5" />
+            </linearGradient>
+
+            {/* Fresh vibrant sapling green matching young potted foliage */}
+            <linearGradient id="waveEmeraldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#15803D" stopOpacity="0.35" />
+              <stop offset="50%" stopColor="#22C55E" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#16A34A" stopOpacity="0.35" />
+            </linearGradient>
+
+            {/* Soft botanical mint-to-white base wave */}
+            <linearGradient id="waveBaseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#E8F5E9" stopOpacity="0.9" />
+              <stop offset="35%" stopColor="#F1F8F5" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#FFFFFF" />
+            </linearGradient>
+          </defs>
+
+          {/* Layer 1: Deep Botanical Green Wave */}
           <path
             d="M0,35 C360,90 720,10 1080,65 C1260,90 1380,45 1440,30 L1440,120 L0,120 Z"
-            fill="#10B981"
-            fillOpacity="0.18"
+            fill="url(#waveForestGrad)"
           />
-          {/* Layer 2: Frosted Mint Wave */}
+          {/* Layer 2: Fresh Sapling Emerald Wave */}
           <path
             d="M0,60 C240,15 600,80 960,35 C1200,65 1350,30 1440,50 L1440,120 L0,120 Z"
-            fill="#ECFDF5"
-            fillOpacity="0.75"
+            fill="url(#waveEmeraldGrad)"
           />
-          {/* Layer 3: Pure White Wave merging into Category Cards section */}
+          {/* Layer 3: Soft Mint-to-White Wave (seamlessly joins Category Cards) */}
           <path
             d="M0,82 C320,40 640,100 1020,52 C1240,28 1380,75 1440,65 L1440,120 L0,120 Z"
-            fill="#FFFFFF"
+            fill="url(#waveBaseGrad)"
           />
         </svg>
       </div>
