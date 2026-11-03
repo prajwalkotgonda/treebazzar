@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  Leaf, Mail, Lock, Eye, EyeOff, LogIn, Sparkles, 
-  Languages, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft
+  Leaf, Mail, Lock, Eye, EyeOff, LogIn, 
+  Languages, ShieldCheck, AlertCircle, ArrowLeft
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -23,7 +23,7 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
     const cleanPass = password.trim();
 
     if (!cleanEmail) {
-      setError(lang === 'mr' ? 'कृपया ईमेल किंवा युझरनेम टाका' : 'Please enter your email address');
+      setError(lang === 'mr' ? 'कृपया ईमेल टाका' : 'Please enter your email address');
       return;
     }
     if (!cleanPass) {
@@ -33,26 +33,15 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
 
     setIsLoading(true);
 
-    // Verify credentials (accepts admin@treebazzar.com or admin, with password admin123)
+    // Hardcoded credentials: admin@gmail.com and admin@123
     setTimeout(() => {
-      if ((cleanEmail === 'admin@treebazzar.com' || cleanEmail === 'admin') && cleanPass === 'admin123') {
+      if (cleanEmail === 'admin@gmail.com' && cleanPass === 'admin@123') {
         onLogin({ email: cleanEmail, rememberMe });
       } else {
-        setError(t('invalidCreds'));
+        setError(t('invalidCreds') || (lang === 'mr' ? 'चुकीचा ईमेल किंवा पासवर्ड. कृपया योग्य माहिती भरा.' : 'Invalid email or password.'));
         setIsLoading(false);
       }
     }, 400);
-  };
-
-  const handleQuickDemoLogin = () => {
-    setEmail('admin@treebazzar.com');
-    setPassword('admin123');
-    setError('');
-    setIsLoading(true);
-
-    setTimeout(() => {
-      onLogin({ email: 'admin@treebazzar.com', rememberMe: true });
-    }, 300);
   };
 
   return (
@@ -76,7 +65,7 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 transition-all cursor-pointer shadow-2xs"
             >
               <ArrowLeft className="w-3.5 h-3.5 text-[#1E5631]" />
-              <span>{t('landingBackToSite')}</span>
+              <span>{t('landingBackToSite') || (lang === 'mr' ? '← मुख्य वेबसाइटवर जा' : '← Back to Website')}</span>
             </button>
           )}
 
@@ -90,7 +79,7 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
           </div>
         </div>
 
-        {/* Seamless Language Toggle */}
+        {/* Language Toggle */}
         <button
           type="button"
           onClick={toggleLanguage}
@@ -120,10 +109,10 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
             </div>
 
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              {t('brandName')}
+              {t('brandName') || 'TreeBazzar'}
             </h1>
             <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
-              {t('loginPrompt')}
+              {t('loginPrompt') || (lang === 'mr' ? 'ॲडमिन डॅशबोर्डमध्ये प्रवेश करण्यासाठी लॉगिन करा.' : 'Sign in to access your admin dashboard.')}
             </p>
           </div>
 
@@ -135,19 +124,19 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
             </div>
           )}
 
-          {/* Form */}
+          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             
             {/* Email Field */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                {t('emailLabel')}
+                {t('emailLabel') || (lang === 'mr' ? 'ईमेल आयडी' : 'Email Address')}
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="text"
-                  placeholder="admin@treebazzar.com"
+                  type="email"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -158,16 +147,11 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
               </div>
             </div>
 
-            {/* Password Field */}
+            {/* Password Field (No exposed default hints!) */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-slate-700">
-                  {t('passwordLabel')}
-                </label>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  Default: admin123
-                </span>
-              </div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                {t('passwordLabel') || (lang === 'mr' ? 'पासवर्ड' : 'Password')}
+              </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -200,7 +184,7 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="rounded border-slate-300 text-[#1E5631] focus:ring-[#2E7D32] w-4 h-4"
                 />
-                <span className="text-[11px] font-medium">{t('rememberMe')}</span>
+                <span className="text-[11px] font-medium">{t('rememberMe') || (lang === 'mr' ? 'लक्षात ठेवा' : 'Remember me')}</span>
               </label>
 
               <span className="text-[11px] text-[#2E7D32] font-semibold">
@@ -215,26 +199,10 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
               className="w-full py-2.5 px-4 rounded-xl bg-[#1E5631] hover:bg-[#2E7D32] active:scale-[0.99] text-white font-bold text-xs shadow-md shadow-emerald-950/15 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
-              <span>{isLoading ? (lang === 'mr' ? 'पडताळणी करत आहे...' : 'Signing In...') : t('signInBtn')}</span>
+              <span>{isLoading ? (lang === 'mr' ? 'पडताळणी करत आहे...' : 'Signing In...') : (t('signInBtn') || 'Sign In to Dashboard')}</span>
             </button>
 
           </form>
-
-          {/* Quick Demo Helper */}
-          <div className="mt-5 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={handleQuickDemoLogin}
-              disabled={isLoading}
-              className="w-full py-2 px-3 rounded-xl bg-emerald-50/80 hover:bg-emerald-100/90 text-[#1E5631] border border-emerald-200/80 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
-              <span>{t('demoLoginBtn')}</span>
-            </button>
-            <p className="text-[10px] text-slate-400 text-center mt-2 font-mono">
-              Email: admin@treebazzar.com | Pass: admin123
-            </p>
-          </div>
 
         </div>
       </div>

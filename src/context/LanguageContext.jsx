@@ -265,7 +265,7 @@ export const translations = {
     rememberMe: 'Remember me on this browser',
     signInBtn: 'Sign In to Dashboard',
     demoLoginBtn: '1-Click Quick Demo Login',
-    invalidCreds: 'Invalid credentials. Use admin@treebazzar.com / admin123 or click Quick Demo.',
+    invalidCreds: 'Invalid credentials. Please enter valid email and password.',
     logoutBtn: 'Logout',
     logoutSuccess: 'Logged Out Successfully',
 
@@ -611,7 +611,7 @@ export const translations = {
     rememberMe: 'माझे लॉगिन लक्षात ठेवा',
     signInBtn: 'डॅशबोर्डवर लॉगिन करा',
     demoLoginBtn: '१-क्लिक झटपट डेमो लॉगिन',
-    invalidCreds: 'चुकीची माहिती. admin@treebazzar.com / admin123 वापरा किंवा डेमो लॉगिनवर क्लिक करा.',
+    invalidCreds: 'चुकीचा ईमेल किंवा पासवर्ड. कृपया योग्य माहिती भरा.',
     logoutBtn: 'लॉगआउट',
     logoutSuccess: 'यशस्वीरित्या लॉगआउट झाले',
 

@@ -60,7 +60,7 @@ export default function HeroSection({
   };
 
   return (
-    <section className="relative overflow-hidden pt-10 pb-16 sm:pt-16 sm:pb-24 border-b border-emerald-950/10">
+    <section className="relative overflow-hidden pt-10 pb-20 sm:pt-16 sm:pb-28 lg:pb-32">
       
       {/* Botanical Background Image with Luminous Overlay */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
@@ -222,6 +222,35 @@ export default function HeroSection({
 
         </div>
 
+      </div>
+
+      {/* Multi-Layer Botanical Wave Divider Transition */}
+      <div className="absolute -bottom-px left-0 right-0 w-full overflow-hidden leading-none pointer-events-none z-10">
+        <svg
+          className="relative block w-full h-12 sm:h-16 lg:h-20"
+          viewBox="0 0 1440 120"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+        >
+          {/* Layer 1: Subtle Botanical Emerald Wave */}
+          <path
+            d="M0,35 C360,90 720,10 1080,65 C1260,90 1380,45 1440,30 L1440,120 L0,120 Z"
+            fill="#10B981"
+            fillOpacity="0.18"
+          />
+          {/* Layer 2: Frosted Mint Wave */}
+          <path
+            d="M0,60 C240,15 600,80 960,35 C1200,65 1350,30 1440,50 L1440,120 L0,120 Z"
+            fill="#ECFDF5"
+            fillOpacity="0.75"
+          />
+          {/* Layer 3: Pure White Wave merging into Category Cards section */}
+          <path
+            d="M0,82 C320,40 640,100 1020,52 C1240,28 1380,75 1440,65 L1440,120 L0,120 Z"
+            fill="#FFFFFF"
+          />
+        </svg>
       </div>
 
     </section>

@@ -606,7 +606,11 @@ function AppRoot() {
   });
 
   // Current view navigation: 'landing' (default) | 'login' | 'admin'
-  const [currentView, setCurrentView] = useState('admin'); // Default to admin for immediate preview or switchable
+  const [currentView, setCurrentView] = useState(() => {
+    const isAuth = localStorage.getItem('tb_admin_auth') === 'true' || 
+                   sessionStorage.getItem('tb_admin_auth') === 'true';
+    return isAuth ? 'admin' : 'landing';
+  });
   const [toast, setToast] = useState(null);
   const { lang, t } = useLanguage();
 
@@ -861,26 +865,33 @@ function AppRoot() {
 
       {/* 3. Redesigned Admin Dashboard */}
       {currentView === 'admin' && (
-        <DashboardContent
-          onLogout={handleLogout}
-          onViewWebsite={() => setCurrentView('landing')}
-          nurseries={nurseries}
-          setNurseries={setNurseries}
-          plants={plants}
-          setPlants={setPlants}
-          orders={orders}
-          setOrders={setOrders}
-          customers={customers}
-          setCustomers={setCustomers}
-          inquiries={inquiries}
-          setInquiries={setInquiries}
-          cities={cities}
-          onAddCity={handleAddCity}
-          onEditCity={handleEditCity}
-          onDeleteCity={handleDeleteCity}
-          onResetDemoData={handleResetDemoData}
-          showToast={showToast}
-        />
+        isAuthenticated ? (
+          <DashboardContent
+            onLogout={handleLogout}
+            onViewWebsite={() => setCurrentView('landing')}
+            nurseries={nurseries}
+            setNurseries={setNurseries}
+            plants={plants}
+            setPlants={setPlants}
+            orders={orders}
+            setOrders={setOrders}
+            customers={customers}
+            setCustomers={setCustomers}
+            inquiries={inquiries}
+            setInquiries={setInquiries}
+            cities={cities}
+            onAddCity={handleAddCity}
+            onEditCity={handleEditCity}
+            onDeleteCity={handleDeleteCity}
+            onResetDemoData={handleResetDemoData}
+            showToast={showToast}
+          />
+        ) : (
+          <LoginPage
+            onLogin={handleLogin}
+            onBackToLanding={() => setCurrentView('landing')}
+          />
+        )
       )}
 
       {/* Global Toast Notifications */}
