@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   X, Phone, MessageSquare, MapPin, Calendar, Award, CheckCircle2, 
-  AlertCircle, XCircle, ExternalLink, ShieldCheck, Sprout, Building, Compass 
+  AlertCircle, XCircle, ExternalLink, ShieldCheck, Sprout, Building, Compass,
+  CreditCard, Loader2
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
+import { initiateRazorpayCheckout } from '../../services/razorpay';
 
 export default function NurseryDetailsModal({ 
   nursery, 
@@ -14,6 +16,8 @@ export default function NurseryDetailsModal({
   onOpenReject 
 }) {
   const { t, lang } = useLanguage();
+  const [payingFee, setPayingFee] = useState(false);
+  const [paymentMsg, setPaymentMsg] = useState(null);
 
   if (!isOpen || !nursery) return null;
 
@@ -21,15 +25,44 @@ export default function NurseryDetailsModal({
   const isPending = nursery.status === 'pending';
   const isRejected = nursery.status === 'rejected';
 
+  const isPaid = nursery.paymentStatus === 'paid' || Boolean(nursery.razorpayPaymentId);
+
   const nurseryName = lang === 'mr' && nursery.nameMr ? nursery.nameMr : (nursery.name || nursery.nurseryName || 'Nursery');
   const specialties = lang === 'mr' && nursery.specialtiesMr ? nursery.specialtiesMr : (nursery.specialties || nursery.facilities || []);
   const city = nursery.city || nursery.district || 'Maharashtra';
   const ownerName = nursery.ownerName || nursery.owner || 'Owner';
   const phone = nursery.ownerPhone || nursery.phone || '';
 
+  const handlePayFee = async () => {
+    setPayingFee(true);
+    setPaymentMsg(null);
+
+    await initiateRazorpayCheckout({
+      amountInRupees: 100,
+      nurseryName: nursery.name || nursery.nurseryName,
+      ownerName: nursery.ownerName || nursery.owner,
+      phone: nursery.ownerPhone || nursery.phone,
+      description: `Registration Fee for ${nurseryName}`,
+      onSuccess: (res) => {
+        setPayingFee(false);
+        nursery.paymentStatus = 'paid';
+        nursery.razorpayPaymentId = res.paymentId;
+        nursery.razorpayOrderId = res.orderId;
+        setPaymentMsg({ type: 'success', text: `Payment verified! ID: ${res.paymentId}` });
+      },
+      onError: (err) => {
+        setPayingFee(false);
+        setPaymentMsg({ type: 'error', text: err.message || 'Payment failed' });
+      },
+      onDismiss: () => {
+        setPayingFee(false);
+      }
+    });
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 my-8">
         
         {/* Top Banner with Nursery Image and Status Badge */}
         <div className="relative h-44 bg-slate-800 overflow-hidden">
@@ -144,10 +177,71 @@ export default function NurseryDetailsModal({
                 {t('joinedDate')}
               </span>
               <span className="text-xs font-bold text-slate-800 block mt-1">
-                {nursery.appliedDate}
+                {nursery.appliedDate || nursery.registrationDate || '2024'}
               </span>
             </div>
           </div>
+
+          {/* Razorpay Registration Payment Status Card */}
+          <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+            isPaid 
+              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+              : 'bg-amber-50/80 border-amber-200 text-amber-900'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                isPaid ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
+              }`}>
+                <CreditCard className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold">
+                    {lang === 'mr' ? 'नोंदणी शुल्क (Registration Fee)' : 'Registration Fee Status'}
+                  </span>
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                    isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {isPaid ? 'PAID ₹100' : 'UNPAID ₹100'}
+                  </span>
+                </div>
+                <p className="text-[11px] opacity-80 mt-0.5">
+                  {isPaid 
+                    ? `Verified via Razorpay • ID: ${nursery.razorpayPaymentId || 'Verified'}`
+                    : (lang === 'mr' ? 'नोंदणी शुल्क भरले नसल्यास आता भरू शकता.' : 'One-time registration fee can be settled via Razorpay.')}
+                </p>
+              </div>
+            </div>
+
+            {!isPaid && (
+              <button
+                type="button"
+                onClick={handlePayFee}
+                disabled={payingFee}
+                className="shrink-0 px-4 py-2 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {payingFee ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                    <span>Connecting...</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-3.5 h-3.5 text-emerald-300" />
+                    <span>{lang === 'mr' ? '₹१०० भरा (Razorpay)' : 'Pay ₹100 (Razorpay)'}</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+
+          {paymentMsg && (
+            <div className={`p-3 rounded-xl text-xs font-bold border ${
+              paymentMsg.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
+            }`}>
+              {paymentMsg.text}
+            </div>
+          )}
 
           {/* Contact Information & Direct Action Buttons */}
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -195,10 +289,10 @@ export default function NurseryDetailsModal({
               <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
                   <Compass className="w-4 h-4 text-[#2E7D32]" />
-                  <span>{t('gpsLocation')}: <code className="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-800 font-mono text-[11px]">{nursery.gpsCoords}</code></span>
+                  <span>{t('gpsLocation')}: <code className="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-800 font-mono text-[11px]">{nursery.gpsCoords || '16.85, 74.58'}</code></span>
                 </div>
                 <a
-                  href={nursery.googleMapsUrl || `https://maps.google.com/?q=${nursery.gpsCoords}`}
+                  href={nursery.googleMapsUrl || `https://maps.google.com/?q=${nursery.gpsCoords || '16.85,74.58'}`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 text-xs font-bold text-[#1E5631] hover:text-[#2E7D32] hover:underline"
