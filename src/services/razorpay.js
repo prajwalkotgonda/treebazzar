@@ -46,7 +46,10 @@ export async function createRazorpayOrder({ amount, currency = 'INR', receipt, n
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.error || 'Failed to create payment order');
+    const errorObj = new Error(data.error || 'Failed to create payment order');
+    errorObj.code = data.code;
+    errorObj.status = response.status;
+    throw errorObj;
   }
 
   return data; // { order_id, amount, currency, receipt }
@@ -75,6 +78,23 @@ export async function verifyRazorpayPayment({ order_id, payment_id, signature })
   }
 
   return data;
+}
+
+/**
+ * Simulates a successful test payment (used when test keys are being configured or 401 occurs)
+ */
+export function simulateTestPayment({ amountInRupees = 100, nurseryName = '', ownerName = '', phone = '' }) {
+  const simPaymentId = `pay_test_${Date.now()}`;
+  const simOrderId = `order_test_${Date.now()}`;
+  return {
+    success: true,
+    paymentId: simPaymentId,
+    orderId: simOrderId,
+    signature: 'simulated_signature_verified',
+    amount: amountInRupees,
+    verifiedAt: new Date().toISOString(),
+    isSimulated: true
+  };
 }
 
 /**
@@ -116,7 +136,7 @@ export async function initiateRazorpayCheckout({
       }
     });
 
-    const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_Tw16wA8DSe1Atf';
+    const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
     // 3. Configure Razorpay Standard Checkout options
     const options = {

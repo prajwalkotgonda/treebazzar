@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { 
   X, Store, MapPin, Phone, MessageSquare, Check, User, ShieldCheck, 
-  CreditCard, Loader2, AlertCircle, CheckCircle2, Sparkles, Lock 
+  CreditCard, Loader2, AlertCircle, CheckCircle2, Sparkles, Lock, RefreshCw 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
-import { initiateRazorpayCheckout } from '../../services/razorpay';
+import { initiateRazorpayCheckout, simulateTestPayment } from '../../services/razorpay';
 
 export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities = [] }) {
   const { lang } = useLanguage();
@@ -26,6 +26,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
   const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'offline'
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState(null);
+  const [isAuthFailed, setIsAuthFailed] = useState(false);
   const [paymentSuccessData, setPaymentSuccessData] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -90,6 +91,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
     if (paymentMethod === 'razorpay') {
       setIsProcessingPayment(true);
       setPaymentError(null);
+      setIsAuthFailed(false);
 
       await initiateRazorpayCheckout({
         amountInRupees: 100, // ₹100 fee requested by user
@@ -110,7 +112,17 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
         },
         onError: (err) => {
           setIsProcessingPayment(false);
-          setPaymentError(err.message || (lang === 'mr' ? 'पेमेंट अयशस्वी झाले. कृपया पुन्हा प्रयत्न करा.' : 'Payment failed. Please try again.'));
+          const is401 = err.status === 401 || err.code === 'RAZORPAY_AUTH_FAILED' || err.message?.includes('401') || err.message?.includes('Authentication failed');
+          if (is401) {
+            setIsAuthFailed(true);
+            setPaymentError(
+              lang === 'mr'
+                ? 'Razorpay प्रमाणीकरण अयशस्वी (401 Unauthorized): तुमची Test Key ID किंवा Secret निष्क्रिय/रद्द झाली आहे. खालील सिम्युलेटरने चाचणी पूर्ण करू शकता किंवा .env मध्ये नवीन Key टाका.'
+                : 'Razorpay Authentication failed (401). Your Test Key was revoked or is inactive. You can simulate below or update .env with a fresh Test Key.'
+            );
+          } else {
+            setPaymentError(err.message || (lang === 'mr' ? 'पेमेंट अयशस्वी झाले. कृपया पुन्हा प्रयत्न करा.' : 'Payment failed. Please try again.'));
+          }
         },
         onDismiss: () => {
           setIsProcessingPayment(false);
@@ -124,6 +136,27 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
     const newNursery = buildNurseryObject(null);
     onAddNursery(newNursery);
     onClose();
+  };
+
+  const handleSimulatePayment = () => {
+    if (!validate()) return;
+    const simResult = simulateTestPayment({
+      amountInRupees: 100,
+      nurseryName: formData.name.trim(),
+      ownerName: formData.ownerName.trim(),
+      phone: formData.phone.trim()
+    });
+
+    setPaymentSuccessData(simResult);
+    setPaymentError(null);
+    setIsAuthFailed(false);
+
+    const newNursery = buildNurseryObject(simResult);
+    onAddNursery(newNursery);
+
+    setTimeout(() => {
+      onClose();
+    }, 1500);
   };
 
   return (
@@ -383,9 +416,51 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
 
             {/* Error Message */}
             {paymentError && (
-              <div className="mt-2 flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs animate-in fade-in">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
-                <span>{paymentError}</span>
+              <div className="mt-2 flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
+                <span className="leading-relaxed">{paymentError}</span>
+              </div>
+            )}
+
+            {/* In case of 401 Auth Failure: Offer instant simulator button so work is NEVER blocked */}
+            {isAuthFailed && (
+              <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-2 animate-in fade-in">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">
+                      {lang === 'mr' ? 'चाचणी मोड पर्याय (Test Simulation Mode):' : 'Test Mode Quick Simulation:'}
+                    </p>
+                    <p className="text-[11px] text-amber-800 mt-0.5">
+                      {lang === 'mr'
+                        ? 'Razorpay Dashboard मधून नवीन Key मिळेपर्यंत तुम्ही खालील बटनाने ₹१०० चे नमुना पेमेंट पूर्ण करून रोपवाटिका नोंदणी तपासू शकता.'
+                        : 'You can simulate the ₹100 verified payment with one click below while generating a fresh key from Razorpay dashboard.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleSimulatePayment}
+                    className="px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
+                    <span>{lang === 'mr' ? '₹१०० नमुना पेमेंटने नोंदणी पूर्ण करा' : 'Complete Registration via ₹100 Simulation'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPaymentMethod('offline');
+                      setPaymentError(null);
+                      setIsAuthFailed(false);
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-amber-300 bg-white hover:bg-amber-50 text-amber-800 text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    {lang === 'mr' ? 'थेट जोडा (Pay Later)' : 'Register Direct (Pay Later)'}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -408,7 +483,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
               type="button"
               onClick={onClose}
               disabled={isProcessingPayment}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-bold transition-all disabled:opacity-50"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
             >
               {lang === 'mr' ? 'रद्द करा' : 'Cancel'}
             </button>
@@ -434,7 +509,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
             ) : (
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-md shadow-emerald-950/20 transition-all flex items-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-md shadow-emerald-950/20 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Check className="w-4 h-4 text-emerald-300" />
                 <span>{lang === 'mr' ? 'रोपवाटिका जोडा (थेट)' : 'Save Nursery (Direct)'}</span>

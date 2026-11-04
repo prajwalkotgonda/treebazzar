@@ -55,7 +55,8 @@ export default async function handler(req, res) {
       res.statusCode = 401;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ 
-        error: 'Razorpay API credentials not configured in environment variables.' 
+        error: 'Razorpay API credentials not configured in environment variables (.env).',
+        code: 'RAZORPAY_AUTH_FAILED'
       }));
       return;
     }
@@ -82,11 +83,15 @@ export default async function handler(req, res) {
     }));
   } catch (error) {
     console.error('Error in /api/create-order:', error);
-    const statusCode = error.statusCode === 401 ? 401 : 500;
+    const isAuthErr = error.statusCode === 401 || error.error?.description === 'Authentication failed';
+    const statusCode = isAuthErr ? 401 : (error.statusCode || 500);
     res.statusCode = statusCode;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({
-      error: error.description || error.message || 'Razorpay order creation failed',
+      error: isAuthErr 
+        ? 'Razorpay Authentication failed (401 Unauthorized). Your Test Key ID or Secret is invalid or expired. Please generate a new Test Key in Razorpay Dashboard (Settings > API Keys) and update .env.'
+        : (error.description || error.message || 'Razorpay order creation failed'),
+      code: isAuthErr ? 'RAZORPAY_AUTH_FAILED' : 'ORDER_FAILED',
       details: error.error || error
     }));
   }
