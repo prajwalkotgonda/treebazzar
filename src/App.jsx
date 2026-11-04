@@ -645,10 +645,47 @@ function AppRoot() {
   const [currentView, setCurrentView] = useState(() => {
     const isAuth = localStorage.getItem('tb_admin_auth') === 'true' || 
                    sessionStorage.getItem('tb_admin_auth') === 'true';
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      const path = window.location.pathname.toLowerCase();
+      if (hash === '#admin' || hash === '#login' || search.includes('admin') || path.endsWith('/admin') || path.endsWith('/login')) {
+        return isAuth ? 'admin' : 'login';
+      }
+    }
     return isAuth ? 'admin' : 'landing';
   });
   const [toast, setToast] = useState(null);
   const { lang, t } = useLanguage();
+
+  // URL hash/query routing and secret shortcut (Ctrl+Shift+A) for admin access
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      const path = window.location.pathname.toLowerCase();
+      if (hash === '#admin' || hash === '#login' || search.includes('admin') || path.endsWith('/admin') || path.endsWith('/login')) {
+        setCurrentView(isAuthenticated ? 'admin' : 'login');
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        setCurrentView(prev => prev === 'landing' ? (isAuthenticated ? 'admin' : 'login') : 'landing');
+      }
+    };
+
+    window.addEventListener('hashchange', checkAdminRoute);
+    window.addEventListener('popstate', checkAdminRoute);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('hashchange', checkAdminRoute);
+      window.removeEventListener('popstate', checkAdminRoute);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAuthenticated]);
 
   // Shared Data State with LocalStorage Persistence
   const [nurseries, setNurseries] = useState(() => {

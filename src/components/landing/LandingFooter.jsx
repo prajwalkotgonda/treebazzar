@@ -1,5 +1,5 @@
 import React from 'react';
-import { Leaf, ShieldCheck, MapPin, Mail, Phone, Heart } from 'lucide-react';
+import { Leaf, MapPin, Mail, Phone, Heart } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function LandingFooter({ onOpenLogin, cities = [] }) {
@@ -85,21 +85,11 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
               {t('footerContact')}
             </h4>
-            <ul className="space-y-2 text-xs text-slate-400 mb-5">
+            <ul className="space-y-2 text-xs text-slate-400">
               <li>Email: contact@treebazzar.com</li>
               <li>Phone: +91 98221 45678</li>
               <li>Operational: Mon - Sat (9 AM - 7 PM)</li>
             </ul>
-
-            {/* Admin Portal Sign In */}
-            <button
-              type="button"
-              onClick={onOpenLogin}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all border border-slate-700 cursor-pointer"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{t('footerAdminLogin')}</span>
-            </button>
           </div>
 
         </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Leaf, Languages, ShieldCheck, Menu, X, ArrowRight, Store, Sprout, Plus 
+  Leaf, Languages, Menu, X, ArrowRight, Store, Sprout, Plus 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -97,16 +97,6 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery, onOp
                 <span>{lang === 'mr' ? 'वनस्पती जोडा' : 'Add Plant'}</span>
               </button>
             )}
-
-            {/* Admin Portal Button */}
-            <button
-              type="button"
-              onClick={onOpenLogin}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#1E5631] hover:bg-[#2E7D32] text-white text-xs font-bold shadow-xs transition-all hover:shadow-md hover:shadow-emerald-950/15 active:scale-95 cursor-pointer"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-              <span>{t('landingNavAdmin')}</span>
-            </button>
           </div>
 
           {/* Mobile Actions: Language + Menu Button */}
@@ -172,18 +162,6 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery, onOp
                 <span>{lang === 'mr' ? 'वनस्पती जोडा (Add Plant)' : 'Add Plant Variety'}</span>
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenLogin();
-              }}
-              className="w-full py-2 px-3 rounded-xl bg-[#1E5631] text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-            >
-              <ShieldCheck className="w-4 h-4 text-emerald-300" />
-              <span>{t('landingNavAdmin')}</span>
-            </button>
           </div>
         </div>
       )}
