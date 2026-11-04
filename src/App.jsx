@@ -45,7 +45,6 @@ import {
   deleteCityFromFirestore,
   clearAllFirestoreCollections
 } from './services/firebase';
-import { Info, RotateCcw } from 'lucide-react';
 
 function DashboardContent({ 
   onLogout, 
@@ -454,31 +453,6 @@ function DashboardContent({
           onLogout={onLogout}
           onViewWebsite={onViewWebsite}
         />
-
-        {/* Firebase Live Cloud Status & Quick Reset Strip */}
-        <div className="bg-emerald-950 text-emerald-100 px-4 py-1.5 text-[11px] font-medium border-b border-emerald-900 flex items-center justify-between">
-          <div className="flex items-center gap-2 max-w-7xl mx-auto w-full justify-between">
-            <div className="flex items-center gap-2 truncate">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-              <span className="truncate">
-                {lang === 'mr' 
-                  ? 'फायरबेस लाइव्ह सिंक: मोबाईल ॲप आणि वेबसाईट कनेक्टेड (treebazzar-f4780).' 
-                  : 'Firebase Live Sync: Mobile App & Website Connected (treebazzar-f4780).'}
-              </span>
-            </div>
-
-            {onResetDemoData && (
-              <button
-                onClick={onResetDemoData}
-                className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-900 hover:bg-emerald-800 text-emerald-200 text-[10px] font-bold cursor-pointer transition-colors"
-                title="Reset sample data"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>{lang === 'mr' ? 'रीसेट डेटा' : 'Reset Demo'}</span>
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* Dynamic Page Views based on Active Tab */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
