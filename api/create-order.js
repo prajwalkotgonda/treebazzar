@@ -48,8 +48,8 @@ export default async function handler(req, res) {
       return;
     }
 
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_TwTkq93kS01oVB';
+    const keySecret = process.env.RAZORPAY_KEY_SECRET || '2EhsKLulWr7Rv5ICIF7OmxA5';
 
     if (!keyId || !keySecret) {
       res.statusCode = 401;

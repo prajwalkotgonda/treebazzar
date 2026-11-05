@@ -136,7 +136,7 @@ export async function initiateRazorpayCheckout({
       }
     });
 
-    const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TwTkq93kS01oVB';
 
     // 3. Configure Razorpay Standard Checkout options
     const options = {

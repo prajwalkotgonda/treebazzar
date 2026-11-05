@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET || '2EhsKLulWr7Rv5ICIF7OmxA5';
     if (!keySecret) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
