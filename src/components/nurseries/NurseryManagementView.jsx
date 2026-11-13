@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Store, Search, CheckCircle2, XCircle, AlertCircle, Eye, 
-  Plus, Phone, MapPin, Calendar, Check, X, Edit2, Trash2, ShieldAlert, Loader2
+  Plus, Phone, MapPin, Calendar, Check, X, Edit2, Trash2, ShieldAlert, Loader2,
+  RotateCcw, Ban
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import NurseryDetailsModal from '../common/NurseryDetailsModal';
@@ -9,6 +10,8 @@ import RejectModal from '../common/RejectModal';
 import AddNurseryModal from '../common/AddNurseryModal';
 import EditNurseryModal from '../common/EditNurseryModal';
 import DeleteConfirmModal from '../common/DeleteConfirmModal';
+import RevokeConfirmModal from '../common/RevokeConfirmModal';
+import SuspendConfirmModal from '../common/SuspendConfirmModal';
 
 export default function NurseryManagementView({ 
   nurseries = [], 
@@ -16,6 +19,9 @@ export default function NurseryManagementView({
   initialTab = 'all',
   onApprove, 
   onReject,
+  onRevoke,
+  onSuspend,
+  onUnsuspend,
   onAddNursery,
   onUpdateNursery,
   onDeleteNursery,
@@ -23,13 +29,15 @@ export default function NurseryManagementView({
 }) {
   const { t, lang } = useLanguage();
 
-  const [activeTab, setActiveTab] = useState(initialTab); // 'all', 'pending', 'approved', 'rejected'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'all', 'pending', 'approved', 'suspended', 'rejected'
   const [localSearch, setLocalSearch] = useState('');
   const [selectedCity, setSelectedCity] = useState('all');
 
   // Modals state
   const [detailsNursery, setDetailsNursery] = useState(null);
   const [rejectingNursery, setRejectingNursery] = useState(null);
+  const [revokingNursery, setRevokingNursery] = useState(null);
+  const [suspendingNursery, setSuspendingNursery] = useState(null);
   const [addNurseryOpen, setAddNurseryOpen] = useState(false);
   const [editingNursery, setEditingNursery] = useState(null);
   const [deletingNursery, setDeletingNursery] = useState(null);
@@ -45,12 +53,23 @@ export default function NurseryManagementView({
     }
   };
 
+  const handleUnsuspendWithFeedback = async (id) => {
+    if (processingId) return;
+    setProcessingId(id);
+    try {
+      if (onUnsuspend) await onUnsuspend(id);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   // Tab counts
   const counts = useMemo(() => {
     return {
       all: nurseries.length,
-      pending: nurseries.filter(n => n.status === 'pending').length,
-      approved: nurseries.filter(n => n.status === 'approved').length,
+      pending: nurseries.filter(n => (n.status === 'pending' || n.status === 'revoked') && !n.isSuspended).length,
+      approved: nurseries.filter(n => n.status === 'approved' && !n.isSuspended).length,
+      suspended: nurseries.filter(n => n.status === 'suspended' || (n.isSuspended && n.status !== 'rejected')).length,
       rejected: nurseries.filter(n => n.status === 'rejected').length
     };
   }, [nurseries]);
@@ -73,8 +92,14 @@ export default function NurseryManagementView({
 
     return nurseries.filter(n => {
       // 1. Tab filter
-      if (activeTab !== 'all' && n.status !== activeTab) {
-        return false;
+      if (activeTab === 'pending') {
+        if ((n.status !== 'pending' && n.status !== 'revoked') || n.isSuspended) return false;
+      } else if (activeTab === 'approved') {
+        if (n.status !== 'approved' || n.isSuspended) return false;
+      } else if (activeTab === 'suspended') {
+        if (n.status !== 'suspended' && !(n.isSuspended && n.status !== 'rejected')) return false;
+      } else if (activeTab === 'rejected') {
+        if (n.status !== 'rejected') return false;
       }
 
       // 2. City filter
@@ -130,6 +155,7 @@ export default function NurseryManagementView({
             { id: 'all', label: lang === 'mr' ? 'सर्व रोपवाटिका' : 'All Nurseries', count: counts.all },
             { id: 'pending', label: lang === 'mr' ? 'प्रलंबित अर्ज' : 'Pending Review', count: counts.pending, alert: counts.pending > 0 },
             { id: 'approved', label: lang === 'mr' ? 'मंजूर' : 'Approved', count: counts.approved },
+            { id: 'suspended', label: lang === 'mr' ? 'निलंबित' : 'Suspended', count: counts.suspended },
             { id: 'rejected', label: lang === 'mr' ? 'नाकारलेले' : 'Rejected', count: counts.rejected }
           ].map(tab => (
             <button
@@ -241,10 +267,16 @@ export default function NurseryManagementView({
 
                     {/* Status Badge */}
                     <td className="py-3 px-4">
-                      {nursery.status === 'approved' && (
+                      {nursery.status === 'approved' && !nursery.isSuspended && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                           <CheckCircle2 className="w-3 h-3" />
                           <span>{lang === 'mr' ? 'मंजूर' : 'Approved'}</span>
+                        </span>
+                      )}
+                      {(nursery.status === 'suspended' || (nursery.isSuspended && nursery.status !== 'rejected')) && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                          <Ban className="w-3 h-3 text-rose-600" />
+                          <span>{lang === 'mr' ? 'निलंबित' : 'Suspended'}</span>
                         </span>
                       )}
                       {nursery.status === 'pending' && (
@@ -253,8 +285,14 @@ export default function NurseryManagementView({
                           <span>{lang === 'mr' ? 'प्रलंबित' : 'Pending'}</span>
                         </span>
                       )}
+                      {nursery.status === 'revoked' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                          <RotateCcw className="w-3 h-3 text-amber-600" />
+                          <span>{lang === 'mr' ? 'रद्द (प्रलंबित)' : 'Revoked'}</span>
+                        </span>
+                      )}
                       {nursery.status === 'rejected' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
                           <XCircle className="w-3 h-3" />
                           <span>{lang === 'mr' ? 'नाकारलेले' : 'Rejected'}</span>
                         </span>
@@ -265,36 +303,92 @@ export default function NurseryManagementView({
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         
-                        {/* Approve Button (if pending) */}
+                        {/* Pending Nursery Actions: Approve & Reject */}
                         {nursery.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleApproveWithFeedback(nursery.id)}
+                              disabled={processingId === nursery.id}
+                              title={lang === 'mr' ? 'मंजूर करा' : 'Approve'}
+                              className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                            >
+                              {processingId === nursery.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Check className="w-3 h-3" />
+                              )}
+                              <span>
+                                {processingId === nursery.id 
+                                  ? (lang === 'mr' ? 'मंजूर होत आहे...' : 'Approving...') 
+                                  : (lang === 'mr' ? 'मंजूर' : 'Approve')}
+                              </span>
+                            </button>
+
+                            <button
+                              onClick={() => setRejectingNursery(nursery)}
+                              title={lang === 'mr' ? 'नाकारा' : 'Reject'}
+                              className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                            >
+                              <X className="w-3 h-3" />
+                              <span>{lang === 'mr' ? 'नाकारा' : 'Reject'}</span>
+                            </button>
+                          </>
+                        )}
+
+                        {/* Approved Nursery Actions: Revoke Approval & Suspend */}
+                        {nursery.status === 'approved' && !nursery.isSuspended && (
+                          <>
+                            <button
+                              onClick={() => setRevokingNursery(nursery)}
+                              title={lang === 'mr' ? 'मंजुरी रद्द करा' : 'Revoke Approval'}
+                              className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                            >
+                              <RotateCcw className="w-3 h-3 text-amber-600" />
+                              <span>{lang === 'mr' ? 'रद्द' : 'Revoke'}</span>
+                            </button>
+
+                            <button
+                              onClick={() => setSuspendingNursery(nursery)}
+                              title={lang === 'mr' ? 'खाते निलंबित करा' : 'Suspend Nursery'}
+                              className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                            >
+                              <Ban className="w-3 h-3 text-rose-600" />
+                              <span>{lang === 'mr' ? 'निलंबित' : 'Suspend'}</span>
+                            </button>
+                          </>
+                        )}
+
+                        {/* Suspended Nursery Action: Unsuspend / Reactivate */}
+                        {(nursery.status === 'suspended' || (nursery.isSuspended && nursery.status !== 'rejected')) && (
+                          <button
+                            onClick={() => handleUnsuspendWithFeedback(nursery.id)}
+                            disabled={processingId === nursery.id}
+                            title={lang === 'mr' ? 'निलंबन मागे घ्या (सक्रिय करा)' : 'Unsuspend / Re-Activate'}
+                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+                          >
+                            {processingId === nursery.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="w-3 h-3 text-[#1E5631]" />
+                            )}
+                            <span>{lang === 'mr' ? 'सक्रिय करा' : 'Unsuspend'}</span>
+                          </button>
+                        )}
+
+                        {/* Rejected or Revoked Nursery Action: Re-Approve */}
+                        {(nursery.status === 'rejected' || nursery.status === 'revoked') && (
                           <button
                             onClick={() => handleApproveWithFeedback(nursery.id)}
                             disabled={processingId === nursery.id}
-                            title={lang === 'mr' ? 'मंजूर करा' : 'Approve'}
-                            className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                            title={lang === 'mr' ? 'पुन्हा मंजूर करा' : 'Re-Approve'}
+                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
                           >
                             {processingId === nursery.id ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (
                               <Check className="w-3 h-3" />
                             )}
-                            <span>
-                              {processingId === nursery.id 
-                                ? (lang === 'mr' ? 'मंजूर होत आहे...' : 'Approving...') 
-                                : (lang === 'mr' ? 'मंजूर' : 'Approve')}
-                            </span>
-                          </button>
-                        )}
-
-                        {/* Reject Button (if pending) */}
-                        {nursery.status === 'pending' && (
-                          <button
-                            onClick={() => setRejectingNursery(nursery)}
-                            title={lang === 'mr' ? 'नाकारा' : 'Reject'}
-                            className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
-                          >
-                            <X className="w-3 h-3" />
-                            <span>{lang === 'mr' ? 'नाकारा' : 'Reject'}</span>
+                            <span>{lang === 'mr' ? 'पुन्हा मंजूर' : 'Re-Approve'}</span>
                           </button>
                         )}
 
@@ -387,12 +481,24 @@ export default function NurseryManagementView({
           nursery={detailsNursery}
           isOpen={Boolean(detailsNursery)}
           onClose={() => setDetailsNursery(null)}
-          onApprove={(id) => {
-            if (onApprove) onApprove(id);
+          onApprove={async (id) => {
+            if (onApprove) await onApprove(id);
             setDetailsNursery(null);
           }}
-          onReject={(n) => {
+          onOpenReject={(n) => {
             setRejectingNursery(n);
+            setDetailsNursery(null);
+          }}
+          onOpenRevoke={(n) => {
+            setRevokingNursery(n);
+            setDetailsNursery(null);
+          }}
+          onOpenSuspend={(n) => {
+            setSuspendingNursery(n);
+            setDetailsNursery(null);
+          }}
+          onUnsuspend={async (id) => {
+            if (onUnsuspend) await onUnsuspend(id);
             setDetailsNursery(null);
           }}
         />
@@ -404,9 +510,35 @@ export default function NurseryManagementView({
           nursery={rejectingNursery}
           isOpen={Boolean(rejectingNursery)}
           onClose={() => setRejectingNursery(null)}
-          onConfirm={(id, reason, notes) => {
-            if (onReject) onReject(id, `${reason}: ${notes}`);
+          onConfirm={async (id, reason, notes) => {
+            if (onReject) await onReject(id, notes ? `${reason}: ${notes}` : reason);
             setRejectingNursery(null);
+          }}
+        />
+      )}
+
+      {/* 6. Revoke Approval Modal */}
+      {revokingNursery && (
+        <RevokeConfirmModal
+          nursery={revokingNursery}
+          isOpen={Boolean(revokingNursery)}
+          onClose={() => setRevokingNursery(null)}
+          onConfirm={async (id, reason) => {
+            if (onRevoke) await onRevoke(id, reason);
+            setRevokingNursery(null);
+          }}
+        />
+      )}
+
+      {/* 7. Suspend Account Modal */}
+      {suspendingNursery && (
+        <SuspendConfirmModal
+          nursery={suspendingNursery}
+          isOpen={Boolean(suspendingNursery)}
+          onClose={() => setSuspendingNursery(null)}
+          onConfirm={async (id, reason) => {
+            if (onSuspend) await onSuspend(id, reason);
+            setSuspendingNursery(null);
           }}
         />
       )}

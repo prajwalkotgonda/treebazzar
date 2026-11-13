@@ -53,12 +53,21 @@ export function normalizeNursery(data, id) {
   const whatsapp = data.whatsapp || phone.replace(/\D/g, '') || '';
   const address = data.address || `${city}, Maharashtra`;
   const image = data.image || data.nurseryImages?.[0] || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&auto=format&fit=crop&q=80';
-  const status = (data.status || 'pending').toLowerCase();
-  const isVerified = status === 'approved' || Boolean(data.verified) || Boolean(data.isVerified);
-  const verified = isVerified;
-  const isActive = status === 'approved' || (data.isActive !== false && status !== 'rejected');
-  const isSuspended = status === 'rejected' || Boolean(data.isSuspended);
+  let status = (data.status || 'pending').toLowerCase();
+  if (status === 'active') status = 'approved';
+
+  const isSuspended = status === 'suspended' || Boolean(data.isSuspended && status !== 'approved');
+  const isApproved = status === 'approved' && !isSuspended;
+  const isRejected = status === 'rejected';
+  const isRevoked = status === 'revoked';
+
+  const normalizedStatus = isSuspended ? 'suspended' : (isApproved ? 'approved' : (isRejected ? 'rejected' : (isRevoked ? 'revoked' : 'pending')));
+  const verified = isApproved;
+  const isVerified = isApproved;
+  const isActive = isApproved;
   const rejectionReason = data.rejectionReason || data.rejectionNotes || '';
+  const suspensionReason = data.suspensionReason || '';
+  const revocationReason = data.revocationReason || '';
   const establishedYear = data.establishedYear || 2020;
   const totalPlants = Number(data.totalPlants) || 0;
   const facilities = data.facilities || data.specialties || ['Home Delivery', 'Grafted Varieties'];
@@ -84,13 +93,15 @@ export function normalizeNursery(data, id) {
     address,
     image,
     nurseryImages: data.nurseryImages || [image],
-    status,
+    status: normalizedStatus,
     verified,
     isVerified,
     isActive,
-    isSuspended,
+    isSuspended: isSuspended || isRejected,
     rejectionReason,
     rejectionNotes: rejectionReason,
+    suspensionReason,
+    revocationReason,
     establishedYear,
     totalPlants,
     facilities,
@@ -639,7 +650,9 @@ export async function saveNurseryToFirestore(nursery) {
     image: norm.image,
     status: norm.status,
     verified: norm.status === 'approved',
-    isSuspended: norm.status === 'rejected',
+    isVerified: norm.status === 'approved',
+    isActive: norm.status === 'approved',
+    isSuspended: norm.status === 'suspended' || norm.status === 'rejected' || Boolean(norm.isSuspended),
     facilities: norm.facilities,
     specialties: norm.facilities,
     updatedAt: new Date().toISOString()
@@ -659,24 +672,37 @@ export async function saveNurseryToFirestore(nursery) {
 }
 
 /**
- * Update nursery status (Approve, Reject, Notes) in Firestore
+ * Update nursery status (Approve, Reject, Revoke, Suspend, Unsuspend, Notes) in Firestore
  */
 export async function updateNurseryInFirestore(nurseryId, updates) {
-  const isApproved = updates.status === 'approved';
-  const isRejected = updates.status === 'rejected';
+  let status = (updates.status || 'pending').toLowerCase();
+  if (status === 'active') status = 'approved';
+
+  const isApproved = status === 'approved' && !updates.isSuspended;
+  const isSuspended = status === 'suspended' || Boolean(updates.isSuspended && status !== 'approved');
+  const isRejected = status === 'rejected';
+  const isRevoked = status === 'revoked';
+
+  const normalizedStatus = isSuspended ? 'suspended' : (isApproved ? 'approved' : (isRejected ? 'rejected' : (isRevoked ? 'revoked' : 'pending')));
 
   const payload = sanitizePayload({
     ...updates,
-    status: updates.status,
+    status: normalizedStatus,
     verified: isApproved,
     isVerified: isApproved,
-    isActive: isApproved ? true : (isRejected ? false : updates.isActive),
-    isSuspended: isRejected ? true : false,
-    rejectionReason: isRejected ? (updates.rejectionReason || 'Information verification failed') : '',
-    rejectionNotes: isRejected ? (updates.rejectionReason || 'Information verification failed') : '',
-    approvedAt: isApproved ? (updates.approvedDate || updates.approvedAt || new Date().toISOString()) : undefined,
+    isActive: isApproved,
+    isSuspended: isSuspended || isRejected,
+    rejectionReason: isRejected ? (updates.rejectionReason || 'Information verification failed') : (updates.rejectionReason || ''),
+    rejectionNotes: isRejected ? (updates.rejectionNotes || updates.rejectionReason || 'Information verification failed') : (updates.rejectionNotes || ''),
+    suspensionReason: isSuspended ? (updates.suspensionReason || 'Account suspended by administrator') : (updates.suspensionReason || ''),
+    revocationReason: isRevoked ? (updates.revocationReason || 'Approval revoked by administrator') : (updates.revocationReason || ''),
+    approvedAt: isApproved ? (updates.approvedDate || updates.approvedAt || new Date().toISOString()) : (isSuspended || isRejected || isRevoked ? null : updates.approvedAt),
     approvedBy: isApproved ? (updates.approvedBy || 'admin') : undefined,
-    rejectedAt: isRejected ? (updates.rejectedAt || new Date().toISOString()) : undefined,
+    suspendedAt: isSuspended ? (updates.suspendedAt || new Date().toISOString()) : (isApproved ? null : updates.suspendedAt),
+    suspendedBy: isSuspended ? (updates.suspendedBy || 'admin') : undefined,
+    revokedAt: isRevoked ? (updates.revokedAt || new Date().toISOString()) : (isApproved ? null : updates.revokedAt),
+    revokedBy: isRevoked ? (updates.revokedBy || 'admin') : undefined,
+    rejectedAt: isRejected ? (updates.rejectedAt || new Date().toISOString()) : (isApproved ? null : updates.rejectedAt),
     rejectedBy: isRejected ? (updates.rejectedBy || 'admin') : undefined,
     updatedAt: new Date().toISOString()
   });
@@ -685,7 +711,7 @@ export async function updateNurseryInFirestore(nurseryId, updates) {
   if (fb && fb.db && fb.setDoc) {
     try {
       await fb.setDoc(fb.doc(fb.db, 'nurseries', nurseryId), payload, { merge: true });
-      logFirebaseEvent('nursery_status_updated', { nurseryId, status: updates.status });
+      logFirebaseEvent('nursery_status_updated', { nurseryId, status: normalizedStatus });
       return true;
     } catch (err) {
       console.warn('Firestore updateNursery failed, using REST fallback:', err);

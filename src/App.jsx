@@ -188,6 +188,164 @@ function DashboardContent({
     }
   };
 
+  const handleRevokeNursery = async (nurseryId, reason) => {
+    const targetNursery = nurseries.find(n => n.id === nurseryId);
+    const nurseryName = targetNursery?.name || targetNursery?.nurseryName || (lang === 'mr' ? 'रोपवाटिका' : 'Nursery');
+    const cleanReason = reason || (lang === 'mr' ? 'प्रशासकीय पुनर्पडताळणी आवश्यक' : 'Administrative re-verification required');
+
+    const updatedNursery = {
+      ...(targetNursery || {}),
+      id: nurseryId,
+      status: 'pending',
+      verified: false,
+      isVerified: false,
+      isActive: false,
+      isSuspended: false,
+      revocationReason: cleanReason,
+      revokedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setNurseries(prev => prev.map(n => n.id === nurseryId ? updatedNursery : n));
+
+    showToast({
+      type: 'info',
+      title: lang === 'mr' ? 'मंजुरी रद्द करत आहे...' : 'Revoking Approval...',
+      message: lang === 'mr' ? `"${nurseryName}" ची स्थिती प्रलंबित केली जात आहे.` : `Reverting "${nurseryName}" to pending review...`
+    });
+
+    try {
+      await updateNurseryInFirestore(nurseryId, {
+        status: 'pending',
+        verified: false,
+        isVerified: false,
+        isActive: false,
+        isSuspended: false,
+        revocationReason: cleanReason,
+        revokedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      showToast({
+        type: 'success',
+        title: lang === 'mr' ? 'मंजुरी रद्द केली (App Synced)' : 'Approval Revoked & Synced',
+        message: lang === 'mr' 
+          ? `"${nurseryName}" ची मंजुरी रद्द झाली असून अर्ज पुन्हा प्रलंबित पुनरावलोकनात हलवला आहे.` 
+          : `"${nurseryName}" approval revoked. Removed from mobile app and moved to pending.`
+      });
+    } catch (err) {
+      console.error('Nursery revoke sync error:', err);
+      showToast({
+        type: 'error',
+        title: lang === 'mr' ? 'त्रुटी आढळली' : 'Error',
+        message: lang === 'mr' ? 'डेटाबेसमध्ये बदल सेव्ह करताना अडचण आली.' : 'Failed to update nursery status in database.'
+      });
+    }
+  };
+
+  const handleSuspendNursery = async (nurseryId, reason) => {
+    const targetNursery = nurseries.find(n => n.id === nurseryId);
+    const nurseryName = targetNursery?.name || targetNursery?.nurseryName || (lang === 'mr' ? 'रोपवाटिका' : 'Nursery');
+    const cleanReason = reason || (lang === 'mr' ? 'नियम आणि अटींचे उल्लंघन' : 'Policy violation or administrative suspension');
+
+    const updatedNursery = {
+      ...(targetNursery || {}),
+      id: nurseryId,
+      status: 'suspended',
+      verified: false,
+      isVerified: false,
+      isActive: false,
+      isSuspended: true,
+      suspensionReason: cleanReason,
+      suspendedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setNurseries(prev => prev.map(n => n.id === nurseryId ? updatedNursery : n));
+
+    showToast({
+      type: 'info',
+      title: lang === 'mr' ? 'खाते निलंबित करत आहे...' : 'Suspending Account...',
+      message: lang === 'mr' ? `"${nurseryName}" चे खाते डेटाबेसमध्ये निलंबित केले जात आहे.` : `Suspending "${nurseryName}" in database...`
+    });
+
+    try {
+      await updateNurseryInFirestore(nurseryId, {
+        status: 'suspended',
+        verified: false,
+        isVerified: false,
+        isActive: false,
+        isSuspended: true,
+        suspensionReason: cleanReason,
+        suspendedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      showToast({
+        type: 'error',
+        title: lang === 'mr' ? 'खाते निलंबित केले (App Synced)' : 'Nursery Suspended & Deactivated',
+        message: lang === 'mr' 
+          ? `"${nurseryName}" चे खाते यशस्वीरीत्या निलंबित केले असून ॲपमधील झाडे लपवली आहेत.` 
+          : `"${nurseryName}" is now suspended. Listings hidden from customer mobile app.`
+      });
+    } catch (err) {
+      console.error('Nursery suspend sync error:', err);
+      showToast({
+        type: 'error',
+        title: lang === 'mr' ? 'त्रुटी आढळली' : 'Error',
+        message: lang === 'mr' ? 'डेटाबेसमध्ये बदल सेव्ह करताना अडचण आली.' : 'Failed to update nursery status in database.'
+      });
+    }
+  };
+
+  const handleUnsuspendNursery = async (nurseryId) => {
+    const targetNursery = nurseries.find(n => n.id === nurseryId);
+    const nurseryName = targetNursery?.name || targetNursery?.nurseryName || (lang === 'mr' ? 'रोपवाटिका' : 'Nursery');
+
+    const updatedNursery = {
+      ...(targetNursery || {}),
+      id: nurseryId,
+      status: 'approved',
+      verified: true,
+      isVerified: true,
+      isActive: true,
+      isSuspended: false,
+      suspensionReason: '',
+      unsuspendedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setNurseries(prev => prev.map(n => n.id === nurseryId ? updatedNursery : n));
+
+    try {
+      await updateNurseryInFirestore(nurseryId, {
+        status: 'approved',
+        verified: true,
+        isVerified: true,
+        isActive: true,
+        isSuspended: false,
+        suspensionReason: '',
+        unsuspendedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      showToast({
+        type: 'success',
+        title: lang === 'mr' ? 'निलंबन मागे घेतले (खाते सक्रिय)!' : 'Nursery Reactivated & Live!',
+        message: lang === 'mr' 
+          ? `"${nurseryName}" चे निलंबन मागे घेतले असून रोपवाटिका पुन्हा ॲपमध्ये सक्रिय झाली आहे.` 
+          : `"${nurseryName}" has been reactivated and is now live in the mobile app.`
+      });
+    } catch (err) {
+      console.error('Nursery unsuspend sync error:', err);
+      showToast({
+        type: 'error',
+        title: lang === 'mr' ? 'त्रुटी आढळली' : 'Error',
+        message: lang === 'mr' ? 'डेटाबेसमध्ये बदल सेव्ह करताना अडचण आली.' : 'Failed to reactivate nursery in database.'
+      });
+    }
+  };
+
   const handleAddNursery = (newNurseryData) => {
     const newEntry = {
       ...newNurseryData,
@@ -600,6 +758,9 @@ function DashboardContent({
               initialTab={nurseryInitialTab}
               onApprove={handleApproveNursery}
               onReject={handleRejectNursery}
+              onRevoke={handleRevokeNursery}
+              onSuspend={handleSuspendNursery}
+              onUnsuspend={handleUnsuspendNursery}
               onAddNursery={handleAddNursery}
               onUpdateNursery={handleUpdateNursery}
               onDeleteNursery={handleDeleteNursery}

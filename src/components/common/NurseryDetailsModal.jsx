@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   X, Phone, MessageSquare, MapPin, Calendar, Award, CheckCircle2, 
   AlertCircle, XCircle, ExternalLink, ShieldCheck, Sprout, Building, Compass,
-  CreditCard, Loader2
+  CreditCard, Loader2, Ban, RotateCcw
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
@@ -13,7 +13,10 @@ export default function NurseryDetailsModal({
   isOpen, 
   onClose, 
   onApprove, 
-  onOpenReject 
+  onOpenReject,
+  onOpenRevoke,
+  onOpenSuspend,
+  onUnsuspend
 }) {
   const { t, lang } = useLanguage();
   const [payingFee, setPayingFee] = useState(false);
@@ -22,8 +25,9 @@ export default function NurseryDetailsModal({
 
   if (!isOpen || !nursery) return null;
 
-  const isApproved = nursery.status === 'approved';
-  const isPending = nursery.status === 'pending';
+  const isSuspended = nursery.status === 'suspended' || Boolean(nursery.isSuspended && nursery.status !== 'approved');
+  const isApproved = nursery.status === 'approved' && !isSuspended;
+  const isPending = (nursery.status === 'pending' || nursery.status === 'revoked') && !isSuspended;
   const isRejected = nursery.status === 'rejected';
 
   const isPaid = nursery.paymentStatus === 'paid' || Boolean(nursery.razorpayPaymentId);
@@ -110,10 +114,16 @@ export default function NurseryDetailsModal({
                   {t('statusApproved')}
                 </span>
               )}
+              {isSuspended && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-600 text-white shadow-lg shadow-rose-600/30">
+                  <Ban className="w-4 h-4" />
+                  {lang === 'mr' ? 'खाते निलंबित' : 'Suspended'}
+                </span>
+              )}
               {isPending && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-lg shadow-amber-500/30 animate-pulse">
                   <AlertCircle className="w-4 h-4" />
-                  {t('statusPending')}
+                  {nursery.status === 'revoked' ? (lang === 'mr' ? 'रद्द (प्रलंबित)' : 'Revoked (Pending)') : t('statusPending')}
                 </span>
               )}
               {isRejected && (
@@ -129,6 +139,24 @@ export default function NurseryDetailsModal({
         {/* Modal Content */}
         <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           
+          {/* Suspension notice banner if status is suspended */}
+          {isSuspended && (
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
+              <div className="flex items-center gap-2 font-bold text-sm text-rose-800">
+                <Ban className="w-4 h-4 text-rose-600" />
+                <span>{lang === 'mr' ? 'खाते निलंबन शेरा व माहिती' : 'Partner Account Suspended'}</span>
+              </div>
+              <p className="text-xs font-semibold text-rose-800 mt-1">
+                {nursery.suspensionReason || (lang === 'mr' ? 'प्रशासकीय कारणास्तव हे खाते तात्पुरते निलंबित करण्यात आले आहे.' : 'This account has been temporarily suspended by the administrator.')}
+              </p>
+              {nursery.suspendedAt && (
+                <p className="text-[11px] text-rose-600 mt-1">
+                  {lang === 'mr' ? 'निलंबन तारीख/वेळ: ' : 'Suspended On: '}{new Date(nursery.suspendedAt).toLocaleString()}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Rejection notice banner if status is rejected */}
           {isRejected && (
             <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
@@ -387,15 +415,59 @@ export default function NurseryDetailsModal({
             )}
 
             {isApproved && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenRevoke) onOpenRevoke(nursery);
+                  }}
+                  className="px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                  <span>{lang === 'mr' ? 'मंजुरी रद्द करा (Revoke)' : 'Revoke Approval'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenSuspend) onOpenSuspend(nursery);
+                  }}
+                  className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Ban className="w-3.5 h-3.5 text-rose-600" />
+                  <span>{lang === 'mr' ? 'खाते निलंबित करा (Suspend)' : 'Suspend Account'}</span>
+                </button>
+              </>
+            )}
+
+            {isSuspended && (
               <button
                 type="button"
-                onClick={() => {
-                  onClose();
-                  onOpenReject(nursery);
+                disabled={isApproving}
+                onClick={async () => {
+                  if (isApproving) return;
+                  setIsApproving(true);
+                  try {
+                    if (onUnsuspend) await onUnsuspend(nursery.id);
+                    onClose();
+                  } finally {
+                    setIsApproving(false);
+                  }
                 }}
-                className="px-4 py-2 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors"
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-700/20 transition-all flex items-center gap-1.5 disabled:opacity-60 cursor-pointer active:scale-95"
               >
-                {lang === 'mr' ? 'निलंबित / रद्द करा' : 'Suspend / Revoke Approval'}
+                {isApproving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{lang === 'mr' ? 'सक्रिय करत आहे...' : 'Reactivating...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{lang === 'mr' ? 'निलंबन मागे घ्या (सक्रिय करा)' : 'Unsuspend / Re-Activate'}</span>
+                  </>
+                )}
               </button>
             )}
 

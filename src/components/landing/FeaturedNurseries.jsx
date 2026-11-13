@@ -32,9 +32,9 @@ export default function FeaturedNurseries({
         ])
   ];
 
-  // Show all active and newly registered nurseries
+  // Show only approved, non-suspended nurseries to public visitors
   const displayNurseries = nurseries
-    .filter(n => n.status !== 'rejected')
+    .filter(n => (n.status === 'approved' || (!n.status && n.verified)) && !n.isSuspended && n.status !== 'suspended' && n.status !== 'rejected')
     .filter(n => selectedCity === 'all' || !selectedCity || n.city?.toLowerCase() === selectedCity.toLowerCase());
 
   const handleWhatsApp = (e, nursery) => {
