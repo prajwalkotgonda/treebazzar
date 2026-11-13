@@ -777,20 +777,24 @@ export async function deleteLeadFromFirestore(leadId) {
 }
 
 /**
- * Delete nursery from Firestore
+ * Delete nursery from Firestore (Modular SDK + direct REST fallback)
  */
 export async function deleteNurseryFromFirestore(nurseryId) {
+  let sdkDeleted = false;
   const fb = await getFirebase();
   if (fb && fb.db && fb.deleteDoc) {
     try {
       await fb.deleteDoc(fb.doc(fb.db, 'nurseries', nurseryId));
       logFirebaseEvent('nursery_deleted', { nurseryId });
-      return true;
+      sdkDeleted = true;
     } catch (err) {
-      console.warn('Firestore deleteNursery failed, using REST fallback:', err);
+      console.warn('Firestore deleteNursery SDK error, trying REST fallback:', err);
     }
   }
-  return await deleteDocumentViaRest('nurseries', nurseryId);
+
+  // Direct REST API DELETE request to ensure Firestore document is deleted on Google Cloud backend
+  const restDeleted = await deleteDocumentViaRest('nurseries', nurseryId);
+  return sdkDeleted || restDeleted;
 }
 
 /**

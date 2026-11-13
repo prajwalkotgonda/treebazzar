@@ -466,12 +466,15 @@ export default function NurseryManagementView({
         <DeleteConfirmModal
           isOpen={Boolean(deletingNursery)}
           onClose={() => setDeletingNursery(null)}
-          onConfirm={() => onDeleteNursery && onDeleteNursery(deletingNursery.id)}
-          title={lang === 'mr' ? 'रोपवाटिका हटवा' : 'Delete Nursery'}
+          onConfirm={async () => {
+            if (onDeleteNursery) await onDeleteNursery(deletingNursery.id);
+            setDeletingNursery(null);
+          }}
+          title={lang === 'mr' ? 'रोपवाटिका कायमची हटवा' : 'Permanently Delete Nursery'}
           itemName={deletingNursery.name}
           message={lang === 'mr' 
-            ? `"${deletingNursery.name}" ही रोपवाटिका कायमस्वरूपी हटवली जाईल. तुम्हाला खात्री आहे का?`
-            : `"${deletingNursery.name}" and its listed varieties will be removed. Are you sure?`}
+            ? `"${deletingNursery.name}" ही रोपवाटिका आणि तिची सर्व नोंदवलेली झाडे मोबाईल ॲप व डेटाबेसमधून कायमस्वरूपी हटवली जातील. तुम्हाला नक्की ही हटवायची आहे का?`
+            : `"${deletingNursery.name}" and all its listed plants will be permanently deleted from the database and mobile app. Are you sure?`}
         />
       )}
 

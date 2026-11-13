@@ -1,5 +1,5 @@
-import React from 'react';
-import { Trash2, AlertTriangle, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Trash2, AlertTriangle, X, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function DeleteConfirmModal({ 
@@ -11,8 +11,22 @@ export default function DeleteConfirmModal({
   itemName 
 }) {
   const { t, lang } = useLanguage();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleConfirm = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      if (onConfirm) await onConfirm();
+      onClose();
+    } catch (err) {
+      console.error('Delete error in modal:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -35,7 +49,8 @@ export default function DeleteConfirmModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-white cursor-pointer"
+            disabled={isDeleting}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-white cursor-pointer disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -56,21 +71,29 @@ export default function DeleteConfirmModal({
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
+              disabled={isDeleting}
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
             >
-              {t('btnCancel') || 'Cancel'}
+              {t('btnCancel') || (lang === 'mr' ? 'रद्द करा' : 'Cancel')}
             </button>
             <button
               type="button"
-              onClick={() => {
-                onConfirm();
-                onClose();
-              }}
-              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95"
+              disabled={isDeleting}
+              onClick={handleConfirm}
+              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95"
             >
-              <Trash2 className="w-4 h-4" />
-              <span>{t('btnConfirmDelete') || 'Yes, Delete'}</span>
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{lang === 'mr' ? 'हटवत आहे...' : 'Deleting...'}</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4" />
+                  <span>{t('btnConfirmDelete') || (lang === 'mr' ? 'होय, हटवा' : 'Yes, Delete')}</span>
+                </>
+              )}
             </button>
           </div>
         </div>

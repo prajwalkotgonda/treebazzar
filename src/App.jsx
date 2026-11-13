@@ -376,16 +376,59 @@ function DashboardContent({
     });
   };
 
-  const handleDeleteNursery = (nurseryId) => {
+  const handleDeleteNursery = async (nurseryId) => {
     const target = nurseries.find(n => n.id === nurseryId);
+    const nurseryName = target?.name || target?.nurseryName || (lang === 'mr' ? 'रोपवाटिका' : 'Nursery');
+
+    // 1. Optimistic removal from React state
     setNurseries(prev => prev.filter(n => n.id !== nurseryId));
-    deleteNurseryFromFirestore(nurseryId).catch(console.warn);
+    setPlants(prev => prev.filter(p => p.nurseryId !== nurseryId && p.nurseryName !== nurseryName));
+
+    // 2. Synchronous update to localStorage so page refresh immediately reflects deletion
+    try {
+      const savedNurseries = localStorage.getItem('tb_nurseries');
+      if (savedNurseries) {
+        const list = JSON.parse(savedNurseries);
+        localStorage.setItem('tb_nurseries', JSON.stringify(list.filter(n => n.id !== nurseryId)));
+      }
+      const savedPlants = localStorage.getItem('tb_plants');
+      if (savedPlants) {
+        const list = JSON.parse(savedPlants);
+        localStorage.setItem('tb_plants', JSON.stringify(list.filter(p => p.nurseryId !== nurseryId && p.nurseryName !== nurseryName)));
+      }
+    } catch (e) {}
 
     showToast({
       type: 'info',
-      title: lang === 'mr' ? 'रोपवाटिका हटवली' : 'Nursery Deleted',
-      message: `${target?.name || 'Nursery'} was removed.`
+      title: lang === 'mr' ? 'हटवत आहे...' : 'Deleting...',
+      message: lang === 'mr' ? `"${nurseryName}" डेटाबेस आणि ॲपमधून हटवत आहे...` : `Removing "${nurseryName}" from database and mobile app...`
     });
+
+    try {
+      // 3. Delete nursery document from Firestore (Modular SDK + direct REST fallback)
+      await deleteNurseryFromFirestore(nurseryId);
+
+      // 4. Cascade delete: delete all plants belonging to this nursery from Firestore
+      const linkedPlants = plants.filter(p => p.nurseryId === nurseryId || p.nurseryName === nurseryName);
+      for (const plant of linkedPlants) {
+        await deletePlantFromFirestore(plant.id).catch(console.warn);
+      }
+
+      showToast({
+        type: 'success',
+        title: lang === 'mr' ? 'रोपवाटिका पूर्णपणे हटवली (App & Database)!' : 'Nursery Deleted from App & Database!',
+        message: lang === 'mr' 
+          ? `"${nurseryName}" डेटाबेस आणि मोबाईल ॲपमधून कायमस्वरूपी हटवली गेली आहे.` 
+          : `"${nurseryName}" and its plant listings have been deleted from database and mobile app.`
+      });
+    } catch (err) {
+      console.error('Failed to delete nursery from Firestore:', err);
+      showToast({
+        type: 'error',
+        title: lang === 'mr' ? 'त्रुटी आढळली' : 'Error',
+        message: lang === 'mr' ? 'डेटाबेसमधून रोपवाटिका हटवताना त्रुटी आली.' : 'Failed to delete nursery from database.'
+      });
+    }
   };
 
   // ----------------------------------------------------
