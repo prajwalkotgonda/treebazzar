@@ -18,6 +18,7 @@ export default function NurseryDetailsModal({
   const { t, lang } = useLanguage();
   const [payingFee, setPayingFee] = useState(false);
   const [paymentMsg, setPaymentMsg] = useState(null);
+  const [isApproving, setIsApproving] = useState(false);
 
   if (!isOpen || !nursery) return null;
 
@@ -346,24 +347,41 @@ export default function NurseryDetailsModal({
               <>
                 <button
                   type="button"
+                  disabled={isApproving}
                   onClick={() => {
                     onClose();
                     onOpenReject(nursery);
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition-colors disabled:opacity-50"
                 >
                   {t('btnReject')}
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    onApprove(nursery.id);
-                    onClose();
+                  disabled={isApproving}
+                  onClick={async () => {
+                    if (isApproving) return;
+                    setIsApproving(true);
+                    try {
+                      if (onApprove) await onApprove(nursery.id);
+                      onClose();
+                    } finally {
+                      setIsApproving(false);
+                    }
                   }}
-                  className="px-5 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-md shadow-emerald-900/20 transition-all flex items-center gap-1.5"
+                  className="px-5 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-md shadow-emerald-900/20 transition-all flex items-center gap-1.5 disabled:opacity-60"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                  {t('btnApprove')}
+                  {isApproving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-emerald-300" />
+                      <span>{lang === 'mr' ? 'मंजूर होत आहे...' : 'Approving...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                      <span>{t('btnApprove')}</span>
+                    </>
+                  )}
                 </button>
               </>
             )}
@@ -384,13 +402,27 @@ export default function NurseryDetailsModal({
             {isRejected && (
               <button
                 type="button"
-                onClick={() => {
-                  onApprove(nursery.id);
-                  onClose();
+                disabled={isApproving}
+                onClick={async () => {
+                  if (isApproving) return;
+                  setIsApproving(true);
+                  try {
+                    if (onApprove) await onApprove(nursery.id);
+                    onClose();
+                  } finally {
+                    setIsApproving(false);
+                  }
                 }}
-                className="px-4 py-2 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-sm transition-all"
+                className="px-4 py-2 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-60"
               >
-                {lang === 'mr' ? 'पुन्हा मंजूर करा (Re-Approve)' : 'Re-Approve Partner'}
+                {isApproving ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-300" />
+                    <span>{lang === 'mr' ? 'मंजूर होत आहे...' : 'Approving...'}</span>
+                  </>
+                ) : (
+                  <span>{lang === 'mr' ? 'पुन्हा मंजूर करा (Re-Approve)' : 'Re-Approve Partner'}</span>
+                )}
               </button>
             )}
           </div>

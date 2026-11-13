@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, AlertTriangle, AlertCircle, FileWarning } from 'lucide-react';
+import { X, AlertTriangle, AlertCircle, FileWarning, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function RejectModal({ nursery, isOpen, onClose, onConfirm }) {
@@ -7,20 +7,30 @@ export default function RejectModal({ nursery, isOpen, onClose, onConfirm }) {
   const [reason, setReason] = useState('');
   const [customNotes, setCustomNotes] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !nursery) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!reason) {
       setError(lang === 'mr' ? 'कृपया नाकारण्याचे कारण निवडा' : 'Please select a rejection reason');
       return;
     }
     setError('');
-    onConfirm(nursery.id, reason, customNotes);
-    setReason('');
-    setCustomNotes('');
-    onClose();
+    setIsSubmitting(true);
+    try {
+      if (onConfirm) {
+        await onConfirm(nursery.id, reason, customNotes);
+      }
+      setReason('');
+      setCustomNotes('');
+      onClose();
+    } catch (err) {
+      console.error('Error rejecting nursery:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const predefinedReasons = [
@@ -114,17 +124,28 @@ export default function RejectModal({ nursery, isOpen, onClose, onConfirm }) {
           <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
             >
               {t('btnCancel')}
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-md shadow-rose-600/20 transition-all flex items-center gap-2"
+              disabled={isSubmitting}
+              className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-md shadow-rose-600/20 transition-all flex items-center gap-2 disabled:opacity-60"
             >
-              <FileWarning className="w-4 h-4" />
-              {t('btnConfirmReject')}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{lang === 'mr' ? 'प्रक्रिया सुरू आहे...' : 'Processing...'}</span>
+                </>
+              ) : (
+                <>
+                  <FileWarning className="w-4 h-4" />
+                  <span>{t('btnConfirmReject')}</span>
+                </>
+              )}
             </button>
           </div>
         </form>

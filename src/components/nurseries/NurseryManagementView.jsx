@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Store, Search, CheckCircle2, XCircle, AlertCircle, Eye, 
-  Plus, Phone, MapPin, Calendar, Check, X, Edit2, Trash2, ShieldAlert
+  Plus, Phone, MapPin, Calendar, Check, X, Edit2, Trash2, ShieldAlert, Loader2
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import NurseryDetailsModal from '../common/NurseryDetailsModal';
@@ -33,6 +33,17 @@ export default function NurseryManagementView({
   const [addNurseryOpen, setAddNurseryOpen] = useState(false);
   const [editingNursery, setEditingNursery] = useState(null);
   const [deletingNursery, setDeletingNursery] = useState(null);
+  const [processingId, setProcessingId] = useState(null);
+
+  const handleApproveWithFeedback = async (id) => {
+    if (processingId) return;
+    setProcessingId(id);
+    try {
+      if (onApprove) await onApprove(id);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   // Tab counts
   const counts = useMemo(() => {
@@ -257,12 +268,21 @@ export default function NurseryManagementView({
                         {/* Approve Button (if pending) */}
                         {nursery.status === 'pending' && (
                           <button
-                            onClick={() => onApprove && onApprove(nursery.id)}
+                            onClick={() => handleApproveWithFeedback(nursery.id)}
+                            disabled={processingId === nursery.id}
                             title={lang === 'mr' ? 'मंजूर करा' : 'Approve'}
-                            className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                            className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
                           >
-                            <Check className="w-3 h-3" />
-                            <span>{lang === 'mr' ? 'मंजूर' : 'Approve'}</span>
+                            {processingId === nursery.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Check className="w-3 h-3" />
+                            )}
+                            <span>
+                              {processingId === nursery.id 
+                                ? (lang === 'mr' ? 'मंजूर होत आहे...' : 'Approving...') 
+                                : (lang === 'mr' ? 'मंजूर' : 'Approve')}
+                            </span>
                           </button>
                         )}
 

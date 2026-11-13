@@ -86,52 +86,106 @@ function DashboardContent({
   const newEnquiriesCount = inquiries.filter(i => (i.status || 'New') === 'New').length;
 
   // ----------------------------------------------------
-  // Nursery CRUD Actions
+  // Nursery CRUD Actions (Synchronized with Firestore & Mobile App)
   // ----------------------------------------------------
-  const handleApproveNursery = (nurseryId) => {
+  const handleApproveNursery = async (nurseryId) => {
     const targetNursery = nurseries.find(n => n.id === nurseryId);
-    setNurseries(prev => prev.map(n => {
-      if (n.id === nurseryId) {
-        return {
-          ...n,
-          status: 'approved',
-          rejectionReason: '',
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return n;
-    }));
+    const nurseryName = targetNursery?.name || targetNursery?.nurseryName || (lang === 'mr' ? 'रोपवाटिका' : 'Nursery');
 
-    updateNurseryInFirestore(nurseryId, { status: 'approved', rejectionReason: '' }).catch(console.warn);
+    const updatedNursery = {
+      ...(targetNursery || {}),
+      id: nurseryId,
+      status: 'approved',
+      verified: true,
+      isVerified: true,
+      isActive: true,
+      isSuspended: false,
+      rejectionReason: '',
+      rejectionNotes: '',
+      approvedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // 1. Optimistic UI update in Admin
+    setNurseries(prev => prev.map(n => n.id === nurseryId ? updatedNursery : n));
 
     showToast({
-      type: 'success',
-      title: lang === 'mr' ? 'रोपवाटिका मंजूर केली' : 'Nursery Approved',
-      message: `${targetNursery?.name || 'Nursery'} has been approved and activated.`
+      type: 'info',
+      title: lang === 'mr' ? 'मंजूर करत आहे...' : 'Processing Approval...',
+      message: lang === 'mr' ? `${nurseryName} ॲप आणि डेटाबेसमध्ये सिंक करत आहे.` : `Syncing ${nurseryName} with mobile app...`
     });
+
+    try {
+      // 2. Commit update to Firestore for real-time mobile app reflection
+      await updateNurseryInFirestore(nurseryId, {
+        status: 'approved',
+        verified: true,
+        isVerified: true,
+        isActive: true,
+        isSuspended: false,
+        rejectionReason: '',
+        rejectionNotes: '',
+        approvedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      // 3. Confirm success
+      showToast({
+        type: 'success',
+        title: lang === 'mr' ? 'रोपवाटिका मंजूर झाली (App Synced)!' : 'Nursery Approved & Live in App!',
+        message: lang === 'mr' 
+          ? `"${nurseryName}" यशस्वीरित्या मंजूर झाली असून ॲपमध्ये ग्राहकांना लगेच दिसेल.` 
+          : `"${nurseryName}" is now verified and live in the customer mobile app.`
+      });
+    } catch (err) {
+      console.error('Nursery approval sync error:', err);
+    }
   };
 
-  const handleRejectNursery = (nurseryId, reason) => {
+  const handleRejectNursery = async (nurseryId, reason) => {
     const targetNursery = nurseries.find(n => n.id === nurseryId);
-    setNurseries(prev => prev.map(n => {
-      if (n.id === nurseryId) {
-        return {
-          ...n,
-          status: 'rejected',
-          rejectionReason: reason,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return n;
-    }));
+    const nurseryName = targetNursery?.name || targetNursery?.nurseryName || (lang === 'mr' ? 'रोपवाटिका' : 'Nursery');
+    const cleanReason = reason || (lang === 'mr' ? 'माहिती पडताळणी अयशस्वी' : 'Information verification failed');
 
-    updateNurseryInFirestore(nurseryId, { status: 'rejected', rejectionReason: reason }).catch(console.warn);
+    const updatedNursery = {
+      ...(targetNursery || {}),
+      id: nurseryId,
+      status: 'rejected',
+      verified: false,
+      isVerified: false,
+      isActive: false,
+      isSuspended: true,
+      rejectionReason: cleanReason,
+      rejectionNotes: cleanReason,
+      rejectedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
-    showToast({
-      type: 'error',
-      title: lang === 'mr' ? 'रोपवाटिका नाकारली' : 'Nursery Rejected',
-      message: `${targetNursery?.name || 'Nursery'} application was marked as rejected.`
-    });
+    setNurseries(prev => prev.map(n => n.id === nurseryId ? updatedNursery : n));
+
+    try {
+      await updateNurseryInFirestore(nurseryId, {
+        status: 'rejected',
+        verified: false,
+        isVerified: false,
+        isActive: false,
+        isSuspended: true,
+        rejectionReason: cleanReason,
+        rejectionNotes: cleanReason,
+        rejectedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      showToast({
+        type: 'error',
+        title: lang === 'mr' ? 'रोपवाटिका नाकारली (App Synced)' : 'Nursery Rejected & Synced',
+        message: lang === 'mr' 
+          ? `"${nurseryName}" चा अर्ज नाकारला असून ॲपमध्ये कारण दाखवले जाईल.` 
+          : `"${nurseryName}" rejected. Reason synced to mobile app.`
+      });
+    } catch (err) {
+      console.error('Nursery rejection sync error:', err);
+    }
   };
 
   const handleAddNursery = (newNurseryData) => {
@@ -279,49 +333,109 @@ function DashboardContent({
     });
   };
 
-  const handleUpdateOrder = (orderId, updatedData) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updatedData } : o));
+  const handleUpdateOrder = async (orderId, updatedData) => {
     const target = orders.find(o => o.id === orderId);
-    saveOrderToFirestore({ ...(target || {}), ...updatedData, id: orderId }).catch(console.warn);
+    const merged = {
+      ...(target || {}),
+      ...updatedData,
+      id: orderId,
+      orderStatus: updatedData.status || target?.status || 'pending',
+      updatedAt: new Date().toISOString()
+    };
 
-    showToast({
-      type: 'success',
-      title: lang === 'mr' ? 'ऑर्डर अपडेट केली' : 'Order Updated',
-      message: `Order #${orderId} details updated.`
-    });
+    setOrders(prev => prev.map(o => o.id === orderId ? merged : o));
+
+    try {
+      await saveOrderToFirestore(merged);
+      showToast({
+        type: 'success',
+        title: lang === 'mr' ? 'ऑर्डर अपडेट झाली (App Synced)' : 'Order Updated & Synced',
+        message: lang === 'mr' ? `ऑर्डर #${orderId} चे स्टेटस ॲपमध्ये अपडेट झाले.` : `Order #${orderId} synced to mobile app.`
+      });
+    } catch (err) {
+      console.error('Order update sync error:', err);
+    }
   };
 
-  const handleDeleteOrder = (orderId) => {
+  const handleDeleteOrder = async (orderId) => {
     setOrders(prev => prev.filter(o => o.id !== orderId));
-    deleteOrderFromFirestore(orderId).catch(console.warn);
+    try {
+      await deleteOrderFromFirestore(orderId);
+      showToast({
+        type: 'info',
+        title: lang === 'mr' ? 'ऑर्डर हटवली' : 'Order Deleted',
+        message: `Order #${orderId} removed from database.`
+      });
+    } catch (err) {
+      console.error('Order delete error:', err);
+    }
+  };
+
+  const handleApproveOrder = async (orderId) => {
+    const targetOrder = orders.find(o => o.id === orderId);
+    const updatedOrder = {
+      ...(targetOrder || {}),
+      id: orderId,
+      status: 'confirmed',
+      orderStatus: 'confirmed',
+      isConfirmed: true,
+      isApproved: true,
+      confirmedAt: new Date().toISOString(),
+      approvedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
 
     showToast({
       type: 'info',
-      title: lang === 'mr' ? 'ऑर्डर हटवली' : 'Order Deleted',
-      message: `Order #${orderId} removed.`
+      title: lang === 'mr' ? 'ऑर्डर स्वीकारत आहे...' : 'Processing Order Approval...',
+      message: lang === 'mr' ? `ऑर्डर #${orderId} ग्राहकाच्या ॲपमध्ये सिंक करत आहे.` : `Syncing order #${orderId} with mobile app...`
     });
+
+    try {
+      await saveOrderToFirestore(updatedOrder);
+
+      showToast({
+        type: 'success',
+        title: lang === 'mr' ? 'ऑर्डर निश्चित झाली (App Synced)!' : 'Order Confirmed & Live in App!',
+        message: lang === 'mr' 
+          ? `ऑर्डर #${orderId} मंजूर झाली असून ग्राहकाच्या मोबाईल ॲपमध्ये 'Confirmed' दिसेल.` 
+          : `Order #${orderId} approved and visible as Confirmed in customer app.`
+      });
+    } catch (err) {
+      console.error('Order approve error:', err);
+    }
   };
 
-  const handleApproveOrder = (orderId) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'confirmed' } : o));
-    saveOrderToFirestore({ id: orderId, status: 'confirmed' }).catch(console.warn);
+  const handleRejectOrder = async (orderId, reason) => {
+    const targetOrder = orders.find(o => o.id === orderId);
+    const updatedOrder = {
+      ...(targetOrder || {}),
+      id: orderId,
+      status: 'cancelled',
+      orderStatus: 'cancelled',
+      isCancelled: true,
+      cancelledAt: new Date().toISOString(),
+      rejectionReason: reason || (lang === 'mr' ? 'ऑर्डर रद्द केली' : 'Order cancelled by admin'),
+      updatedAt: new Date().toISOString()
+    };
 
-    showToast({
-      type: 'success',
-      title: lang === 'mr' ? 'ऑर्डर निश्चित केली' : 'Order Confirmed',
-      message: `Order #${orderId} marked as Confirmed.`
-    });
-  };
+    setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
 
-  const handleRejectOrder = (orderId) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o));
-    saveOrderToFirestore({ id: orderId, status: 'cancelled' }).catch(console.warn);
+    try {
+      await saveOrderToFirestore(updatedOrder);
 
-    showToast({
-      type: 'info',
-      title: lang === 'mr' ? 'ऑर्डर रद्द केली' : 'Order Cancelled',
-      message: `Order #${orderId} marked as Cancelled.`
-    });
+      showToast({
+        type: 'info',
+        title: lang === 'mr' ? 'ऑर्डर रद्द केली (App Synced)' : 'Order Cancelled & Synced',
+        message: lang === 'mr' 
+          ? `ऑर्डर #${orderId} रद्द केली असून ॲपमध्ये Cancelled दिसेल.` 
+          : `Order #${orderId} marked Cancelled in customer app.`
+      });
+    } catch (err) {
+      console.error('Order cancel error:', err);
+    }
   };
 
   // ----------------------------------------------------
@@ -777,8 +891,8 @@ function AppRoot() {
   useEffect(() => {
     let isSubscribed = true;
 
-    // 1. Initial sync from Firestore
-    syncAllData().then(({ nurseries: fbNurseries, plants: fbPlants, leads: fbLeads }) => {
+    // 1. Initial sync from Firestore for nurseries, plants, leads, and orders
+    syncAllData().then(({ nurseries: fbNurseries, plants: fbPlants, leads: fbLeads, orders: fbOrders }) => {
       if (!isSubscribed) return;
       if (fbNurseries && fbNurseries.length > 0) {
         setNurseries(fbNurseries);
@@ -789,12 +903,16 @@ function AppRoot() {
       if (fbLeads && fbLeads.length > 0) {
         setInquiries(fbLeads);
       }
+      if (fbOrders && fbOrders.length > 0) {
+        setOrders(fbOrders);
+      }
     }).catch(err => console.warn('Initial Firestore sync error:', err));
 
-    // 2. Real-time subscriptions for nurseries, plants, and leads
+    // 2. Real-time subscriptions for nurseries, plants, leads, and orders
     let unsubNurseries = () => {};
     let unsubPlants = () => {};
     let unsubLeads = () => {};
+    let unsubOrders = () => {};
 
     subscribeToCollection('nurseries', (data) => {
       if (isSubscribed && data && data.length > 0) {
@@ -814,11 +932,18 @@ function AppRoot() {
       }
     }).then(unsub => { if (unsub) unsubLeads = unsub; }).catch(console.warn);
 
+    subscribeToCollection('orders', (data) => {
+      if (isSubscribed && data && data.length > 0) {
+        setOrders(data);
+      }
+    }).then(unsub => { if (unsub) unsubOrders = unsub; }).catch(console.warn);
+
     return () => {
       isSubscribed = false;
       try { unsubNurseries(); } catch (e) {}
       try { unsubPlants(); } catch (e) {}
       try { unsubLeads(); } catch (e) {}
+      try { unsubOrders(); } catch (e) {}
     };
   }, []);
 

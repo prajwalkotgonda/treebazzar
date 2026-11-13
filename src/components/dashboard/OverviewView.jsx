@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Store, Sprout, ShoppingBag, Users, MessageSquare, IndianRupee, 
   Plus, Check, X, ArrowRight, CheckCircle2, Clock, AlertTriangle, 
-  Sparkles, ExternalLink 
+  Sparkles, ExternalLink, Loader2 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -24,6 +24,17 @@ export default function OverviewView({
   onRejectOrder
 }) {
   const { t, lang } = useLanguage();
+  const [processingId, setProcessingId] = useState(null);
+
+  const handleActionWithFeedback = async (id, actionFn, ...args) => {
+    if (processingId) return;
+    setProcessingId(id);
+    try {
+      if (actionFn) await actionFn(id, ...args);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   // Metrics calculation
   const totalNurseries = nurseries.length;
@@ -181,15 +192,25 @@ export default function OverviewView({
                   {/* 1-Click Action Buttons */}
                   <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                     <button
-                      onClick={() => onApproveNursery && onApproveNursery(nursery.id)}
-                      className="px-3 py-1.5 bg-[#1E5631] hover:bg-[#2E7D32] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
+                      onClick={() => handleActionWithFeedback(nursery.id, onApproveNursery)}
+                      disabled={processingId === nursery.id}
+                      className="px-3 py-1.5 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
                     >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{lang === 'mr' ? 'मंजूर करा' : 'Approve'}</span>
+                      {processingId === nursery.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5" />
+                      )}
+                      <span>
+                        {processingId === nursery.id 
+                          ? (lang === 'mr' ? 'मंजूर करत आहे...' : 'Approving...') 
+                          : (lang === 'mr' ? 'मंजूर करा' : 'Approve')}
+                      </span>
                     </button>
                     <button
-                      onClick={() => onRejectNursery && onRejectNursery(nursery.id, 'Incomplete details')}
-                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                      onClick={() => handleActionWithFeedback(nursery.id, onRejectNursery, 'Incomplete details')}
+                      disabled={processingId === nursery.id}
+                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 disabled:opacity-60 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     >
                       <X className="w-3.5 h-3.5" />
                       <span>{lang === 'mr' ? 'नाकारा' : 'Reject'}</span>
@@ -216,15 +237,25 @@ export default function OverviewView({
                   {/* 1-Click Order Buttons */}
                   <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                     <button
-                      onClick={() => onApproveOrder && onApproveOrder(order.id)}
-                      className="px-3 py-1.5 bg-[#1E5631] hover:bg-[#2E7D32] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
+                      onClick={() => handleActionWithFeedback(order.id, onApproveOrder)}
+                      disabled={processingId === order.id}
+                      className="px-3 py-1.5 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
                     >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{lang === 'mr' ? 'ऑर्डर स्वीकारा' : 'Confirm'}</span>
+                      {processingId === order.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5" />
+                      )}
+                      <span>
+                        {processingId === order.id 
+                          ? (lang === 'mr' ? 'स्वीकारत आहे...' : 'Confirming...') 
+                          : (lang === 'mr' ? 'ऑर्डर स्वीकारा' : 'Confirm')}
+                      </span>
                     </button>
                     <button
-                      onClick={() => onRejectOrder && onRejectOrder(order.id)}
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                      onClick={() => handleActionWithFeedback(order.id, onRejectOrder)}
+                      disabled={processingId === order.id}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     >
                       <X className="w-3.5 h-3.5" />
                       <span>{lang === 'mr' ? 'रद्द करा' : 'Cancel'}</span>

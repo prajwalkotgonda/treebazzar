@@ -44,22 +44,29 @@ export function sanitizePayload(obj) {
 export function normalizeNursery(data, id) {
   if (!data) return null;
   const docId = id || data.id || `nursery-${Date.now()}`;
-  const name = data.name || data.nurseryName || 'Unnamed Nursery';
-  const nameMr = data.nameMr || name;
-  const ownerName = data.ownerName || data.owner || 'Nursery Owner';
-  const city = data.city || data.district || 'Sangli';
+  const name = data.name || data.nurseryName || data.nameEn || 'Unnamed Nursery';
+  const nameMr = data.nameMr || data.nurseryNameMr || name;
+  const ownerName = data.ownerName || data.owner || data.ownerNameEn || 'Nursery Owner';
+  const city = data.city || data.district || data.cityEn || 'Sangli';
   const district = data.district || city;
   const phone = data.phone || data.ownerPhone || '';
   const whatsapp = data.whatsapp || phone.replace(/\D/g, '') || '';
   const address = data.address || `${city}, Maharashtra`;
   const image = data.image || data.nurseryImages?.[0] || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&auto=format&fit=crop&q=80';
-  const status = data.status || 'pending';
-  const verified = status === 'approved' || Boolean(data.verified);
+  const status = (data.status || 'pending').toLowerCase();
+  const isVerified = status === 'approved' || Boolean(data.verified) || Boolean(data.isVerified);
+  const verified = isVerified;
+  const isActive = status === 'approved' || (data.isActive !== false && status !== 'rejected');
+  const isSuspended = status === 'rejected' || Boolean(data.isSuspended);
+  const rejectionReason = data.rejectionReason || data.rejectionNotes || '';
   const establishedYear = data.establishedYear || 2020;
   const totalPlants = Number(data.totalPlants) || 0;
   const facilities = data.facilities || data.specialties || ['Home Delivery', 'Grafted Varieties'];
   const specialties = facilities;
-  const location = data.location || { latitude: 16.85, longitude: 74.58 };
+  const location = data.location || { 
+    latitude: Number(data.latitude) || 16.85, 
+    longitude: Number(data.longitude) || 74.58 
+  };
 
   return {
     ...data,
@@ -79,6 +86,11 @@ export function normalizeNursery(data, id) {
     nurseryImages: data.nurseryImages || [image],
     status,
     verified,
+    isVerified,
+    isActive,
+    isSuspended,
+    rejectionReason,
+    rejectionNotes: rejectionReason,
     establishedYear,
     totalPlants,
     facilities,
@@ -184,6 +196,68 @@ export function normalizeLead(data, id) {
 }
 
 /**
+ * Normalize Order data from mobile app or web admin schema
+ */
+export function normalizeOrder(data, id) {
+  if (!data) return null;
+  const docId = id || data.id || data.orderId || `ORD-${Date.now()}`;
+  const customerName = data.customerName || data.userName || data.name || 'Customer';
+  const customerPhone = data.customerPhone || data.phone || data.userPhone || '';
+  const customerCity = data.customerCity || data.city || 'Sangli';
+  const nurseryId = data.nurseryId || '';
+  const nurseryName = data.nurseryName || data.nursery || 'TreeBazzar Nursery';
+  const plantName = data.plantName || data.plant || data.items?.[0]?.name || data.items?.[0]?.plantName || 'Plant Saplings';
+  const quantity = Number(data.quantity) || Number(data.totalQuantity) || (data.items?.reduce((sum, it) => sum + (Number(it.quantity) || 1), 0)) || 1;
+  const unitPrice = Number(data.unitPrice) || Number(data.price) || 100;
+  const totalAmount = Number(data.totalAmount) || Number(data.amount) || Number(data.total) || (quantity * unitPrice);
+  const paymentMethod = data.paymentMethod || data.paymentType || 'Cash on Delivery';
+  const paymentStatus = data.paymentStatus || (paymentMethod === 'UPI Transfer' || paymentMethod === 'razorpay' ? 'paid' : 'pending');
+  const status = (data.status || data.orderStatus || 'pending').toLowerCase();
+  const date = data.date || (data.createdAt ? String(data.createdAt).split('T')[0] : new Date().toISOString().split('T')[0]);
+  const deliveryAddress = data.deliveryAddress || data.address || `${customerCity}, Maharashtra`;
+  const notes = data.notes || data.instructions || '';
+  const isApproved = status === 'confirmed' || status === 'delivered' || status === 'dispatched';
+  const isConfirmed = isApproved;
+
+  return {
+    ...data,
+    id: docId,
+    orderId: docId,
+    customerName,
+    name: customerName,
+    customerPhone,
+    phone: customerPhone,
+    customerCity,
+    city: customerCity,
+    nurseryId,
+    nurseryName,
+    plantName,
+    quantity,
+    unitPrice,
+    totalAmount,
+    amount: totalAmount,
+    paymentMethod,
+    paymentStatus,
+    status,
+    orderStatus: status,
+    date,
+    deliveryAddress,
+    address: deliveryAddress,
+    notes,
+    isApproved,
+    isConfirmed,
+    confirmedAt: data.confirmedAt || data.approvedAt || (isApproved ? new Date().toISOString() : undefined),
+    approvedAt: data.approvedAt || (isApproved ? new Date().toISOString() : undefined),
+    dispatchedAt: data.dispatchedAt,
+    deliveredAt: data.deliveredAt,
+    cancelledAt: data.cancelledAt || data.rejectedAt,
+    rejectionReason: data.rejectionReason || '',
+    createdAt: data.createdAt || new Date().toISOString(),
+    updatedAt: data.updatedAt || new Date().toISOString()
+  };
+}
+
+/**
  * Convert JS object into Firestore REST API value format
  */
 function toRestFields(obj) {
@@ -258,6 +332,7 @@ export async function fetchCollectionFromFirestore(collectionName) {
         if (collectionName === 'nurseries') return normalizeNursery(raw, d.id);
         if (collectionName === 'plants') return normalizePlant(raw, d.id);
         if (collectionName === 'leads') return normalizeLead(raw, d.id);
+        if (collectionName === 'orders') return normalizeOrder(raw, d.id);
         return raw;
       });
     }
@@ -278,6 +353,7 @@ export async function fetchCollectionFromFirestore(collectionName) {
       if (collectionName === 'nurseries') return normalizeNursery(raw, id);
       if (collectionName === 'plants') return normalizePlant(raw, id);
       if (collectionName === 'leads') return normalizeLead(raw, id);
+      if (collectionName === 'orders') return normalizeOrder(raw, id);
       return raw;
     });
   } catch (e) {
@@ -287,15 +363,16 @@ export async function fetchCollectionFromFirestore(collectionName) {
 }
 
 /**
- * Fetch and sync all collections (nurseries, plants, leads) from Firestore
+ * Fetch and sync all collections (nurseries, plants, leads, orders) from Firestore
  */
 export async function syncAllData() {
-  const [nurseries, plants, leads] = await Promise.all([
+  const [nurseries, plants, leads, orders] = await Promise.all([
     fetchCollectionFromFirestore('nurseries'),
     fetchCollectionFromFirestore('plants'),
-    fetchCollectionFromFirestore('leads')
+    fetchCollectionFromFirestore('leads'),
+    fetchCollectionFromFirestore('orders')
   ]);
-  return { nurseries, plants, leads };
+  return { nurseries, plants, leads, orders };
 }
 
 /**
@@ -434,6 +511,7 @@ export async function subscribeToCollection(collectionName, onDataReceived, onEr
           if (collectionName === 'nurseries') return normalizeNursery(raw, d.id);
           if (collectionName === 'plants') return normalizePlant(raw, d.id);
           if (collectionName === 'leads') return normalizeLead(raw, d.id);
+          if (collectionName === 'orders') return normalizeOrder(raw, d.id);
           return raw;
         });
         onDataReceived(items);
@@ -584,13 +662,22 @@ export async function saveNurseryToFirestore(nursery) {
  * Update nursery status (Approve, Reject, Notes) in Firestore
  */
 export async function updateNurseryInFirestore(nurseryId, updates) {
+  const isApproved = updates.status === 'approved';
+  const isRejected = updates.status === 'rejected';
+
   const payload = sanitizePayload({
     ...updates,
     status: updates.status,
-    verified: updates.status === 'approved',
-    isSuspended: updates.status === 'rejected',
-    approvedAt: updates.status === 'approved' ? (updates.approvedDate || new Date().toISOString()) : undefined,
-    rejectedAt: updates.status === 'rejected' ? new Date().toISOString() : undefined,
+    verified: isApproved,
+    isVerified: isApproved,
+    isActive: isApproved ? true : (isRejected ? false : updates.isActive),
+    isSuspended: isRejected ? true : false,
+    rejectionReason: isRejected ? (updates.rejectionReason || 'Information verification failed') : '',
+    rejectionNotes: isRejected ? (updates.rejectionReason || 'Information verification failed') : '',
+    approvedAt: isApproved ? (updates.approvedDate || updates.approvedAt || new Date().toISOString()) : undefined,
+    approvedBy: isApproved ? (updates.approvedBy || 'admin') : undefined,
+    rejectedAt: isRejected ? (updates.rejectedAt || new Date().toISOString()) : undefined,
+    rejectedBy: isRejected ? (updates.rejectedBy || 'admin') : undefined,
     updatedAt: new Date().toISOString()
   });
 
@@ -681,21 +768,39 @@ export async function deleteNurseryFromFirestore(nurseryId) {
 }
 
 /**
- * Save Order to Firestore
+ * Save Order to Firestore with full mobile app field synchronization
  */
 export async function saveOrderToFirestore(order) {
+  const norm = normalizeOrder(order);
+  const isApproved = norm.status === 'confirmed' || norm.status === 'dispatched' || norm.status === 'delivered';
+  const isCancelled = norm.status === 'cancelled';
+
   const payload = sanitizePayload({
-    ...order,
+    ...norm,
+    status: norm.status,
+    orderStatus: norm.status,
+    isApproved: isApproved,
+    isConfirmed: isApproved,
+    confirmedAt: norm.status === 'confirmed' ? (norm.confirmedAt || new Date().toISOString()) : norm.confirmedAt,
+    approvedAt: norm.status === 'confirmed' ? (norm.approvedAt || new Date().toISOString()) : norm.approvedAt,
+    dispatchedAt: norm.status === 'dispatched' ? (norm.dispatchedAt || new Date().toISOString()) : norm.dispatchedAt,
+    deliveredAt: norm.status === 'delivered' ? (norm.deliveredAt || new Date().toISOString()) : norm.deliveredAt,
+    cancelledAt: isCancelled ? (norm.cancelledAt || new Date().toISOString()) : norm.cancelledAt,
+    rejectionReason: norm.rejectionReason || '',
     updatedAt: new Date().toISOString()
   });
+
   const fb = await getFirebase();
   if (fb && fb.db && fb.setDoc) {
     try {
-      await fb.setDoc(fb.doc(fb.db, 'orders', order.id), payload, { merge: true });
+      await fb.setDoc(fb.doc(fb.db, 'orders', norm.id), payload, { merge: true });
+      logFirebaseEvent('order_status_updated', { orderId: norm.id, status: norm.status });
       return true;
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Firestore setDoc failed for order, trying REST:', err);
+    }
   }
-  return await saveDocumentViaRest('orders', order.id, payload);
+  return await saveDocumentViaRest('orders', norm.id, payload);
 }
 
 /**

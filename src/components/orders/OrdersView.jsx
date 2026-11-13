@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ShoppingBag, Search, Plus, Eye, Edit2, Trash2, Check, X, 
-  MapPin, Phone, Calendar, IndianRupee, Truck, CheckCircle2, AlertCircle
+  MapPin, Phone, Calendar, IndianRupee, Truck, CheckCircle2, AlertCircle, Loader2
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import AddOrderModal from '../common/AddOrderModal';
@@ -32,6 +32,17 @@ export default function OrdersView({
   const [editingOrder, setEditingOrder] = useState(null);
   const [viewingOrder, setViewingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
+  const [processingOrderId, setProcessingOrderId] = useState(null);
+
+  const handleApproveOrderWithFeedback = async (id) => {
+    if (processingOrderId) return;
+    setProcessingOrderId(id);
+    try {
+      if (onApproveOrder) await onApproveOrder(id);
+    } finally {
+      setProcessingOrderId(null);
+    }
+  };
 
   // Tab counts
   const counts = useMemo(() => {
@@ -271,12 +282,21 @@ export default function OrdersView({
                         {/* Quick Approve/Confirm (if pending) */}
                         {order.status === 'pending' && (
                           <button
-                            onClick={() => onApproveOrder && onApproveOrder(order.id)}
+                            onClick={() => handleApproveOrderWithFeedback(order.id)}
+                            disabled={processingOrderId === order.id}
                             title={lang === 'mr' ? 'स्वीकारा (Confirm)' : 'Confirm Order'}
-                            className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                            className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
                           >
-                            <Check className="w-3 h-3" />
-                            <span>{lang === 'mr' ? 'स्वीकारा' : 'Confirm'}</span>
+                            {processingOrderId === order.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Check className="w-3 h-3" />
+                            )}
+                            <span>
+                              {processingOrderId === order.id 
+                                ? (lang === 'mr' ? 'स्वीकारत आहे...' : 'Confirming...') 
+                                : (lang === 'mr' ? 'स्वीकारा' : 'Confirm')}
+                            </span>
                           </button>
                         )}
 
