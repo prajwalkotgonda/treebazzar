@@ -80,8 +80,14 @@ function DashboardContent({
   const [addNurseryModalOpen, setAddNurseryModalOpen] = useState(false);
   const [addCustomerModalOpen, setAddCustomerModalOpen] = useState(false);
 
-  // Status Badges Counts
-  const pendingNurseriesCount = nurseries.filter(n => n.status === 'pending').length;
+  // Status Badges Counts (Excludes active 6-day trial nurseries)
+  const pendingNurseriesCount = nurseries.filter(n => 
+    !n.isSuspended && 
+    n.status !== 'approved' && 
+    n.status !== 'rejected' && 
+    (n.isTrialExpired || n.status === 'pending' || n.status === 'revoked') &&
+    !n.isTrialActive
+  ).length;
   const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
   const newEnquiriesCount = inquiries.filter(i => (i.status || 'New') === 'New').length;
 
@@ -100,6 +106,12 @@ function DashboardContent({
       isVerified: true,
       isActive: true,
       isSuspended: false,
+      isTrialActive: false,
+      isTrialExpired: false,
+      isSubscribed: true,
+      subscriptionPlan: 'paid_annual',
+      subscriptionStatus: 'active',
+      isSubscriptionApproved: true,
       rejectionReason: '',
       rejectionNotes: '',
       approvedAt: new Date().toISOString(),
@@ -111,8 +123,8 @@ function DashboardContent({
 
     showToast({
       type: 'info',
-      title: lang === 'mr' ? 'मंजूर करत आहे...' : 'Processing Approval...',
-      message: lang === 'mr' ? `${nurseryName} ॲप आणि डेटाबेसमध्ये सिंक करत आहे.` : `Syncing ${nurseryName} with mobile app...`
+      title: lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करत आहे...' : 'Approving Subscription...',
+      message: lang === 'mr' ? `${nurseryName} चे सबस्क्रिप्शन ॲप आणि डेटाबेसमध्ये सिंक करत आहे.` : `Syncing ${nurseryName} subscription with app...`
     });
 
     try {
@@ -123,6 +135,12 @@ function DashboardContent({
         isVerified: true,
         isActive: true,
         isSuspended: false,
+        isTrialActive: false,
+        isTrialExpired: false,
+        isSubscribed: true,
+        subscriptionPlan: 'paid_annual',
+        subscriptionStatus: 'active',
+        isSubscriptionApproved: true,
         rejectionReason: '',
         rejectionNotes: '',
         approvedAt: new Date().toISOString(),
@@ -132,10 +150,10 @@ function DashboardContent({
       // 3. Confirm success
       showToast({
         type: 'success',
-        title: lang === 'mr' ? 'रोपवाटिका मंजूर झाली (App Synced)!' : 'Nursery Approved & Live in App!',
+        title: lang === 'mr' ? 'सबस्क्रिप्शन मंजूर झाले (App Synced)!' : 'Subscription Approved & Live!',
         message: lang === 'mr' 
-          ? `"${nurseryName}" यशस्वीरित्या मंजूर झाली असून ॲपमध्ये ग्राहकांना लगेच दिसेल.` 
-          : `"${nurseryName}" is now verified and live in the customer mobile app.`
+          ? `"${nurseryName}" चे सबस्क्रिप्शन यशस्वीरित्या मंजूर झाले असून ॲपमध्ये पूर्ण प्रवेश सक्रिय झाला आहे.` 
+          : `"${nurseryName}" subscription is now verified and active in the mobile app.`
       });
     } catch (err) {
       console.error('Nursery approval sync error:', err);
@@ -347,11 +365,26 @@ function DashboardContent({
   };
 
   const handleAddNursery = (newNurseryData) => {
+    const now = new Date();
+    const trialEnd = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const isApproved = newNurseryData.status === 'approved';
+
     const newEntry = {
       ...newNurseryData,
-      id: `nursery-${Date.now()}`,
-      status: 'approved',
-      registrationDate: new Date().toISOString().split('T')[0]
+      id: newNurseryData.id || `nursery-${Date.now()}`,
+      status: isApproved ? 'approved' : (newNurseryData.status || 'trial'),
+      verified: isApproved,
+      isActive: true,
+      isTrialActive: !isApproved,
+      isTrialExpired: false,
+      trialStartDate: newNurseryData.trialStartDate || now.toISOString(),
+      trialEndDate: newNurseryData.trialEndDate || trialEnd.toISOString(),
+      trialDaysTotal: 6,
+      trialDaysLeft: 6,
+      subscriptionPlan: isApproved ? 'paid_annual' : 'free_trial',
+      subscriptionStatus: isApproved ? 'active' : 'trial',
+      isSubscriptionApproved: isApproved,
+      registrationDate: newNurseryData.registrationDate || now.toISOString().split('T')[0]
     };
 
     setNurseries(prev => [newEntry, ...prev]);
@@ -360,7 +393,7 @@ function DashboardContent({
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'रोपवाटिका जोडली' : 'Nursery Registered',
-      message: `${newEntry.name} registered and activated successfully.`
+      message: `${newEntry.name} registered successfully.`
     });
   };
 
@@ -1204,23 +1237,38 @@ function AppRoot() {
     });
   };
 
-  // Nursery partner registration from public landing page
+  // Nursery partner registration from public landing page (6-Day Free Trial)
   const handlePartnerAddNursery = (newNurseryData) => {
+    const now = new Date();
+    const trialEnd = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+
     const newEntry = {
       ...newNurseryData,
-      id: `nursery-${Date.now()}`,
-      status: 'approved',
-      verified: true,
+      id: newNurseryData.id || `nursery-${Date.now()}`,
+      status: 'trial',
+      verified: false,
+      isActive: true, // Active during 6-day free trial
+      isTrialActive: true,
+      isTrialExpired: false,
+      trialStartDate: now.toISOString(),
+      trialEndDate: trialEnd.toISOString(),
+      trialDaysTotal: 6,
+      trialDaysLeft: 6,
+      subscriptionPlan: 'free_trial',
+      subscriptionStatus: 'trial',
+      isSubscriptionApproved: false,
       isNew: true,
-      registrationDate: new Date().toISOString().split('T')[0]
+      registrationDate: now.toISOString().split('T')[0]
     };
     setNurseries(prev => [newEntry, ...prev]);
     saveNurseryToFirestore(newEntry).catch(console.warn);
 
     showToast({
       type: 'success',
-      title: lang === 'mr' ? 'रोपवाटिका जोडली गेली!' : 'Nursery Successfully Added!',
-      message: `${newEntry.name} is now live in the local nurseries directory.`
+      title: lang === 'mr' ? '६ दिवस मोफत ट्रायल सुरू झाले!' : '6-Day Free Trial Activated!',
+      message: lang === 'mr' 
+        ? `"${newEntry.name}" साठी ६ दिवस मोफत ट्रायल सुरू झाले आहे. आता ॲपमध्ये थेट वापरू शकता.` 
+        : `"${newEntry.name}" has been activated on a 6-day free trial. Ready to use!`
     });
   };
 

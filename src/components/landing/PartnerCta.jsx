@@ -6,7 +6,7 @@ export default function PartnerCta({ onOpenRegisterNursery }) {
   const { lang, t } = useLanguage();
 
   const benefits = [
-    lang === 'mr' ? 'मोफत रोपवाटिका नोंदणी' : '100% Free Listing',
+    lang === 'mr' ? '६ दिवस मोफत ट्रायल (Free Trial)' : '6 Days Free Trial',
     lang === 'mr' ? 'थेट ग्राहकांचे व्हॉट्सॲप मेसेज' : 'Direct Customer Leads on WhatsApp',
     lang === 'mr' ? 'सांगली, मिरज व कोल्हापूरमध्ये प्रसिद्धी' : 'Promote in Sangli, Miraj & Kolhapur',
     lang === 'mr' ? 'शून्य कमिशन' : 'Zero Brokerage / Keep 100% Revenue'
@@ -61,7 +61,7 @@ export default function PartnerCta({ onOpenRegisterNursery }) {
               </button>
 
               <span className="text-xs text-emerald-200 font-medium">
-                {lang === 'mr' ? 'नोंदणीनंतर ॲडमिनद्वारे २४ तासांत पडताळणी' : 'Admin verification within 24 hours'}
+                {lang === 'mr' ? '६ दिवस मोफत ट्रायल, त्यानंतर सोपे सबस्क्रिप्शन' : '6 Days Free Trial, followed by Annual Subscription'}
               </span>
             </div>
 

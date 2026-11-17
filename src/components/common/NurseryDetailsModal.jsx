@@ -27,7 +27,9 @@ export default function NurseryDetailsModal({
 
   const isSuspended = nursery.status === 'suspended' || Boolean(nursery.isSuspended && nursery.status !== 'approved');
   const isApproved = nursery.status === 'approved' && !isSuspended;
-  const isPending = (nursery.status === 'pending' || nursery.status === 'revoked') && !isSuspended;
+  const isTrialActive = Boolean(nursery.isTrialActive) && !isSuspended && !isApproved && nursery.status !== 'rejected';
+  const isTrialExpired = Boolean(nursery.isTrialExpired) && !isApproved;
+  const isPending = (nursery.status === 'pending' || nursery.status === 'revoked' || isTrialExpired) && !isSuspended && !isApproved;
   const isRejected = nursery.status === 'rejected';
 
   const isPaid = nursery.paymentStatus === 'paid' || Boolean(nursery.razorpayPaymentId);
@@ -111,7 +113,13 @@ export default function NurseryDetailsModal({
               {isApproved && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500 text-white shadow-lg shadow-emerald-500/30">
                   <CheckCircle2 className="w-4 h-4" />
-                  {t('statusApproved')}
+                  {lang === 'mr' ? 'सबस्क्राइब / मंजूर' : 'Subscribed'}
+                </span>
+              )}
+              {isTrialActive && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500 text-white shadow-lg shadow-blue-500/30">
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                  {lang === 'mr' ? `फ्री ट्रायल (${nursery.trialDaysLeft ?? 6} दिवस बाकी)` : `Free Trial (${nursery.trialDaysLeft ?? 6}d left)`}
                 </span>
               )}
               {isSuspended && (
@@ -120,10 +128,12 @@ export default function NurseryDetailsModal({
                   {lang === 'mr' ? 'खाते निलंबित' : 'Suspended'}
                 </span>
               )}
-              {isPending && (
+              {!isTrialActive && isPending && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-lg shadow-amber-500/30 animate-pulse">
                   <AlertCircle className="w-4 h-4" />
-                  {nursery.status === 'revoked' ? (lang === 'mr' ? 'रद्द (प्रलंबित)' : 'Revoked (Pending)') : t('statusPending')}
+                  {nursery.status === 'revoked' 
+                    ? (lang === 'mr' ? 'रद्द (प्रलंबित)' : 'Revoked (Pending)') 
+                    : (isTrialExpired ? (lang === 'mr' ? '६ दिवस संपले' : 'Trial Expired') : t('statusPending'))}
                 </span>
               )}
               {isRejected && (
@@ -333,6 +343,38 @@ export default function NurseryDetailsModal({
             </div>
           </div>
 
+          {/* 6-Day Free Trial & Subscription Status Box */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-[#1E5631]" />
+              {lang === 'mr' ? 'सबस्क्रिप्शन व ६-दिवस मोफत ट्रायल स्थिती' : 'Subscription & 6-Day Free Trial'}
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">{lang === 'mr' ? 'प्लॅन' : 'Plan'}</span>
+                <span className="font-bold text-slate-800">{isApproved ? (lang === 'mr' ? 'वार्षिक पार्टनर' : 'Paid Annual') : (lang === 'mr' ? '६ दिवस फ्री ट्रायल' : '6-Day Trial')}</span>
+              </div>
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">{lang === 'mr' ? 'ट्रायल सुरू' : 'Trial Start'}</span>
+                <span className="font-bold text-slate-800">{nursery.trialStartDate ? new Date(nursery.trialStartDate).toLocaleDateString() : (nursery.registrationDate || 'Recently')}</span>
+              </div>
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">{lang === 'mr' ? 'ट्रायल समाप्ती' : 'Trial Ends'}</span>
+                <span className="font-bold text-slate-800">{nursery.trialEndDate ? new Date(nursery.trialEndDate).toLocaleDateString() : 'After 6 Days'}</span>
+              </div>
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">{lang === 'mr' ? 'स्थिती' : 'Status'}</span>
+                <span className={`font-bold ${isApproved ? 'text-emerald-700' : (isTrialActive ? 'text-blue-700' : 'text-amber-700')}`}>
+                  {isApproved 
+                    ? (lang === 'mr' ? 'सक्रिय सबस्क्राइबर' : 'Active Subscribed') 
+                    : (isTrialActive 
+                        ? (lang === 'mr' ? `${nursery.trialDaysLeft ?? 6} दिवस बाकी` : `${nursery.trialDaysLeft ?? 6}d Left`) 
+                        : (lang === 'mr' ? 'मंजुरी प्रलंबित' : 'Pending Approval'))}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Specialties & Crops */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5 flex items-center gap-1.5">
@@ -371,7 +413,7 @@ export default function NurseryDetailsModal({
           </button>
 
           <div className="flex items-center gap-2">
-            {isPending && (
+            {(isPending || isTrialActive) && (
               <>
                 <button
                   type="button"
@@ -397,7 +439,7 @@ export default function NurseryDetailsModal({
                       setIsApproving(false);
                     }
                   }}
-                  className="px-5 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-md shadow-emerald-900/20 transition-all flex items-center gap-1.5 disabled:opacity-60"
+                  className="px-5 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#184729] text-white text-xs font-bold shadow-md shadow-emerald-900/20 transition-all flex items-center gap-1.5 disabled:opacity-60 cursor-pointer active:scale-95"
                 >
                   {isApproving ? (
                     <>
@@ -407,7 +449,7 @@ export default function NurseryDetailsModal({
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                      <span>{t('btnApprove')}</span>
+                      <span>{lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription'}</span>
                     </>
                   )}
                 </button>

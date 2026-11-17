@@ -38,7 +38,18 @@ export default function OverviewView({
 
   // Metrics calculation
   const totalNurseries = nurseries.length;
-  const pendingNurseries = useMemo(() => nurseries.filter(n => n.status === 'pending'), [nurseries]);
+  const pendingNurseries = useMemo(() => {
+    return nurseries.filter(n => 
+      !n.isSuspended && 
+      n.status !== 'approved' && 
+      n.status !== 'rejected' && 
+      (n.isTrialExpired || n.status === 'pending' || n.status === 'revoked') &&
+      !n.isTrialActive
+    );
+  }, [nurseries]);
+  const activeTrialNurseries = useMemo(() => {
+    return nurseries.filter(n => n.isTrialActive && !n.isSuspended && n.status !== 'rejected');
+  }, [nurseries]);
   const totalPlants = plants.length;
   const totalOrders = orders.length;
   const pendingOrders = useMemo(() => orders.filter(o => o.status === 'pending'), [orders]);
@@ -59,8 +70,10 @@ export default function OverviewView({
       value: totalNurseries,
       subtitle: lang === 'mr' ? 'नोंदणीकृत स्थानिक रोपवाटिका' : 'Registered partner nurseries',
       icon: Store,
-      badge: pendingNurseries.length > 0 ? `${pendingNurseries.length} ${lang === 'mr' ? 'प्रलंबित' : 'Pending'}` : null,
-      badgeColor: 'bg-amber-100 text-amber-800',
+      badge: pendingNurseries.length > 0 
+        ? `${pendingNurseries.length} ${lang === 'mr' ? 'सबस्क्रिप्शन प्रलंबित' : 'Pending'}` 
+        : (activeTrialNurseries.length > 0 ? `${activeTrialNurseries.length} ${lang === 'mr' ? 'ट्रायल सुरू' : 'In Trial'}` : null),
+      badgeColor: pendingNurseries.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800',
       action: () => onNavigate('nurseries')
     },
     {
@@ -180,7 +193,9 @@ export default function OverviewView({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-200 text-amber-900">
-                        {lang === 'mr' ? 'रोपवाटिका अर्ज' : 'Nursery Review'}
+                        {nursery.isTrialExpired 
+                          ? (lang === 'mr' ? '६ दिवस ट्रायल संपली' : '6-Day Trial Expired') 
+                          : (lang === 'mr' ? 'सबस्क्रिप्शन प्रलंबित' : 'Subscription Pending')}
                       </span>
                       <span className="text-xs font-bold text-slate-900">{nursery.name}</span>
                     </div>
@@ -204,7 +219,7 @@ export default function OverviewView({
                       <span>
                         {processingId === nursery.id 
                           ? (lang === 'mr' ? 'मंजूर करत आहे...' : 'Approving...') 
-                          : (lang === 'mr' ? 'मंजूर करा' : 'Approve')}
+                          : (lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription')}
                       </span>
                     </button>
                     <button

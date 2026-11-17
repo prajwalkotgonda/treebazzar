@@ -39,6 +39,75 @@ export function sanitizePayload(obj) {
 }
 
 /**
+ * Helper to calculate 6-Day Free Trial and Subscription lifecycle for a nursery
+ */
+export function getNurseryTrialInfo(data) {
+  if (!data) {
+    return {
+      isSubscribed: false,
+      isTrialActive: false,
+      isTrialExpired: false,
+      daysLeft: 0,
+      trialStartDate: new Date().toISOString(),
+      trialEndDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
+      trialDaysTotal: 6
+    };
+  }
+
+  const rawStatus = (data.status || '').toLowerCase();
+  const subscriptionStatus = (data.subscriptionStatus || '').toLowerCase();
+  const isSuspended = rawStatus === 'suspended' || Boolean(data.isSuspended);
+  const isRejected = rawStatus === 'rejected';
+
+  // Explicitly approved with paid/active subscription
+  const isExplicitlySubscribed = (rawStatus === 'approved' && !isSuspended && !isRejected) &&
+    (subscriptionStatus === 'active' || data.isSubscriptionApproved === true || data.paymentStatus === 'paid' || data.subscriptionPlan === 'paid_annual');
+
+  // Registration / Trial start timestamp
+  let createdTime;
+  if (data.trialStartDate) {
+    createdTime = new Date(data.trialStartDate).getTime();
+  } else if (data.createdAt) {
+    createdTime = new Date(data.createdAt).getTime();
+  } else if (data.registrationDate) {
+    createdTime = new Date(data.registrationDate).getTime();
+  } else {
+    const match = String(data.id || '').match(/(\d{13})/);
+    createdTime = match ? parseInt(match[1], 10) : Date.now();
+  }
+
+  if (isNaN(createdTime) || createdTime <= 0) {
+    createdTime = Date.now();
+  }
+
+  const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000;
+  let trialEndTime;
+  if (data.trialEndDate) {
+    trialEndTime = new Date(data.trialEndDate).getTime();
+  }
+  if (!trialEndTime || isNaN(trialEndTime)) {
+    trialEndTime = createdTime + SIX_DAYS_MS;
+  }
+
+  const now = Date.now();
+  const msLeft = trialEndTime - now;
+  const daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+
+  const isTrialActive = !isExplicitlySubscribed && !isSuspended && !isRejected && msLeft > 0;
+  const isTrialExpired = !isExplicitlySubscribed && msLeft <= 0;
+
+  return {
+    isSubscribed: isExplicitlySubscribed,
+    isTrialActive,
+    isTrialExpired,
+    daysLeft,
+    trialStartDate: new Date(createdTime).toISOString(),
+    trialEndDate: new Date(trialEndTime).toISOString(),
+    trialDaysTotal: 6
+  };
+}
+
+/**
  * Normalize Nursery data from either mobile app schema or web admin schema
  */
 export function normalizeNursery(data, id) {
@@ -53,18 +122,44 @@ export function normalizeNursery(data, id) {
   const whatsapp = data.whatsapp || phone.replace(/\D/g, '') || '';
   const address = data.address || `${city}, Maharashtra`;
   const image = data.image || data.nurseryImages?.[0] || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&auto=format&fit=crop&q=80';
-  let status = (data.status || 'pending').toLowerCase();
-  if (status === 'active') status = 'approved';
+  
+  let rawStatus = (data.status || 'pending').toLowerCase();
+  if (rawStatus === 'active') rawStatus = 'approved';
 
-  const isSuspended = status === 'suspended' || Boolean(data.isSuspended && status !== 'approved');
-  const isApproved = status === 'approved' && !isSuspended;
-  const isRejected = status === 'rejected';
-  const isRevoked = status === 'revoked';
+  const isSuspended = rawStatus === 'suspended' || Boolean(data.isSuspended && rawStatus !== 'approved');
+  const isRejected = rawStatus === 'rejected';
+  const isRevoked = rawStatus === 'revoked';
 
-  const normalizedStatus = isSuspended ? 'suspended' : (isApproved ? 'approved' : (isRejected ? 'rejected' : (isRevoked ? 'revoked' : 'pending')));
+  // Calculate 6-Day Free Trial Information
+  const trialInfo = getNurseryTrialInfo(data);
+
+  // Status mapping:
+  // 1. Suspended or Rejected always takes precedence
+  // 2. If approved / subscribed: 'approved'
+  // 3. If within 6 days trial: 'trial' (Active free trial, no admin block)
+  // 4. If 6 days passed and not approved: 'pending' (Trial Expired, needs Admin subscription approval)
+  let normalizedStatus;
+  if (isSuspended) {
+    normalizedStatus = 'suspended';
+  } else if (isRejected) {
+    normalizedStatus = 'rejected';
+  } else if (isRevoked) {
+    normalizedStatus = 'revoked';
+  } else if (trialInfo.isSubscribed) {
+    normalizedStatus = 'approved';
+  } else if (trialInfo.isTrialActive) {
+    normalizedStatus = 'trial';
+  } else if (trialInfo.isTrialExpired) {
+    normalizedStatus = 'pending';
+  } else {
+    normalizedStatus = rawStatus;
+  }
+
+  const isApproved = normalizedStatus === 'approved';
+  const isTrialActive = normalizedStatus === 'trial';
+  const isActive = (isApproved || isTrialActive) && !isSuspended && !isRejected;
   const verified = isApproved;
   const isVerified = isApproved;
-  const isActive = isApproved;
   const rejectionReason = data.rejectionReason || data.rejectionNotes || '';
   const suspensionReason = data.suspensionReason || '';
   const revocationReason = data.revocationReason || '';
@@ -94,10 +189,23 @@ export function normalizeNursery(data, id) {
     image,
     nurseryImages: data.nurseryImages || [image],
     status: normalizedStatus,
+    rawStatus,
     verified,
     isVerified,
     isActive,
     isSuspended: isSuspended || isRejected,
+
+    // 6-Day Free Trial & Subscription Lifecycle
+    trialStartDate: trialInfo.trialStartDate,
+    trialEndDate: trialInfo.trialEndDate,
+    trialDaysTotal: 6,
+    trialDaysLeft: trialInfo.daysLeft,
+    isTrialActive: trialInfo.isTrialActive,
+    isTrialExpired: trialInfo.isTrialExpired,
+    isSubscribed: trialInfo.isSubscribed,
+    subscriptionPlan: data.subscriptionPlan || (trialInfo.isSubscribed ? 'paid_annual' : 'free_trial_6d'),
+    subscriptionStatus: trialInfo.isSubscribed ? 'active' : (trialInfo.isTrialActive ? 'trial' : 'pending_approval'),
+
     rejectionReason,
     rejectionNotes: rejectionReason,
     suspensionReason,
@@ -107,7 +215,7 @@ export function normalizeNursery(data, id) {
     facilities,
     specialties,
     location,
-    createdAt: data.createdAt || new Date().toISOString(),
+    createdAt: data.createdAt || trialInfo.trialStartDate,
     updatedAt: data.updatedAt || new Date().toISOString()
   };
 }
@@ -634,6 +742,10 @@ export async function deletePlantFromFirestore(plantId) {
  */
 export async function saveNurseryToFirestore(nursery) {
   const norm = normalizeNursery(nursery);
+  const isApproved = norm.status === 'approved';
+  const isTrialActive = Boolean(norm.isTrialActive);
+  const isSuspended = norm.status === 'suspended' || norm.status === 'rejected' || Boolean(norm.isSuspended);
+
   const payload = sanitizePayload({
     ...norm,
     nurseryName: norm.name,
@@ -649,10 +761,20 @@ export async function saveNurseryToFirestore(nursery) {
     nurseryImages: norm.nurseryImages,
     image: norm.image,
     status: norm.status,
-    verified: norm.status === 'approved',
-    isVerified: norm.status === 'approved',
-    isActive: norm.status === 'approved',
-    isSuspended: norm.status === 'suspended' || norm.status === 'rejected' || Boolean(norm.isSuspended),
+    verified: isApproved,
+    isVerified: isApproved,
+    isActive: !isSuspended && (isApproved || isTrialActive),
+    isSuspended: isSuspended,
+    trialStartDate: norm.trialStartDate,
+    trialEndDate: norm.trialEndDate,
+    trialDaysTotal: norm.trialDaysTotal || 6,
+    trialDaysLeft: norm.trialDaysLeft,
+    isTrialActive: isTrialActive,
+    isTrialExpired: Boolean(norm.isTrialExpired),
+    isSubscribed: Boolean(norm.isSubscribed),
+    subscriptionPlan: norm.subscriptionPlan || (isApproved ? 'paid_annual' : 'free_trial'),
+    subscriptionStatus: norm.subscriptionStatus || (isApproved ? 'active' : (isTrialActive ? 'trial' : 'expired')),
+    isSubscriptionApproved: Boolean(norm.isSubscriptionApproved),
     facilities: norm.facilities,
     specialties: norm.facilities,
     updatedAt: new Date().toISOString()
@@ -692,6 +814,12 @@ export async function updateNurseryInFirestore(nurseryId, updates) {
     isVerified: isApproved,
     isActive: isApproved,
     isSuspended: isSuspended || isRejected,
+    // Subscription & Trial details
+    isSubscribed: isApproved ? true : (updates.isSubscribed !== undefined ? updates.isSubscribed : undefined),
+    isSubscriptionApproved: isApproved ? true : (updates.isSubscriptionApproved !== undefined ? updates.isSubscriptionApproved : undefined),
+    subscriptionStatus: isApproved ? 'active' : (isSuspended ? 'suspended' : (isRevoked ? 'revoked' : (isRejected ? 'rejected' : (updates.subscriptionStatus || 'expired')))),
+    subscriptionPlan: updates.subscriptionPlan || (isApproved ? 'paid_annual' : undefined),
+    isTrialActive: isApproved ? false : (updates.isTrialActive !== undefined ? updates.isTrialActive : undefined),
     rejectionReason: isRejected ? (updates.rejectionReason || 'Information verification failed') : (updates.rejectionReason || ''),
     rejectionNotes: isRejected ? (updates.rejectionNotes || updates.rejectionReason || 'Information verification failed') : (updates.rejectionNotes || ''),
     suspensionReason: isSuspended ? (updates.suspensionReason || 'Account suspended by administrator') : (updates.suspensionReason || ''),

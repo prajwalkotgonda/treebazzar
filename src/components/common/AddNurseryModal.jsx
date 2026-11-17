@@ -48,6 +48,10 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
   };
 
   const buildNurseryObject = (paymentInfo = null) => {
+    const now = new Date();
+    const trialEnd = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const hasPaid = Boolean(paymentInfo);
+
     return {
       id: `nur-${Date.now()}`,
       name: formData.name.trim(),
@@ -61,8 +65,18 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
       city: formData.city.trim() || 'Sangli',
       district: formData.city.trim() || 'Sangli',
       address: formData.address.trim() || `${formData.city}, Maharashtra`,
-      status: 'approved',
-      verified: true,
+      status: hasPaid ? 'approved' : 'trial',
+      verified: hasPaid,
+      isActive: true,
+      isTrialActive: !hasPaid,
+      isTrialExpired: false,
+      trialDaysTotal: 6,
+      trialDaysLeft: 6,
+      trialStartDate: now.toISOString(),
+      trialEndDate: trialEnd.toISOString(),
+      subscriptionPlan: hasPaid ? 'paid_annual' : 'free_trial',
+      subscriptionStatus: hasPaid ? 'active' : 'trial',
+      isSubscriptionApproved: hasPaid,
       isNew: true,
       isSuspended: false,
       establishedYear: Number(formData.establishedYear) || 2024,
@@ -72,14 +86,14 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
       facilities: formData.specialties,
       specialties: formData.specialties,
       location: { latitude: 16.85, longitude: 74.58 },
-      paymentStatus: paymentInfo ? 'paid' : (paymentMethod === 'razorpay' ? 'paid' : 'pending_offline'),
+      paymentStatus: paymentInfo ? 'paid' : (paymentMethod === 'razorpay' ? 'paid' : 'trial'),
       paymentAmount: paymentInfo ? paymentInfo.amount : (paymentMethod === 'razorpay' ? 100 : 0),
       paymentMethod: paymentMethod,
       razorpayPaymentId: paymentInfo?.paymentId || null,
       razorpayOrderId: paymentInfo?.orderId || null,
       paymentVerifiedAt: paymentInfo?.verifiedAt || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
     };
   };
 

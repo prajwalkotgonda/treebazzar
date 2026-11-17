@@ -65,12 +65,25 @@ export default function NurseryManagementView({
 
   // Tab counts
   const counts = useMemo(() => {
+    const trialCount = nurseries.filter(n => n.isTrialActive && !n.isSuspended && n.status !== 'rejected').length;
+    const pendingCount = nurseries.filter(n => 
+      !n.isSuspended && 
+      n.status !== 'approved' && 
+      n.status !== 'rejected' && 
+      (n.isTrialExpired || n.status === 'pending' || n.status === 'revoked') &&
+      !n.isTrialActive
+    ).length;
+    const approvedCount = nurseries.filter(n => n.status === 'approved' && !n.isSuspended).length;
+    const suspendedCount = nurseries.filter(n => n.status === 'suspended' || (n.isSuspended && n.status !== 'rejected')).length;
+    const rejectedCount = nurseries.filter(n => n.status === 'rejected').length;
+
     return {
       all: nurseries.length,
-      pending: nurseries.filter(n => (n.status === 'pending' || n.status === 'revoked') && !n.isSuspended).length,
-      approved: nurseries.filter(n => n.status === 'approved' && !n.isSuspended).length,
-      suspended: nurseries.filter(n => n.status === 'suspended' || (n.isSuspended && n.status !== 'rejected')).length,
-      rejected: nurseries.filter(n => n.status === 'rejected').length
+      trial: trialCount,
+      pending: pendingCount,
+      approved: approvedCount,
+      suspended: suspendedCount,
+      rejected: rejectedCount
     };
   }, [nurseries]);
 
@@ -92,8 +105,12 @@ export default function NurseryManagementView({
 
     return nurseries.filter(n => {
       // 1. Tab filter
-      if (activeTab === 'pending') {
-        if ((n.status !== 'pending' && n.status !== 'revoked') || n.isSuspended) return false;
+      if (activeTab === 'trial') {
+        if (!n.isTrialActive || n.isSuspended || n.status === 'rejected') return false;
+      } else if (activeTab === 'pending') {
+        if (n.isSuspended || n.status === 'approved' || n.status === 'rejected') return false;
+        if (n.isTrialActive) return false;
+        if (!(n.isTrialExpired || n.status === 'pending' || n.status === 'revoked')) return false;
       } else if (activeTab === 'approved') {
         if (n.status !== 'approved' || n.isSuspended) return false;
       } else if (activeTab === 'suspended') {
@@ -153,7 +170,8 @@ export default function NurseryManagementView({
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           {[
             { id: 'all', label: lang === 'mr' ? 'सर्व रोपवाटिका' : 'All Nurseries', count: counts.all },
-            { id: 'pending', label: lang === 'mr' ? 'प्रलंबित अर्ज' : 'Pending Review', count: counts.pending, alert: counts.pending > 0 },
+            { id: 'trial', label: lang === 'mr' ? '⏱️ फ्री ट्रायल (६ दिवस)' : '⏱️ Free Trial (6 Days)', count: counts.trial },
+            { id: 'pending', label: lang === 'mr' ? 'सबस्क्रिप्शन प्रलंबित' : 'Pending Subscription', count: counts.pending, alert: counts.pending > 0 },
             { id: 'approved', label: lang === 'mr' ? 'मंजूर' : 'Approved', count: counts.approved },
             { id: 'suspended', label: lang === 'mr' ? 'निलंबित' : 'Suspended', count: counts.suspended },
             { id: 'rejected', label: lang === 'mr' ? 'नाकारलेले' : 'Rejected', count: counts.rejected }
@@ -270,19 +288,33 @@ export default function NurseryManagementView({
                       {nursery.status === 'approved' && !nursery.isSuspended && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                           <CheckCircle2 className="w-3 h-3" />
-                          <span>{lang === 'mr' ? 'मंजूर' : 'Approved'}</span>
+                          <span>{lang === 'mr' ? 'मंजूर (Subscribed)' : 'Approved'}</span>
+                        </span>
+                      )}
+                      {nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                          <span>
+                            {lang === 'mr' 
+                              ? `फ्री ट्रायल (${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 6} दिवस बाकी)` 
+                              : `Free Trial (${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 6}d left)`}
+                          </span>
+                        </span>
+                      )}
+                      {(nursery.isTrialExpired || nursery.status === 'pending') && nursery.status !== 'approved' && !nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && nursery.status !== 'revoked' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                          <AlertCircle className="w-3 h-3 text-amber-600" />
+                          <span>
+                            {nursery.isTrialExpired 
+                              ? (lang === 'mr' ? '६ दिवस संपले (सबस्क्रिप्शन आवश्यक)' : 'Trial Expired (Subscription Needed)') 
+                              : (lang === 'mr' ? 'प्रलंबित' : 'Pending')}
+                          </span>
                         </span>
                       )}
                       {(nursery.status === 'suspended' || (nursery.isSuspended && nursery.status !== 'rejected')) && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
                           <Ban className="w-3 h-3 text-rose-600" />
                           <span>{lang === 'mr' ? 'निलंबित' : 'Suspended'}</span>
-                        </span>
-                      )}
-                      {nursery.status === 'pending' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                          <AlertCircle className="w-3 h-3" />
-                          <span>{lang === 'mr' ? 'प्रलंबित' : 'Pending'}</span>
                         </span>
                       )}
                       {nursery.status === 'revoked' && (
@@ -303,13 +335,13 @@ export default function NurseryManagementView({
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         
-                        {/* Pending Nursery Actions: Approve & Reject */}
-                        {nursery.status === 'pending' && (
+                        {/* Pending / Trial Expired Nursery Actions: Approve Subscription & Reject */}
+                        {((nursery.isTrialExpired || nursery.status === 'pending') && nursery.status !== 'approved' && !nursery.isTrialActive && !nursery.isSuspended) && (
                           <>
                             <button
                               onClick={() => handleApproveWithFeedback(nursery.id)}
                               disabled={processingId === nursery.id}
-                              title={lang === 'mr' ? 'मंजूर करा' : 'Approve'}
+                              title={lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription'}
                               className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
                             >
                               {processingId === nursery.id ? (
@@ -320,7 +352,7 @@ export default function NurseryManagementView({
                               <span>
                                 {processingId === nursery.id 
                                   ? (lang === 'mr' ? 'मंजूर होत आहे...' : 'Approving...') 
-                                  : (lang === 'mr' ? 'मंजूर' : 'Approve')}
+                                  : (lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription')}
                               </span>
                             </button>
 
@@ -333,6 +365,23 @@ export default function NurseryManagementView({
                               <span>{lang === 'mr' ? 'नाकारा' : 'Reject'}</span>
                             </button>
                           </>
+                        )}
+
+                        {/* Active Free Trial Nursery Action: Optional Early Subscription Approval */}
+                        {nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && (
+                          <button
+                            onClick={() => handleApproveWithFeedback(nursery.id)}
+                            disabled={processingId === nursery.id}
+                            title={lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription'}
+                            className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+                          >
+                            {processingId === nursery.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Check className="w-3 h-3" />
+                            )}
+                            <span>{lang === 'mr' ? 'प्लॅन मंजूर' : 'Approve Plan'}</span>
+                          </button>
                         )}
 
                         {/* Approved Nursery Actions: Revoke Approval & Suspend */}
