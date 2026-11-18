@@ -28,8 +28,11 @@ export default function AddCustomerModal({
     if (!formData.name.trim()) {
       errs.name = lang === 'mr' ? 'ग्राहकाचे नाव आवश्यक आहे' : 'Customer name is required';
     }
-    if (!formData.phone.trim()) {
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (!cleanPhone) {
       errs.phone = lang === 'mr' ? 'फोन नंबर आवश्यक आहे' : 'Phone number is required';
+    } else if (cleanPhone.length !== 10) {
+      errs.phone = lang === 'mr' ? 'मोबाईल नंबर फक्त १० अंकी असावा' : 'Mobile number must be exactly 10 digits';
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -106,11 +109,13 @@ export default function AddCustomerModal({
                 {lang === 'mr' ? 'मोबाईल नंबर *' : 'Phone Number *'}
               </label>
               <input
-                type="text"
+                type="tel"
                 value={formData.phone}
-                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                maxLength={10}
+                inputMode="numeric"
+                onChange={e => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                 className={`w-full px-3 py-2 text-xs rounded-xl border ${errors.phone ? 'border-rose-500' : 'border-slate-200'} focus:outline-hidden focus:border-[#2E7D32]`}
-                placeholder="e.g. 9822145678"
+                placeholder="e.g. 9822145678 (10 digits)"
               />
               {errors.phone && <p className="text-[11px] text-rose-500 mt-0.5">{errors.phone}</p>}
             </div>

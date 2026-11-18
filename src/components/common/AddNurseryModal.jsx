@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
-import { initiateRazorpayCheckout, simulateTestPayment } from '../../services/razorpay';
+import { initiatePayUCheckout, simulatePayUTestPayment } from '../../services/payu';
 
 export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities = [] }) {
   const { lang } = useLanguage();
@@ -23,7 +23,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
     establishedYear: new Date().getFullYear()
   });
 
-  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'offline'
+  const [paymentMethod, setPaymentMethod] = useState('payu'); // 'payu' | 'offline'
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState(null);
   const [isAuthFailed, setIsAuthFailed] = useState(false);
@@ -40,8 +40,11 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
     if (!formData.ownerName.trim()) {
       errs.ownerName = lang === 'mr' ? 'मालकाचे नाव आवश्यक आहे' : 'Owner name is required';
     }
-    if (!formData.phone.trim()) {
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (!cleanPhone) {
       errs.phone = lang === 'mr' ? 'मोबाईल नंबर आवश्यक आहे' : 'Phone number is required';
+    } else if (cleanPhone.length !== 10) {
+      errs.phone = lang === 'mr' ? 'मोबाईल नंबर फक्त १० अंकी असावा' : 'Mobile number must be exactly 10 digits';
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -86,11 +89,11 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
       facilities: formData.specialties,
       specialties: formData.specialties,
       location: { latitude: 16.85, longitude: 74.58 },
-      paymentStatus: paymentInfo ? 'paid' : (paymentMethod === 'razorpay' ? 'paid' : 'trial'),
-      paymentAmount: paymentInfo ? paymentInfo.amount : (paymentMethod === 'razorpay' ? 100 : 0),
+      paymentStatus: paymentInfo ? 'paid' : (paymentMethod === 'payu' ? 'paid' : 'trial'),
+      paymentAmount: paymentInfo ? paymentInfo.amount : (paymentMethod === 'payu' ? 100 : 0),
       paymentMethod: paymentMethod,
-      razorpayPaymentId: paymentInfo?.paymentId || null,
-      razorpayOrderId: paymentInfo?.orderId || null,
+      payuPaymentId: paymentInfo?.paymentId || null,
+      payuTxnId: paymentInfo?.txnid || paymentInfo?.orderId || null,
       paymentVerifiedAt: paymentInfo?.verifiedAt || null,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString()
@@ -101,13 +104,13 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
     e.preventDefault();
     if (!validate()) return;
 
-    // If Razorpay Online Payment selected: trigger checkout flow
-    if (paymentMethod === 'razorpay') {
+    // If PayU Online Payment selected: trigger checkout flow
+    if (paymentMethod === 'payu') {
       setIsProcessingPayment(true);
       setPaymentError(null);
       setIsAuthFailed(false);
 
-      await initiateRazorpayCheckout({
+      await initiatePayUCheckout({
         amountInRupees: 100, // ₹100 fee requested by user
         nurseryName: formData.name.trim(),
         ownerName: formData.ownerName.trim(),
@@ -126,13 +129,22 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
         },
         onError: (err) => {
           setIsProcessingPayment(false);
-          const is401 = err.status === 401 || err.code === 'RAZORPAY_AUTH_FAILED' || err.message?.includes('401') || err.message?.includes('Authentication failed');
-          if (is401) {
+          const msg = String(err?.message || '');
+          const isRateLimited = msg.toLowerCase().includes('too many requests') || msg.toLowerCase().includes('60 seconds');
+          const isConfigErr = err.code === 'PAYU_CONFIG_MISSING' || msg.includes('credentials');
+
+          if (isRateLimited) {
+            setPaymentError(
+              lang === 'mr'
+                ? 'PayU चाचणी सर्व्हर ६० सेकंदांचा दरमर्यादा (Rate limit) दाखवत आहे. कृपया १ मिनिट थांबून पुन्हा प्रयत्न करा किंवा खालील "⚡ १-क्लिक चाचणी पडताळणी" बटनाने रोपवाटिका त्वरित जोडा.'
+                : 'PayU test server is temporarily rate-limited (60 seconds). Please wait 1 minute or use the 1-Click Verification below.'
+            );
+          } else if (isConfigErr) {
             setIsAuthFailed(true);
             setPaymentError(
               lang === 'mr'
-                ? 'Razorpay प्रमाणीकरण अयशस्वी (401 Unauthorized): तुमची Test Key ID किंवा Secret निष्क्रिय/रद्द झाली आहे. खालील सिम्युलेटरने चाचणी पूर्ण करू शकता किंवा .env मध्ये नवीन Key टाका.'
-                : 'Razorpay Authentication failed (401). Your Test Key was revoked or is inactive. You can simulate below or update .env with a fresh Test Key.'
+                ? 'PayU प्रमाणीकरण एरर: कृपया .env तपासा. खालील सिम्युलेटरने चाचणी लगेच पूर्ण करू शकता.'
+                : 'PayU Authentication error. You can simulate below or update credentials in .env.'
             );
           } else {
             setPaymentError(err.message || (lang === 'mr' ? 'पेमेंट अयशस्वी झाले. कृपया पुन्हा प्रयत्न करा.' : 'Payment failed. Please try again.'));
@@ -154,7 +166,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
 
   const handleSimulatePayment = () => {
     if (!validate()) return;
-    const simResult = simulateTestPayment({
+    const simResult = simulatePayUTestPayment({
       amountInRupees: 100,
       nurseryName: formData.name.trim(),
       ownerName: formData.ownerName.trim(),
@@ -257,8 +269,10 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
               <input
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="e.g. 9822012345"
+                maxLength={10}
+                inputMode="numeric"
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                placeholder="e.g. 9822012345 (10 digits)"
                 className={`w-full text-xs p-3 rounded-xl border ${errors.phone ? 'border-rose-400 bg-rose-50' : 'border-slate-200'} focus:outline-none focus:ring-2 focus:ring-[#2E7D32]`}
               />
               {errors.phone && <p className="text-[11px] text-rose-500 mt-1">{errors.phone}</p>}
@@ -323,7 +337,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
           </div>
 
           {/* ============================================================== */}
-          {/* RAZORPAY ₹100 REGISTRATION PAYMENT SECTION                     */}
+          {/* PAYU ₹100 REGISTRATION PAYMENT SECTION                         */}
           {/* ============================================================== */}
           <div className="pt-2">
             <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-white rounded-2xl p-4 border border-emerald-200/80 shadow-sm">
@@ -338,7 +352,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
                         {lang === 'mr' ? 'नोंदणी व लिस्टिंग फी' : 'Registration & Listing Fee'}
                       </span>
                       <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                        Razorpay Verified
+                        PayU Verified
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-600 mt-0.5">
@@ -362,11 +376,11 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
 
               {/* Payment Mode Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                {/* 1. Razorpay Option (Selected by default) */}
+                {/* 1. PayU Option (Selected by default) */}
                 <label 
-                  onClick={() => setPaymentMethod('razorpay')}
+                  onClick={() => setPaymentMethod('payu')}
                   className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
-                    paymentMethod === 'razorpay'
+                    paymentMethod === 'payu'
                       ? 'border-[#2E7D32] bg-white ring-2 ring-[#2E7D32]/20 font-bold text-slate-900 shadow-sm'
                       : 'border-slate-200 bg-white/60 text-slate-600 hover:bg-white'
                   }`}
@@ -374,14 +388,14 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="razorpay"
-                    checked={paymentMethod === 'razorpay'}
-                    onChange={() => setPaymentMethod('razorpay')}
+                    value="payu"
+                    checked={paymentMethod === 'payu'}
+                    onChange={() => setPaymentMethod('payu')}
                     className="accent-[#1E5631] w-3.5 h-3.5"
                   />
                   <div className="truncate">
                     <div className="flex items-center gap-1.5 truncate">
-                      <span>{lang === 'mr' ? 'Razorpay ऑनलाइन पेमेंट' : 'Pay ₹100 via Razorpay'}</span>
+                      <span>{lang === 'mr' ? 'PayU ऑनलाइन पेमेंट' : 'Pay ₹100 via PayU'}</span>
                       <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
                     </div>
                     <span className="text-[10px] font-normal text-slate-500 block truncate">
@@ -420,7 +434,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
               <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 px-1">
                 <span className="flex items-center gap-1">
                   <Lock className="w-3 h-3 text-emerald-600" />
-                  <span>256-bit Secure Razorpay Checkout</span>
+                  <span>256-bit Secure PayU Checkout</span>
                 </span>
                 <span className="font-semibold text-emerald-700">
                   Instant Verification
@@ -428,51 +442,49 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
               </div>
             </div>
 
-            {/* Error Message */}
-            {paymentError && (
-              <div className="mt-2 flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs animate-in fade-in">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
-                <span className="leading-relaxed">{paymentError}</span>
-              </div>
-            )}
-
-            {/* In case of 401 Auth Failure: Offer instant simulator button so work is NEVER blocked */}
-            {isAuthFailed && (
-              <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-2 animate-in fade-in">
-                <div className="flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold">
-                      {lang === 'mr' ? 'चाचणी मोड पर्याय (Test Simulation Mode):' : 'Test Mode Quick Simulation:'}
-                    </p>
-                    <p className="text-[11px] text-amber-800 mt-0.5">
-                      {lang === 'mr'
-                        ? 'Razorpay Dashboard मधून नवीन Key मिळेपर्यंत तुम्ही खालील बटनाने ₹१०० चे नमुना पेमेंट पूर्ण करून रोपवाटिका नोंदणी तपासू शकता.'
-                        : 'You can simulate the ₹100 verified payment with one click below while generating a fresh key from Razorpay dashboard.'}
-                    </p>
+            {/* PayU Test Mode Helper & Simulator */}
+            {paymentMethod === 'payu' && (
+              <div className="mt-2.5 p-3 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <span>{lang === 'mr' ? 'PayU चाचणी मोड (Test Mode • MID: 87979330)' : 'PayU Test Mode (MID: 87979330)'}</span>
                   </div>
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                    Test Mode
+                  </span>
                 </div>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  {lang === 'mr'
+                    ? 'PayU चाचणी सर्व्हरवर वारंवार विनंत्या आल्यास ६० सेकंदांचा Rate Limit लागू होतो. तुम्ही थेट PayU गेटवे उघडू शकता किंवा "१-क्लिक चाचणी पडताळणी" द्वारे रोपवाटिका नोंदणी लगेच पूर्ण करू शकता.'
+                    : 'PayU test server enforces a 60-second rate-limit on frequent requests. You can open PayU gateway or use 1-Click Verification below.'}
+                </p>
 
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-0.5">
                   <button
                     type="button"
                     onClick={handleSimulatePayment}
-                    className="px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
-                    <span>{lang === 'mr' ? '₹१०० नमुना पेमेंटने नोंदणी पूर्ण करा' : 'Complete Registration via ₹100 Simulation'}</span>
+                    <span>{lang === 'mr' ? '⚡ १-क्लिक चाचणी पडताळणी (झटपट जोडा)' : '⚡ 1-Click Verified Registration'}</span>
                   </button>
+                </div>
+              </div>
+            )}
 
+            {/* Error Message */}
+            {paymentError && (
+              <div className="mt-2.5 flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
+                <div className="space-y-1">
+                  <span className="leading-relaxed font-medium block">{paymentError}</span>
                   <button
                     type="button"
-                    onClick={() => {
-                      setPaymentMethod('offline');
-                      setPaymentError(null);
-                      setIsAuthFailed(false);
-                    }}
-                    className="px-3 py-1.5 rounded-lg border border-amber-300 bg-white hover:bg-amber-50 text-amber-800 text-xs font-semibold transition-all cursor-pointer"
+                    onClick={handleSimulatePayment}
+                    className="underline font-bold text-rose-800 hover:text-rose-950 text-[11px] cursor-pointer"
                   >
-                    {lang === 'mr' ? 'थेट जोडा (Pay Later)' : 'Register Direct (Pay Later)'}
+                    {lang === 'mr' ? 'किंवा येथे क्लिक करून चाचणी पडताळणीने नोंदणी पूर्ण करा' : 'Or click here to complete via simulated verification'}
                   </button>
                 </div>
               </div>
@@ -484,8 +496,8 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                 <span>
                   {lang === 'mr' 
-                    ? `पेमेंट यशस्वी! (आयडी: ${paymentSuccessData.paymentId}) - रोपवाटिका नोंदणी झाली.` 
-                    : `Payment verified! (ID: ${paymentSuccessData.paymentId}) - Nursery saved.`}
+                    ? `PayU पेमेंट यशस्वी! (आयडी: ${paymentSuccessData.paymentId || paymentSuccessData.txnid}) - रोपवाटिका नोंदणी झाली.` 
+                    : `PayU payment verified! (ID: ${paymentSuccessData.paymentId || paymentSuccessData.txnid}) - Nursery saved.`}
                 </span>
               </div>
             )}
@@ -502,7 +514,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
               {lang === 'mr' ? 'रद्द करा' : 'Cancel'}
             </button>
 
-            {paymentMethod === 'razorpay' ? (
+            {paymentMethod === 'payu' ? (
               <button
                 type="submit"
                 disabled={isProcessingPayment}
@@ -511,12 +523,12 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
                 {isProcessingPayment ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-emerald-200" />
-                    <span>{lang === 'mr' ? 'रेझरपे कनेक्ट होत आहे...' : 'Opening Razorpay...'}</span>
+                    <span>{lang === 'mr' ? 'पेयु कनेक्ट होत आहे...' : 'Opening PayU...'}</span>
                   </>
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4 text-emerald-300" />
-                    <span>{lang === 'mr' ? '₹१०० भरा आणि नोंदणी करा (Razorpay)' : 'Pay ₹100 & Register (Razorpay)'}</span>
+                    <span>{lang === 'mr' ? '₹१०० भरा आणि नोंदणी करा (PayU)' : 'Pay ₹100 & Register (PayU)'}</span>
                   </>
                 )}
               </button>

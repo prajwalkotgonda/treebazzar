@@ -100,10 +100,13 @@ export default function EditCustomerModal({
                 {lang === 'mr' ? 'फोन नंबर' : 'Phone Number'}
               </label>
               <input
-                type="text"
+                type="tel"
                 value={formData.phone}
-                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                maxLength={10}
+                inputMode="numeric"
+                onChange={e => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#2E7D32]"
+                placeholder="10 digits"
               />
             </div>
 

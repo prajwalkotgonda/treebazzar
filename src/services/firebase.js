@@ -330,7 +330,7 @@ export function normalizeOrder(data, id) {
   const unitPrice = Number(data.unitPrice) || Number(data.price) || 100;
   const totalAmount = Number(data.totalAmount) || Number(data.amount) || Number(data.total) || (quantity * unitPrice);
   const paymentMethod = data.paymentMethod || data.paymentType || 'Cash on Delivery';
-  const paymentStatus = data.paymentStatus || (paymentMethod === 'UPI Transfer' || paymentMethod === 'razorpay' ? 'paid' : 'pending');
+  const paymentStatus = data.paymentStatus || (paymentMethod === 'UPI Transfer' || paymentMethod === 'payu' || paymentMethod === 'razorpay' ? 'paid' : 'pending');
   const status = (data.status || data.orderStatus || 'pending').toLowerCase();
   const date = data.date || (data.createdAt ? String(data.createdAt).split('T')[0] : new Date().toISOString().split('T')[0]);
   const deliveryAddress = data.deliveryAddress || data.address || `${customerCity}, Maharashtra`;

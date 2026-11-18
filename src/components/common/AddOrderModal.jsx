@@ -74,8 +74,11 @@ export default function AddOrderModal({
     if (!formData.customerName.trim()) {
       errs.customerName = lang === 'mr' ? 'ग्राहकाचे नाव आवश्यक आहे' : 'Customer name is required';
     }
-    if (!formData.customerPhone.trim()) {
+    const cleanPhone = formData.customerPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
       errs.customerPhone = lang === 'mr' ? 'फोन नंबर आवश्यक आहे' : 'Phone number is required';
+    } else if (cleanPhone.length !== 10) {
+      errs.customerPhone = lang === 'mr' ? 'मोबाईल नंबर फक्त १० अंकी असावा' : 'Mobile number must be exactly 10 digits';
     }
     if (!formData.plantName.trim()) {
       errs.plantName = lang === 'mr' ? 'वनस्पतीचे नाव आवश्यक आहे' : 'Plant name is required';
@@ -187,11 +190,13 @@ export default function AddOrderModal({
                 {lang === 'mr' ? 'मोबाईल नंबर *' : 'Phone Number *'}
               </label>
               <input
-                type="text"
+                type="tel"
                 value={formData.customerPhone}
-                onChange={e => setFormData({ ...formData, customerPhone: e.target.value })}
+                maxLength={10}
+                inputMode="numeric"
+                onChange={e => setFormData({ ...formData, customerPhone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                 className={`w-full px-3 py-2 text-xs rounded-xl border ${errors.customerPhone ? 'border-rose-500' : 'border-slate-200'} focus:outline-hidden focus:border-[#2E7D32]`}
-                placeholder="e.g. 9822145678"
+                placeholder="e.g. 9822145678 (10 digits)"
               />
               {errors.customerPhone && <p className="text-[11px] text-rose-500 mt-0.5">{errors.customerPhone}</p>}
             </div>

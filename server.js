@@ -3,8 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
-import createOrderHandler from './api/create-order.js';
-import verifyPaymentHandler from './api/verify-payment.js';
+import createPaymentHandler from './api/payu-create-payment.js';
+import verifyPaymentHandler from './api/payu-verify-payment.js';
+import payuResponseHandler from './api/payu-response.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,21 +15,31 @@ const PORT = process.env.PORT || 5000;
 const server = http.createServer(async (req, res) => {
   const urlPath = req.url.split('?')[0];
 
-  // API Route: Create Order
-  if (urlPath === '/api/create-order') {
-    return createOrderHandler(req, res);
+  // API Route: Create PayU Payment / Order
+  if (urlPath === '/api/payu/create-payment' || urlPath === '/api/create-order') {
+    return createPaymentHandler(req, res);
   }
 
-  // API Route: Verify Payment Signature
-  if (urlPath === '/api/verify-payment') {
+  // API Route: Verify PayU Payment Signature / Hash
+  if (urlPath === '/api/payu/verify-payment' || urlPath === '/api/verify-payment') {
     return verifyPaymentHandler(req, res);
+  }
+
+  // API Route: PayU Browser Redirect Handler
+  if (urlPath === '/api/payu/response') {
+    return payuResponseHandler(req, res);
   }
 
   // Health check endpoint
   if (urlPath === '/api/health') {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ status: 'ok', service: 'treebazzar-razorpay-api' }));
+    return res.end(JSON.stringify({ 
+      status: 'ok', 
+      service: 'treebazzar-payu-api',
+      mode: process.env.PAYU_ENV || 'test',
+      merchantKey: process.env.PAYU_MERCHANT_KEY ? 'Configured (UR9xGD)' : 'Missing'
+    }));
   }
 
   // Static File Serving (from dist if built)
@@ -70,7 +81,8 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`🌲 TreeBazzar Razorpay Backend running on http://localhost:${PORT}`);
-  console.log(`   - POST http://localhost:${PORT}/api/create-order`);
-  console.log(`   - POST http://localhost:${PORT}/api/verify-payment`);
+  console.log(`🌲 TreeBazzar PayU Backend running on http://localhost:${PORT}`);
+  console.log(`   - POST http://localhost:${PORT}/api/payu/create-payment`);
+  console.log(`   - POST http://localhost:${PORT}/api/payu/verify-payment`);
+  console.log(`   - PayU Key: ${process.env.PAYU_MERCHANT_KEY || 'UR9xGD'} (${process.env.PAYU_ENV || 'test'} mode)`);
 });

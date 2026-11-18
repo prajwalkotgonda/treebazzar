@@ -189,18 +189,25 @@ export default function OverviewView({
             <div className="space-y-3">
               {/* Pending Nurseries */}
               {pendingNurseries.map(nursery => (
-                <div key={nursery.id} className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div key={nursery.id} className="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-amber-50 transition-colors">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-200 text-amber-900">
-                        {nursery.isTrialExpired 
-                          ? (lang === 'mr' ? '६ दिवस ट्रायल संपली' : '6-Day Trial Expired') 
-                          : (lang === 'mr' ? 'सबस्क्रिप्शन प्रलंबित' : 'Subscription Pending')}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+                        <Clock className="w-3 h-3 text-amber-700 shrink-0" />
+                        <span>
+                          {nursery.isTrialExpired 
+                            ? (lang === 'mr' ? '६ दिवस संपले' : 'Trial Expired') 
+                            : (lang === 'mr' ? 'प्रलंबित' : 'Pending')}
+                        </span>
                       </span>
                       <span className="text-xs font-bold text-slate-900">{nursery.name}</span>
                     </div>
-                    <p className="text-[11px] text-slate-600 mt-0.5">
-                      {nursery.ownerName} • {nursery.city} • Phone: {nursery.phone}
+                    <p className="text-[11px] text-slate-600 mt-1 flex items-center gap-2">
+                      <span className="font-medium text-slate-700">{nursery.ownerName || nursery.owner}</span>
+                      <span className="text-slate-300">•</span>
+                      <span>{nursery.city}</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="font-mono text-slate-500">{nursery.phone}</span>
                     </p>
                   </div>
 
@@ -209,23 +216,23 @@ export default function OverviewView({
                     <button
                       onClick={() => handleActionWithFeedback(nursery.id, onApproveNursery)}
                       disabled={processingId === nursery.id}
-                      className="px-3 py-1.5 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
+                      className="px-3 py-1.5 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs hover:shadow transition-all cursor-pointer active:scale-95"
                     >
                       {processingId === nursery.id ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                       )}
                       <span>
                         {processingId === nursery.id 
                           ? (lang === 'mr' ? 'मंजूर करत आहे...' : 'Approving...') 
-                          : (lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription')}
+                          : (lang === 'mr' ? 'मंजूर करा' : 'Approve')}
                       </span>
                     </button>
                     <button
                       onClick={() => handleActionWithFeedback(nursery.id, onRejectNursery, 'Incomplete details')}
                       disabled={processingId === nursery.id}
-                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 disabled:opacity-60 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                      className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 disabled:opacity-60 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
                     >
                       <X className="w-3.5 h-3.5" />
                       <span>{lang === 'mr' ? 'नाकारा' : 'Reject'}</span>

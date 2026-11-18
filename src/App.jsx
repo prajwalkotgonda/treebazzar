@@ -788,7 +788,7 @@ function DashboardContent({
       />
 
       {/* Main Admin Content Area */}
-      <div className="lg:pl-72 flex-1 flex flex-col min-w-0">
+      <div className="lg:pl-72 flex-1 flex flex-col min-w-0 print:pl-0">
         
         {/* Top Header */}
         <Header
@@ -803,7 +803,7 @@ function DashboardContent({
         />
 
         {/* Dynamic Page Views based on Active Tab */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full print:p-0 print:max-w-none print:w-full">
           
           {/* 1. Dashboard Overview */}
           {activeView === 'dashboard' && (

@@ -2,34 +2,59 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import 'dotenv/config'
 
-function razorpayDevServerPlugin() {
+function payuDevServerPlugin() {
   return {
-    name: 'razorpay-api-dev-server',
+    name: 'payu-api-dev-server',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const urlPath = req.url.split('?')[0];
-        if (urlPath === '/api/create-order') {
+
+        // PayU Create Payment / Hash Generation Endpoint
+        if (urlPath === '/api/payu/create-payment' || urlPath === '/api/create-order') {
           try {
-            const { default: handler } = await import('./api/create-order.js');
+            const { default: handler } = await import('./api/payu-create-payment.js');
             return await handler(req, res);
           } catch (err) {
-            console.error('Vite dev server error in /api/create-order:', err);
+            console.error('Vite dev server error in /api/payu/create-payment:', err);
             res.statusCode = 500;
             res.setHeader('Content-Type', 'application/json');
             return res.end(JSON.stringify({ error: err.message }));
           }
         }
-        if (urlPath === '/api/verify-payment') {
+
+        // PayU Payment Verification Endpoint
+        if (urlPath === '/api/payu/verify-payment' || urlPath === '/api/verify-payment') {
           try {
-            const { default: handler } = await import('./api/verify-payment.js');
+            const { default: handler } = await import('./api/payu-verify-payment.js');
             return await handler(req, res);
           } catch (err) {
-            console.error('Vite dev server error in /api/verify-payment:', err);
+            console.error('Vite dev server error in /api/payu/verify-payment:', err);
             res.statusCode = 500;
             res.setHeader('Content-Type', 'application/json');
             return res.end(JSON.stringify({ error: err.message }));
           }
         }
+
+        // PayU Redirect Response Handler
+        if (urlPath === '/api/payu/response') {
+          try {
+            const { default: handler } = await import('./api/payu-response.js');
+            return await handler(req, res);
+          } catch (err) {
+            console.error('Vite dev server error in /api/payu/response:', err);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'text/html');
+            return res.end('<h1>Payment Processing Error</h1>');
+          }
+        }
+
+        // Health Check
+        if (urlPath === '/api/health') {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(JSON.stringify({ status: 'ok', gateway: 'payu', mode: process.env.PAYU_ENV || 'test' }));
+        }
+
         next();
       });
     }
@@ -38,7 +63,7 @@ function razorpayDevServerPlugin() {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), razorpayDevServerPlugin()],
+  plugins: [react(), payuDevServerPlugin()],
   server: {
     port: 3000,
     open: false

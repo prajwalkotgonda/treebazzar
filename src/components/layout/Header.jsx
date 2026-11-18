@@ -30,7 +30,7 @@ export default function Header({
   }[activeView] || t('navDashboard');
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-3 transition-all">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-3 transition-all print:hidden">
       <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto w-full">
         
         {/* Left Section: Mobile Menu Button & Current Page Title */}

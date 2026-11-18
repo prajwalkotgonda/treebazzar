@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Store, Search, CheckCircle2, XCircle, AlertCircle, Eye, 
   Plus, Phone, MapPin, Calendar, Check, X, Edit2, Trash2, ShieldAlert, Loader2,
-  RotateCcw, Ban
+  RotateCcw, Ban, Clock
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import NurseryDetailsModal from '../common/NurseryDetailsModal';
@@ -267,10 +267,10 @@ export default function NurseryManagementView({
 
                     {/* City */}
                     <td className="py-3 px-4 text-slate-700 font-medium">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-[#2E7D32]" />
-                        {nursery.city}
-                      </span>
+                      <div className="inline-flex items-center gap-1.5 max-w-[140px] truncate" title={nursery.city}>
+                        <MapPin className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />
+                        <span className="truncate">{nursery.city || 'Sangli'}</span>
+                      </div>
                     </td>
 
                     {/* Phone */}
@@ -284,189 +284,217 @@ export default function NurseryManagementView({
                     </td>
 
                     {/* Status Badge */}
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       {nursery.status === 'approved' && !nursery.isSuspended && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>{lang === 'mr' ? 'मंजूर (Subscribed)' : 'Approved'}</span>
-                        </span>
+                        <div className="flex flex-col gap-0.5 items-start">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-[#1E5631] border border-emerald-200 shadow-2xs">
+                            <CheckCircle2 className="w-3 h-3 text-[#2E7D32] shrink-0" />
+                            <span>{lang === 'mr' ? 'सक्रिय (मंजूर)' : 'Active (Approved)'}</span>
+                          </span>
+                          <span className="text-[10px] text-emerald-700 font-semibold pl-1">
+                            {lang === 'mr' ? 'सबस्क्रिप्शन वैध' : 'Subscribed'}
+                          </span>
+                        </div>
                       )}
+
                       {nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                          <span>
+                        <div className="flex flex-col gap-0.5 items-start">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/90 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
+                            <span>{lang === 'mr' ? 'फ्री ट्रायल चालू' : 'Free Trial'}</span>
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-semibold pl-1">
                             {lang === 'mr' 
-                              ? `फ्री ट्रायल (${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 6} दिवस बाकी)` 
-                              : `Free Trial (${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 6}d left)`}
+                              ? `${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 6} दिवस बाकी` 
+                              : `${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 6}d left`}
                           </span>
-                        </span>
+                        </div>
                       )}
+
                       {(nursery.isTrialExpired || nursery.status === 'pending') && nursery.status !== 'approved' && !nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && nursery.status !== 'revoked' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                          <AlertCircle className="w-3 h-3 text-amber-600" />
-                          <span>
-                            {nursery.isTrialExpired 
-                              ? (lang === 'mr' ? '६ दिवस संपले (सबस्क्रिप्शन आवश्यक)' : 'Trial Expired (Subscription Needed)') 
-                              : (lang === 'mr' ? 'प्रलंबित' : 'Pending')}
+                        <div className="flex flex-col gap-0.5 items-start">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs">
+                            <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                            <span>{nursery.isTrialExpired ? (lang === 'mr' ? '६ दिवस संपले' : 'Trial Expired') : (lang === 'mr' ? 'प्रलंबित' : 'Pending')}</span>
                           </span>
-                        </span>
+                          <span className="text-[10px] text-amber-800 font-semibold pl-1 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                            <span>{lang === 'mr' ? 'सबस्क्रिप्शन आवश्यक' : 'Subscription Due'}</span>
+                          </span>
+                        </div>
                       )}
+
                       {(nursery.status === 'suspended' || (nursery.isSuspended && nursery.status !== 'rejected')) && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
-                          <Ban className="w-3 h-3 text-rose-600" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+                          <Ban className="w-3 h-3 text-rose-600 shrink-0" />
                           <span>{lang === 'mr' ? 'निलंबित' : 'Suspended'}</span>
                         </span>
                       )}
+
                       {nursery.status === 'revoked' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                          <RotateCcw className="w-3 h-3 text-amber-600" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                          <RotateCcw className="w-3 h-3 text-amber-600 shrink-0" />
                           <span>{lang === 'mr' ? 'रद्द (प्रलंबित)' : 'Revoked'}</span>
                         </span>
                       )}
+
                       {nursery.status === 'rejected' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                          <XCircle className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs">
+                          <XCircle className="w-3 h-3 text-slate-500 shrink-0" />
                           <span>{lang === 'mr' ? 'नाकारलेले' : 'Rejected'}</span>
                         </span>
                       )}
                     </td>
 
                     {/* Action Buttons */}
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2">
                         
-                        {/* Pending / Trial Expired Nursery Actions: Approve Subscription & Reject */}
+                        {/* 1. Decision Actions Group */}
+                        {/* Pending / Trial Expired: Approve Subscription & Reject */}
                         {((nursery.isTrialExpired || nursery.status === 'pending') && nursery.status !== 'approved' && !nursery.isTrialActive && !nursery.isSuspended) && (
-                          <>
+                          <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleApproveWithFeedback(nursery.id)}
                               disabled={processingId === nursery.id}
                               title={lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription'}
-                              className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                              className="px-3 py-1.5 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-xs hover:shadow"
                             >
                               {processingId === nursery.id ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               ) : (
-                                <Check className="w-3 h-3" />
+                                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                               )}
                               <span>
                                 {processingId === nursery.id 
                                   ? (lang === 'mr' ? 'मंजूर होत आहे...' : 'Approving...') 
-                                  : (lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription')}
+                                  : (lang === 'mr' ? 'सबस्क्रिप्शन मंजूर' : 'Approve')}
                               </span>
                             </button>
 
                             <button
                               onClick={() => setRejectingNursery(nursery)}
                               title={lang === 'mr' ? 'नाकारा' : 'Reject'}
-                              className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                              className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-3.5 h-3.5 text-rose-600" />
                               <span>{lang === 'mr' ? 'नाकारा' : 'Reject'}</span>
                             </button>
-                          </>
+                          </div>
                         )}
 
                         {/* Active Free Trial Nursery Action: Optional Early Subscription Approval */}
                         {nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && (
-                          <button
-                            onClick={() => handleApproveWithFeedback(nursery.id)}
-                            disabled={processingId === nursery.id}
-                            title={lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription'}
-                            className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
-                          >
-                            {processingId === nursery.id ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Check className="w-3 h-3" />
-                            )}
-                            <span>{lang === 'mr' ? 'प्लॅन मंजूर' : 'Approve Plan'}</span>
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleApproveWithFeedback(nursery.id)}
+                              disabled={processingId === nursery.id}
+                              title={lang === 'mr' ? 'आताच सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription'}
+                              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+                            >
+                              {processingId === nursery.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Check className="w-3.5 h-3.5" />
+                              )}
+                              <span>{lang === 'mr' ? 'प्लॅन मंजूर' : 'Approve Plan'}</span>
+                            </button>
+                          </div>
                         )}
 
                         {/* Approved Nursery Actions: Revoke Approval & Suspend */}
                         {nursery.status === 'approved' && !nursery.isSuspended && (
-                          <>
+                          <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => setRevokingNursery(nursery)}
                               title={lang === 'mr' ? 'मंजुरी रद्द करा' : 'Revoke Approval'}
-                              className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                              className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
                             >
-                              <RotateCcw className="w-3 h-3 text-amber-600" />
+                              <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
                               <span>{lang === 'mr' ? 'रद्द' : 'Revoke'}</span>
                             </button>
 
                             <button
                               onClick={() => setSuspendingNursery(nursery)}
                               title={lang === 'mr' ? 'खाते निलंबित करा' : 'Suspend Nursery'}
-                              className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                              className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
                             >
-                              <Ban className="w-3 h-3 text-rose-600" />
+                              <Ban className="w-3.5 h-3.5 text-rose-600" />
                               <span>{lang === 'mr' ? 'निलंबित' : 'Suspend'}</span>
                             </button>
-                          </>
+                          </div>
                         )}
 
                         {/* Suspended Nursery Action: Unsuspend / Reactivate */}
                         {(nursery.status === 'suspended' || (nursery.isSuspended && nursery.status !== 'rejected')) && (
-                          <button
-                            onClick={() => handleUnsuspendWithFeedback(nursery.id)}
-                            disabled={processingId === nursery.id}
-                            title={lang === 'mr' ? 'निलंबन मागे घ्या (सक्रिय करा)' : 'Unsuspend / Re-Activate'}
-                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
-                          >
-                            {processingId === nursery.id ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <CheckCircle2 className="w-3 h-3 text-[#1E5631]" />
-                            )}
-                            <span>{lang === 'mr' ? 'सक्रिय करा' : 'Unsuspend'}</span>
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleUnsuspendWithFeedback(nursery.id)}
+                              disabled={processingId === nursery.id}
+                              title={lang === 'mr' ? 'निलंबन मागे घ्या (सक्रिय करा)' : 'Unsuspend / Re-Activate'}
+                              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+                            >
+                              {processingId === nursery.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#1E5631]" />
+                              )}
+                              <span>{lang === 'mr' ? 'सक्रिय करा' : 'Unsuspend'}</span>
+                            </button>
+                          </div>
                         )}
 
                         {/* Rejected or Revoked Nursery Action: Re-Approve */}
                         {(nursery.status === 'rejected' || nursery.status === 'revoked') && (
-                          <button
-                            onClick={() => handleApproveWithFeedback(nursery.id)}
-                            disabled={processingId === nursery.id}
-                            title={lang === 'mr' ? 'पुन्हा मंजूर करा' : 'Re-Approve'}
-                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
-                          >
-                            {processingId === nursery.id ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Check className="w-3 h-3" />
-                            )}
-                            <span>{lang === 'mr' ? 'पुन्हा मंजूर' : 'Re-Approve'}</span>
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleApproveWithFeedback(nursery.id)}
+                              disabled={processingId === nursery.id}
+                              title={lang === 'mr' ? 'पुन्हा मंजूर करा' : 'Re-Approve'}
+                              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+                            >
+                              {processingId === nursery.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Check className="w-3.5 h-3.5" />
+                              )}
+                              <span>{lang === 'mr' ? 'पुन्हा मंजूर' : 'Re-Approve'}</span>
+                            </button>
+                          </div>
                         )}
 
-                        {/* View Details */}
-                        <button
-                          onClick={() => setDetailsNursery(nursery)}
-                          title={lang === 'mr' ? 'तपशील पहा' : 'View Details'}
-                          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                        {/* Divider separating decisions from utility tools */}
+                        <div className="h-5 w-px bg-slate-200 mx-0.5" />
 
-                        {/* Edit Button */}
-                        <button
-                          onClick={() => setEditingNursery(nursery)}
-                          title={lang === 'mr' ? 'संपादित करा' : 'Edit'}
-                          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-[#1E5631] hover:bg-emerald-50 hover:border-emerald-200 transition-colors cursor-pointer"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
+                        {/* 2. Utility Actions Pod (View, Edit, Delete) */}
+                        <div className="flex items-center gap-0.5 bg-slate-50 p-0.5 rounded-xl border border-slate-200">
+                          {/* View Details */}
+                          <button
+                            onClick={() => setDetailsNursery(nursery)}
+                            title={lang === 'mr' ? 'तपशील पहा' : 'View Details'}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-white transition-all cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
 
-                        {/* Delete Button */}
-                        <button
-                          onClick={() => setDeletingNursery(nursery)}
-                          title={lang === 'mr' ? 'हटवा' : 'Delete'}
-                          className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                          {/* Edit Button */}
+                          <button
+                            onClick={() => setEditingNursery(nursery)}
+                            title={lang === 'mr' ? 'संपादित करा' : 'Edit'}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-[#1E5631] hover:bg-white transition-all cursor-pointer"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => setDeletingNursery(nursery)}
+                            title={lang === 'mr' ? 'हटवा' : 'Delete'}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-white transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
 
                       </div>
                     </td>

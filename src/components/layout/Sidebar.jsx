@@ -88,7 +88,7 @@ export default function Sidebar({
       )}
 
       {/* Sidebar Container */}
-      <aside className={`fixed top-0 bottom-0 left-0 z-40 w-72 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+      <aside className={`fixed top-0 bottom-0 left-0 z-40 w-72 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 print:hidden ${
         isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
       }`}>
         
