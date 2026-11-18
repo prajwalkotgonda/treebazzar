@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Sprout, MessageSquare, Check, X, Tag, Store, Search, Filter, Plus, Sparkles 
+  Sprout, MessageSquare, Check, X, Tag, Store, Search, Filter, Sparkles 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_PLANT_IMAGE } from '../../data/mockData';
@@ -12,8 +12,7 @@ export default function FeaturedPlants({
   onSelectCategory,
   searchQuery = '', 
   selectedCity = 'all',
-  onContactLead,
-  onOpenAddPlant
+  onContactLead
 }) {
   const { lang, t } = useLanguage();
   const [stockOnly, setStockOnly] = useState(false);
@@ -151,7 +150,7 @@ export default function FeaturedPlants({
             ))}
           </div>
 
-          {/* Right Actions: In Stock Toggle + Add Plant Button */}
+          {/* Right Actions: In Stock Toggle */}
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/60">
             {/* In Stock Only Checkbox */}
             <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-700 font-semibold shrink-0">
@@ -163,18 +162,6 @@ export default function FeaturedPlants({
               />
               <span>{lang === 'mr' ? 'फक्त उपलब्ध झाडे (In Stock)' : 'In Stock Only'}</span>
             </label>
-
-            {/* Add Plant Button for Nursery Owners */}
-            {onOpenAddPlant && (
-              <button
-                type="button"
-                onClick={onOpenAddPlant}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#1E5631] hover:bg-[#2E7D32] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{lang === 'mr' ? 'वनस्पती जोडा' : 'Add Plant'}</span>
-              </button>
-            )}
           </div>
 
         </div>

@@ -1361,7 +1361,6 @@ function AppRoot() {
             }
           }}
           onAddNursery={handlePartnerAddNursery}
-          onAddPlant={handleAddPlantFromLanding}
           onContactLead={handleContactLead}
         />
       )}

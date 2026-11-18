@@ -8,7 +8,6 @@ import WhyTreeBazzar from './WhyTreeBazzar';
 import PartnerCta from './PartnerCta';
 import LandingFooter from './LandingFooter';
 import AddNurseryModal from '../common/AddNurseryModal';
-import AddPlantModal from '../common/AddPlantModal';
 import NurseryDetailsModal from '../common/NurseryDetailsModal';
 
 export default function LandingPage({ 
@@ -17,14 +16,12 @@ export default function LandingPage({
   cities = [],
   onOpenLogin, 
   onAddNursery,
-  onAddPlant,
   onContactLead 
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-  const [addPlantModalOpen, setAddPlantModalOpen] = useState(false);
   const [selectedNursery, setSelectedNursery] = useState(null);
 
   const handleRegisterNurserySubmit = (newNurseryData) => {
@@ -34,13 +31,6 @@ export default function LandingPage({
     setRegisterModalOpen(false);
   };
 
-  const handleAddPlantSubmit = (newPlantData) => {
-    if (onAddPlant) {
-      onAddPlant(newPlantData);
-    }
-    setAddPlantModalOpen(false);
-  };
-
   return (
     <div className="min-h-screen bg-white font-sans text-slate-800 selection:bg-[#2E7D32]/20 selection:text-[#1E5631]">
       
@@ -48,7 +38,6 @@ export default function LandingPage({
       <LandingNavbar 
         onOpenLogin={onOpenLogin}
         onOpenRegisterNursery={() => setRegisterModalOpen(true)}
-        onOpenAddPlant={() => setAddPlantModalOpen(true)}
       />
 
       {/* 2. Hero Section with Unified Search */}
@@ -89,7 +78,6 @@ export default function LandingPage({
         searchQuery={searchQuery}
         selectedCity={selectedCity}
         onContactLead={onContactLead}
-        onOpenAddPlant={() => setAddPlantModalOpen(true)}
       />
 
       {/* 6. Why TreeBazzar & How It Works */}
@@ -112,14 +100,6 @@ export default function LandingPage({
         onClose={() => setRegisterModalOpen(false)}
         onAddNursery={handleRegisterNurserySubmit}
         cities={cities}
-      />
-
-      {/* Add Plant Modal (for adding plant varieties directly) */}
-      <AddPlantModal
-        isOpen={addPlantModalOpen}
-        onClose={() => setAddPlantModalOpen(false)}
-        onAddPlant={handleAddPlantSubmit}
-        nurseries={nurseries}
       />
 
       {/* Nursery Details Modal */}
