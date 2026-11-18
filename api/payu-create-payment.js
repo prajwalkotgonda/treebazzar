@@ -67,11 +67,11 @@ export default async function handler(req, res) {
     const numericAmount = Math.max(1, Number(amount) || 100);
     const formattedAmount = numericAmount.toFixed(2);
 
-    // Generate unique transaction ID (alphanumeric, max 25 chars)
+    // Generate unique transaction ID (strictly alphanumeric, max 25 chars)
     const cleanPrefix = 'TB';
-    const timestamp = Date.now().toString().slice(-8);
-    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const txnid = `${cleanPrefix}_${timestamp}_${randomSuffix}`;
+    const timestamp = Date.now().toString();
+    const randomSuffix = Math.random().toString(36).substring(2, 5).toUpperCase();
+    const txnid = `${cleanPrefix}${timestamp}${randomSuffix}`.slice(0, 24);
 
     // Clean customer info
     const cleanFirstName = (ownerName || nurseryName || 'Customer').trim().replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 50) || 'Partner';
