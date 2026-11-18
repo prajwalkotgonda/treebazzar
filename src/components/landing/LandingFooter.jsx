@@ -1,6 +1,7 @@
 import React from 'react';
 import { Leaf, MapPin, Mail, Phone, Heart } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import GooglePlayButton from '../common/GooglePlayButton';
 
 export default function LandingFooter({ onOpenLogin, cities = [] }) {
   const { lang, t } = useLanguage();
@@ -40,9 +41,14 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
                 : 'Western Maharashtra\'s premier local plant nursery discovery marketplace connecting farmers, home gardeners, and verified nurseries.'}
             </p>
 
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-slate-400 mb-5">
               <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               <span>{hubsText}</span>
+            </div>
+
+            {/* Google Play Store Official App Download Badge */}
+            <div>
+              <GooglePlayButton variant="badge" />
             </div>
           </div>
 

@@ -303,6 +303,7 @@ export const translations = {
     landingNavCategories: 'Categories',
     landingNavHowItWorks: 'How It Works',
     landingNavAdmin: 'Admin Portal',
+    landingNavPlayStore: 'Google Play',
     landingBackToSite: 'Back to Marketplace',
     landingViewSite: 'View Public Site',
 
@@ -669,6 +670,7 @@ export const translations = {
     landingNavCategories: 'श्रेणी',
     landingNavHowItWorks: 'हे कसे कार्य करते',
     landingNavAdmin: 'ॲडमिन पोर्टल',
+    landingNavPlayStore: 'गुगल प्ले ॲप',
     landingBackToSite: 'मुख्यपृष्ठावर जा',
     landingViewSite: 'पब्लिक साइट पहा',
 

@@ -51,8 +51,24 @@ export default function FeaturedPlants({
         return false;
       }
 
-      // City filter based on nursery
+      // Only show plants from nurseries that have an active subscription (exclude free trial nurseries)
       const linkedNursery = nurseryMap[plant.nurseryId] || nurseryMap[plant.nurseryName];
+      if (linkedNursery) {
+        const isNurserySubscribed = Boolean(
+          (linkedNursery.isSubscribed === true || linkedNursery.subscriptionStatus === 'active' || linkedNursery.subscriptionPlan === 'paid_annual' || linkedNursery.paymentStatus === 'paid') &&
+          !linkedNursery.isTrialActive &&
+          linkedNursery.status === 'approved' &&
+          !linkedNursery.isSuspended &&
+          linkedNursery.status !== 'suspended' &&
+          linkedNursery.status !== 'rejected' &&
+          linkedNursery.status !== 'trial'
+        );
+        if (!isNurserySubscribed) {
+          return false;
+        }
+      }
+
+      // City filter based on nursery
       if (selectedCity !== 'all' && linkedNursery) {
         if (linkedNursery.city?.toLowerCase() !== selectedCity.toLowerCase()) {
           return false;

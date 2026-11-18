@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import heroBg from '../../assets/landing-bg.jpg';
+import GooglePlayButton from '../common/GooglePlayButton';
 
 // Helper to safely split text into natural grapheme clusters (supports Devanagari/Marathi & English)
 function getGraphemes(text) {
@@ -150,14 +151,16 @@ export default function HeroSection({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Top Regional Badge */}
-        <div className="flex justify-center mb-4">
+        {/* Top Regional Badge & Google Play App Link */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 mb-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-emerald-200/90 text-[#1E5631] shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse" />
             <span className="text-[11px] font-black tracking-wide uppercase">
               {t('heroBadge')}
             </span>
           </div>
+
+          <GooglePlayButton variant="pill" />
         </div>
 
         {/* Hero Headline with Animated Typewriter Effect */}

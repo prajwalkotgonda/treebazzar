@@ -3,6 +3,7 @@ import {
   Leaf, Languages, Menu, X, ArrowRight, Store, Sprout 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import GooglePlayButton, { GooglePlayIcon, TREEBAZZAR_PLAYSTORE_URL } from '../common/GooglePlayButton';
 
 export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
   const { lang, toggleLanguage, t } = useLanguage();
@@ -74,6 +75,9 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
               </span>
             </button>
 
+            {/* Google Play Store App Download Button */}
+            <GooglePlayButton variant="navbar" />
+
             {/* Nursery Partner Register CTA */}
             {onOpenRegisterNursery && (
               <button
@@ -87,8 +91,17 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
             )}
           </div>
 
-          {/* Mobile Actions: Language + Menu Button */}
+          {/* Mobile Actions: Language + Play Store + Menu Button */}
           <div className="flex items-center gap-2 sm:hidden">
+            <a
+              href={TREEBAZZAR_PLAYSTORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="TreeBazzar App on Google Play"
+              className="p-1.5 rounded-lg bg-slate-900 text-white flex items-center justify-center border border-slate-700 active:scale-95 shadow-2xs"
+            >
+              <GooglePlayIcon className="w-4 h-4" />
+            </a>
             <button
               type="button"
               onClick={toggleLanguage}
@@ -123,6 +136,8 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
           ))}
 
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+            <GooglePlayButton variant="badge" className="w-full justify-center" />
+
             {onOpenRegisterNursery && (
               <button
                 type="button"

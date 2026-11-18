@@ -5,6 +5,7 @@ import CategoryCards from './CategoryCards';
 import FeaturedNurseries from './FeaturedNurseries';
 import FeaturedPlants from './FeaturedPlants';
 import WhyTreeBazzar from './WhyTreeBazzar';
+import AppDownloadSection from './AppDownloadSection';
 import PartnerCta from './PartnerCta';
 import LandingFooter from './LandingFooter';
 import AddNurseryModal from '../common/AddNurseryModal';
@@ -23,6 +24,23 @@ export default function LandingPage({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [selectedNursery, setSelectedNursery] = useState(null);
+
+  // Strictly filter only nurseries with active, paid/approved subscription
+  const subscribedNurseries = React.useMemo(() => {
+    return nurseries.filter(n => {
+      if (n.isSuspended || n.status === 'suspended' || n.status === 'rejected' || n.status === 'revoked') return false;
+      if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_6d') return false;
+      if (n.status === 'pending' || n.isTrialExpired) return false;
+      const isSub = Boolean(
+        n.isSubscribed === true ||
+        n.subscriptionStatus === 'active' ||
+        n.isSubscriptionApproved === true ||
+        n.subscriptionPlan === 'paid_annual' ||
+        n.paymentStatus === 'paid'
+      );
+      return isSub && n.status === 'approved';
+    });
+  }, [nurseries]);
 
   const handleRegisterNurserySubmit = (newNurseryData) => {
     if (onAddNursery) {
@@ -46,7 +64,7 @@ export default function LandingPage({
         onSearchChange={setSearchQuery}
         selectedCity={selectedCity}
         onCityChange={setSelectedCity}
-        totalNurseries={nurseries.length}
+        totalNurseries={subscribedNurseries.length}
         totalPlants={plants.length}
         cities={cities}
       />
@@ -83,7 +101,10 @@ export default function LandingPage({
       {/* 6. Why TreeBazzar & How It Works */}
       <WhyTreeBazzar />
 
-      {/* 7. Partner Registration CTA */}
+      {/* 7. Official Android App Download Section (Google Play) */}
+      <AppDownloadSection />
+
+      {/* 8. Partner Registration CTA */}
       <PartnerCta 
         onOpenRegisterNursery={() => setRegisterModalOpen(true)}
       />

@@ -32,9 +32,31 @@ export default function FeaturedNurseries({
         ])
   ];
 
-  // Show only approved, non-suspended nurseries to public visitors
+  // Show ONLY nurseries that have an active paid subscription (no free trials, no expired trials, no pending, no suspended)
   const displayNurseries = nurseries
-    .filter(n => (n.status === 'approved' || (!n.status && n.verified)) && !n.isSuspended && n.status !== 'suspended' && n.status !== 'rejected')
+    .filter(n => {
+      // 1. Must not be suspended, rejected or revoked
+      if (n.isSuspended || n.status === 'suspended' || n.status === 'rejected' || n.status === 'revoked') {
+        return false;
+      }
+      // 2. Free trial nurseries MUST NOT be displayed to public visitors
+      if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_6d') {
+        return false;
+      }
+      // 3. Pending approval or expired trial nurseries MUST NOT be displayed
+      if (n.status === 'pending' || n.isTrialExpired) {
+        return false;
+      }
+      // 4. Must be confirmed subscribed partner
+      const isSubscribed = Boolean(
+        n.isSubscribed === true ||
+        n.subscriptionStatus === 'active' ||
+        n.isSubscriptionApproved === true ||
+        n.subscriptionPlan === 'paid_annual' ||
+        n.paymentStatus === 'paid'
+      );
+      return isSubscribed && n.status === 'approved';
+    })
     .filter(n => selectedCity === 'all' || !selectedCity || n.city?.toLowerCase() === selectedCity.toLowerCase());
 
   const handleWhatsApp = (e, nursery) => {
@@ -167,7 +189,7 @@ export default function FeaturedNurseries({
                       )}
                       <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1E5631]/90 backdrop-blur-md text-white text-[10px] font-bold shadow-xs">
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-                        <span>{t('nurseryVerifiedBadge')}</span>
+                        <span>{lang === 'mr' ? 'सबस्क्राइब केलेली रोपवाटिका' : 'Subscribed Partner'}</span>
                       </div>
                     </div>
 
@@ -242,14 +264,30 @@ export default function FeaturedNurseries({
           <div className="bg-white rounded-3xl p-10 text-center border border-slate-200">
             <Store className="w-10 h-10 text-slate-300 mx-auto mb-2" />
             <p className="text-sm font-bold text-slate-700">
-              {lang === 'mr' ? 'या शहरात कोणतीही रोपवाटिका आढळली नाही' : 'No nurseries found for selected filter'}
+              {lang === 'mr' ? 'सध्या सबस्क्रिप्शन घेतलेल्या रोपवाटिका येथे दिसतील' : 'Subscribed partner nurseries will appear here once active'}
             </p>
-            <button
-              onClick={() => onCityChange('all')}
-              className="mt-3 text-xs font-bold text-[#1E5631] underline cursor-pointer"
-            >
-              {lang === 'mr' ? 'सर्व शहरे पहा' : 'View all cities'}
-            </button>
+            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              {lang === 'mr' 
+                ? 'नवीन रोपवाटिका ६ दिवस मोफत ट्रायलवर असतात. त्यांनी सबस्क्रिप्शन घेतल्यानंतर त्या येथे ग्राहकांसाठी थेट उपलब्ध होतात.' 
+                : 'New partner nurseries are currently on 6-day free trial. Once subscribed, they go live on the customer marketplace.'}
+            </p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={() => onCityChange('all')}
+                className="text-xs font-bold text-[#1E5631] underline cursor-pointer"
+              >
+                {lang === 'mr' ? 'सर्व शहरे पहा' : 'View all cities'}
+              </button>
+              {onOpenRegisterNursery && (
+                <button
+                  type="button"
+                  onClick={onOpenRegisterNursery}
+                  className="px-4 py-2 bg-[#1E5631] text-white text-xs font-bold rounded-xl hover:bg-[#2E7D32] transition-colors cursor-pointer"
+                >
+                  {lang === 'mr' ? '+ रोपवाटिका जोडा (६ दिवस मोफत ट्रायल)' : '+ Join as Partner (6-Day Free Trial)'}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
