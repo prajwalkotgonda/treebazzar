@@ -9,6 +9,10 @@
     color: #1e293b;
     overflow-x: hidden;
   }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none !important;
+  }
 }
 
 /* Custom Botanical Scrollbars */
@@ -65,5 +69,36 @@
 
 .animate-typewriter-cursor {
   animation: typewriterBlink 0.8s step-start infinite;
+}
+
+/* Print Styles for Professional Reports & Invoices (Removes localhost URL & headers) */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0mm !important; /* Hides browser default header (http://localhost:3001) and footer */
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 12mm 15mm !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
 }
 
