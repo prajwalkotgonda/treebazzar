@@ -123,14 +123,12 @@ export default function Sidebar({
             </button>
           </div>
 
-          {/* Active Hub Cities Badge */}
+          {/* Active Network Badge */}
           <div className="mx-4 mt-3 px-3 py-2 rounded-xl bg-emerald-50/50 border border-emerald-100/80 flex items-center justify-between text-xs text-slate-600">
             <div className="flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />
-              <span className="font-semibold text-slate-800 text-[11px] truncate max-w-[170px]" title={cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ')}>
-                {cities.length > 0 
-                  ? cities.slice(0, 3).map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ') + (cities.length > 3 ? '...' : '')
-                  : (lang === 'mr' ? 'संपूर्ण भारत' : 'All India')}
+              <span className="font-semibold text-slate-800 text-[11px] truncate max-w-[170px]">
+                {lang === 'mr' ? 'संपूर्ण भारत' : 'All India'}
               </span>
             </div>
             <span className="flex h-2 w-2 relative">

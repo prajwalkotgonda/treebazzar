@@ -970,12 +970,9 @@ function DashboardContent({
 
         {/* Minimal Clean Footer */}
         <footer className="border-t border-slate-200 py-3.5 px-6 text-center text-xs text-slate-400 bg-white">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="max-w-7xl mx-auto flex items-center justify-center">
             <span>
               TreeBazzar Admin • Simple & Clean Nursery Marketplace
-            </span>
-            <span className="text-[11px] text-slate-400 font-medium">
-              {cities.map(c => lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn).join(' • ')}
             </span>
           </div>
         </footer>

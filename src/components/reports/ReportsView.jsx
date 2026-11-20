@@ -300,12 +300,12 @@ export default function ReportsView({
               </div>
               <p className="text-xs font-semibold text-slate-600 mt-0.5">
                 {lang === 'mr' 
-                  ? 'स्थानिक रोपवाटिका डिजिटल मार्केटप्लेस • पश्चिम महाराष्ट्र' 
+                  ? 'संपूर्ण भारत वनस्पती बाजारपेठ' 
                   : 'All India Botanical Marketplace'}
               </p>
               <p className="text-[11px] text-slate-500 font-medium">
                 {lang === 'mr' 
-                  ? 'हब: सांगली • मिरज • कोल्हापूर • कराड' 
+                  ? 'संपूर्ण भारत रोपवाटिका नेटवर्क' 
                   : 'All India Nursery Network'}
               </p>
             </div>
@@ -620,7 +620,7 @@ export default function ReportsView({
                 : 'Note: This executive performance report is digitally compiled from active TreeBazzar database records. All nursery listings, customer leads, and order transactions are platform-verified.'}
             </p>
             <p className="text-[10px] text-slate-400 font-mono">
-              TreeBazzar Botanical Platform • Ahilyanagar Hub • TreeBazzar@gmail.com
+              TreeBazzar Botanical Platform • TreeBazzar@gmail.com
             </p>
           </div>
 
