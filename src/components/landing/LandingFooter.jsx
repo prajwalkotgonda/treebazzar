@@ -1,5 +1,5 @@
 import React from 'react';
-import { Leaf, MapPin, Mail, Phone, Heart } from 'lucide-react';
+import { Leaf, MapPin, Mail, Phone, Heart, Globe } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import GooglePlayButton from '../common/GooglePlayButton';
 
@@ -86,16 +86,43 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
             </ul>
           </div>
 
-          {/* Admin & Support */}
+          {/* Admin & Support / Contact Info */}
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
               {t('footerContact')}
             </h4>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li>Email: contact@treebazzar.com</li>
-              <li>Phone: +91 98221 45678</li>
-              <li>Operational: Mon - Sat (9 AM - 7 PM)</li>
-            </ul>
+            <div className="space-y-2.5 text-xs text-slate-300">
+              <div className="flex items-start gap-2">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <p className="leading-relaxed text-[11px] text-slate-300">
+                  House No. 21, Balaji Nagar,<br />
+                  Near Law College, Ghulewadi,<br />
+                  Taluka Sangamner, District Ahilyanagar,<br />
+                  Maharashtra - 422605, India.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 pt-0.5">
+                <Mail className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <a href="mailto:TreeBazzar@gmail.com" className="hover:text-emerald-300 transition-colors">
+                  TreeBazzar@gmail.com
+                </a>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Globe className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <a href="https://www.treebazzar.com" target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors">
+                  www.treebazzar.com
+                </a>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <a href="tel:+919405947273" className="hover:text-emerald-300 transition-colors font-semibold">
+                  +91 94059 47273
+                </a>
+              </div>
+            </div>
           </div>
 
         </div>

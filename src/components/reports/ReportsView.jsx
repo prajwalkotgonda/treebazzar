@@ -620,7 +620,7 @@ export default function ReportsView({
                 : 'Note: This executive performance report is digitally compiled from active TreeBazzar database records. All nursery listings, customer leads, and order transactions are platform-verified.'}
             </p>
             <p className="text-[10px] text-slate-400 font-mono">
-              TreeBazzar Botanical Platform • Sangli Hub • contact@treebazzar.com
+              TreeBazzar Botanical Platform • Ahilyanagar Hub • TreeBazzar@gmail.com
             </p>
           </div>
 
