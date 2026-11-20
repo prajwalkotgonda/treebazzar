@@ -31,7 +31,7 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
         <div className="flex items-center justify-between h-16">
           
           {/* Brand Logo */}
-          <a href="#" className="flex items-center gap-2.5 group cursor-pointer">
+          <a href="#" className="flex items-center gap-2.5 group cursor-pointer shrink-0">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1E5631] to-[#2E7D32] flex items-center justify-center text-white shadow-md shadow-emerald-950/20 group-hover:scale-105 transition-transform">
               <Leaf className="w-5 h-5 fill-white/20 stroke-[2.2]" />
             </div>
@@ -46,8 +46,8 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
             </div>
           </a>
 
-          {/* Desktop Navigation Links - In Separate Styled Boxes */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Desktop Navigation Links (Each in separate box pill) */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-2.5">
             {navLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -55,9 +55,9 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
                   key={link.href}
                   href={link.href}
                   onClick={(e) => handleScrollTo(e, link.href)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50/90 hover:bg-emerald-50 text-slate-700 hover:text-[#1E5631] border border-slate-200/90 hover:border-emerald-300/80 font-bold text-xs shadow-2xs transition-all active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-50/90 hover:bg-emerald-50 hover:text-[#1E5631] border border-slate-200/90 hover:border-emerald-300 shadow-2xs transition-all whitespace-nowrap cursor-pointer active:scale-95"
                 >
-                  {Icon && <Icon className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />}
+                  <Icon className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />
                   <span>{link.label}</span>
                 </a>
               );
@@ -65,13 +65,13 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
           </div>
 
           {/* Right Action Buttons */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2.5 shrink-0">
             {/* Language Switcher */}
             <button
               type="button"
               onClick={toggleLanguage}
               title={lang === 'en' ? 'मराठी मध्ये बदला' : 'Switch to English'}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200/80 font-bold text-xs transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200/80 font-bold text-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
             >
               <Languages className="w-3.5 h-3.5 text-[#2E7D32]" />
               <span className="text-[11px]">
@@ -87,7 +87,7 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
               <button
                 type="button"
                 onClick={onOpenRegisterNursery}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:text-[#1E5631] hover:bg-slate-100 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:text-[#1E5631] hover:bg-slate-100 border border-slate-200/80 transition-all cursor-pointer whitespace-nowrap"
               >
                 <Store className="w-3.5 h-3.5 text-[#2E7D32]" />
                 <span>{lang === 'mr' ? 'रोपवाटिका जोडा' : 'Add Nursery'}</span>
@@ -96,7 +96,7 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
           </div>
 
           {/* Mobile Actions: Language + Play Store + Menu Button */}
-          <div className="flex items-center gap-2 sm:hidden">
+          <div className="flex items-center gap-2 md:hidden">
             <a
               href={TREEBAZZAR_PLAYSTORE_URL}
               target="_blank"
@@ -127,21 +127,23 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="sm:hidden border-t border-slate-200/90 bg-white px-4 pt-3 pb-5 space-y-2.5 animate-in fade-in duration-200">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            return (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={(e) => handleScrollTo(e, link.href)}
-                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/70 bg-slate-50/70 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1E5631] hover:border-emerald-200 transition-all"
-              >
-                {Icon && <Icon className="w-4 h-4 text-[#2E7D32] shrink-0" />}
-                <span>{link.label}</span>
-              </a>
-            );
-          })}
+        <div className="md:hidden border-t border-slate-200/90 bg-white px-4 pt-3 pb-5 space-y-3 animate-in fade-in duration-200">
+          <div className="grid grid-cols-2 gap-2">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={(e) => handleScrollTo(e, link.href)}
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1E5631] hover:border-emerald-300 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  <Icon className="w-4 h-4 text-[#2E7D32] shrink-0" />
+                  <span className="truncate">{link.label}</span>
+                </a>
+              );
+            })}
+          </div>
 
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
             <GooglePlayButton variant="badge" className="w-full justify-center" />
@@ -153,7 +155,7 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
                   setMobileMenuOpen(false);
                   onOpenRegisterNursery();
                 }}
-                className="w-full py-2 px-3 rounded-xl bg-emerald-50 text-[#1E5631] text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[#1E5631] text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
               >
                 <Store className="w-4 h-4 text-[#2E7D32]" />
                 <span>{lang === 'mr' ? 'रोपवाटिका नोंदणी करा' : 'Register Your Nursery'}</span>
