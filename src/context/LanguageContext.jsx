@@ -7,7 +7,7 @@ export const translations = {
     // Branding
     brandName: 'TreeBazzar',
     brandTagline: 'Local Nursery Marketplace',
-    adminBadge: 'Sangli Hub Admin',
+    adminBadge: 'Admin',
     adminRole: 'Super Admin',
     demoDataNotice: 'Demo Mode: Local sample data is active. Changes are stored in browser state.',
     resetDemoData: 'Reset Demo Data',
@@ -374,7 +374,7 @@ export const translations = {
     // Branding
     brandName: 'ट्री बाजार',
     brandTagline: 'स्थानिक रोपवाटिका बाजारपेठ',
-    adminBadge: 'सांगली हब ॲडमिन',
+    adminBadge: 'ॲडमिन',
     adminRole: 'सुपर ॲडमिन',
     demoDataNotice: 'डेमो मोड: स्थानिक नमुना डेटा सक्रिय आहे. बदल ब्राउझर मेमरीमध्ये साठवले जातात.',
     resetDemoData: 'नमुना डेटा रीसेट करा',

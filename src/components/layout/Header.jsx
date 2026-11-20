@@ -43,14 +43,16 @@ export default function Header({
             <Menu className="w-5 h-5" />
           </button>
 
-          <div>
-            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#2E7D32] hidden sm:inline-block" />
-              {pageTitle}
-            </h2>
-            <p className="text-[11px] text-slate-400 hidden md:block">
-              TreeBazzar • {t('adminBadge')}
-            </p>
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-[#2E7D32] hidden sm:inline-block shrink-0" />
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-tight">
+                {pageTitle}
+              </h2>
+              <p className="text-[11px] font-semibold text-slate-400 hidden md:block leading-tight mt-0.5">
+                {t('brandName')}
+              </p>
+            </div>
           </div>
         </div>
 
