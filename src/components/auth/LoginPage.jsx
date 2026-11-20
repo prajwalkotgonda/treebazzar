@@ -188,7 +188,7 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
               </label>
 
               <span className="text-[11px] text-[#2E7D32] font-semibold">
-                Sangli Hub
+                All India Hub
               </span>
             </div>
 

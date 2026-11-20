@@ -165,11 +165,11 @@ export default function Header({
           {/* Admin Profile Avatar & Name */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1E5631] to-[#2E7D32] flex items-center justify-center text-white font-bold text-xs shadow-xs">
-              AS
+              AD
             </div>
             <div className="hidden md:block text-left">
               <div className="flex items-center gap-1">
-                <span className="text-xs font-bold text-slate-900 leading-tight">Admin Sangli</span>
+                <span className="text-xs font-bold text-slate-900 leading-tight">{lang === 'mr' ? 'ॲडमिन' : 'Admin'}</span>
                 <ShieldCheck className="w-3 h-3 text-[#2E7D32]" />
               </div>
               <span className="text-[10px] text-slate-400 block leading-tight">
