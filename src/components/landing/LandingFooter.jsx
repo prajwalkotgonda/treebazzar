@@ -14,10 +14,6 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
     }
   };
 
-  const hubsText = cities.length > 0
-    ? cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ') + (lang === 'mr' ? ' प्रादेशिक हब' : ' Regional Hub')
-    : 'All India Regional Hub';
-
   return (
     <footer className="bg-slate-900 text-white pt-14 pb-8 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,16 +31,11 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
               </span>
             </div>
             
-            <p className="text-xs text-slate-400 max-w-sm leading-relaxed mb-4">
+            <p className="text-xs text-slate-400 max-w-sm leading-relaxed mb-5">
               {lang === 'mr' 
                 ? 'संपूर्ण भारतातील स्थानिक शेतकरी, बागकाम प्रेमी आणि रोपवाटिका चालकांना जोडणारा अग्रगण्य हरित मंच.'
                 : 'India\'s premier local plant nursery discovery marketplace connecting farmers, home gardeners, and verified nurseries across All India.'}
             </p>
-
-            <div className="flex items-center gap-2 text-xs text-slate-400 mb-5">
-              <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span>{hubsText}</span>
-            </div>
 
             {/* Google Play Store Official App Download Badge */}
             <div>

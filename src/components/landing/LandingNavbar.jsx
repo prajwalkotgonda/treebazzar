@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Leaf, Languages, Menu, X, ArrowRight, Store, Sprout 
+  Leaf, Languages, Menu, X, ArrowRight, Store, Sprout, LayoutGrid, HelpCircle 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import GooglePlayButton, { GooglePlayIcon, TREEBAZZAR_PLAYSTORE_URL } from '../common/GooglePlayButton';
@@ -10,10 +10,10 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '#nurseries', label: t('landingNavNurseries') },
-    { href: '#plants', label: t('landingNavPlants') },
-    { href: '#categories', label: t('landingNavCategories') },
-    { href: '#how-it-works', label: t('landingNavHowItWorks') }
+    { href: '#nurseries', label: t('landingNavNurseries'), icon: Store },
+    { href: '#plants', label: t('landingNavPlants'), icon: Sprout },
+    { href: '#categories', label: t('landingNavCategories'), icon: LayoutGrid },
+    { href: '#how-it-works', label: t('landingNavHowItWorks'), icon: HelpCircle }
   ];
 
   const handleScrollTo = (e, href) => {
@@ -46,18 +46,22 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
             </div>
           </a>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-7">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={(e) => handleScrollTo(e, link.href)}
-                className="text-xs font-bold text-slate-600 hover:text-[#1E5631] transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
+          {/* Desktop Navigation Links - In Separate Styled Boxes */}
+          <div className="hidden md:flex items-center gap-2">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={(e) => handleScrollTo(e, link.href)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50/90 hover:bg-emerald-50 text-slate-700 hover:text-[#1E5631] border border-slate-200/90 hover:border-emerald-300/80 font-bold text-xs shadow-2xs transition-all active:scale-95 cursor-pointer"
+                >
+                  {Icon && <Icon className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />}
+                  <span>{link.label}</span>
+                </a>
+              );
+            })}
           </div>
 
           {/* Right Action Buttons */}
@@ -124,16 +128,20 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="sm:hidden border-t border-slate-200/90 bg-white px-4 pt-3 pb-5 space-y-2.5 animate-in fade-in duration-200">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={(e) => handleScrollTo(e, link.href)}
-              className="block px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1E5631]"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={(e) => handleScrollTo(e, link.href)}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/70 bg-slate-50/70 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1E5631] hover:border-emerald-200 transition-all"
+              >
+                {Icon && <Icon className="w-4 h-4 text-[#2E7D32] shrink-0" />}
+                <span>{link.label}</span>
+              </a>
+            );
+          })}
 
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
             <GooglePlayButton variant="badge" className="w-full justify-center" />
