@@ -210,7 +210,7 @@ export default function LoginPage({ onLogin, onBackToLanding }) {
       {/* Regional Footer */}
       <div className="w-full max-w-5xl mx-auto text-center z-10">
         <p className="text-[11px] text-slate-400">
-          TreeBazzar • Sangli • Miraj • Kolhapur • Karad Regional Nursery Hub
+          TreeBazzar • All India Nursery Marketplace
         </p>
       </div>
 

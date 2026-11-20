@@ -110,7 +110,7 @@ export default function HeroSection({
   const hubsCount = cities.length > 0 ? cities.length : 4;
   const hubsNames = cities.length > 0
     ? cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(', ')
-    : 'Sangli, Miraj, Kolhapur, Karad';
+    : 'All India';
 
   const popularTags = [
     { en: 'Kesar Mango', mr: 'केशर आंबा' },

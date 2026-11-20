@@ -74,7 +74,7 @@ export default function OrderDetailsModal({
             <div>
               <h2 className="text-lg font-black text-slate-900">TreeBazzar</h2>
               <p className="text-xs text-slate-500">Local Nursery Discovery & Plant Ordering</p>
-              <p className="text-xs text-[#2E7D32] font-semibold mt-0.5">Sangli • Miraj • Kolhapur • Karad</p>
+              <p className="text-xs text-[#2E7D32] font-semibold mt-0.5">All India Nursery Marketplace</p>
             </div>
             <div className="text-right">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Order ID</span>

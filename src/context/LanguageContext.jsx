@@ -88,7 +88,7 @@ export const translations = {
 
     // Dashboard Overview
     overviewTitle: 'Dashboard Overview',
-    overviewSubtitle: 'Monitor local nursery onboarding, plant listings, and incoming customer inquiries across Western Maharashtra.',
+    overviewSubtitle: 'Monitor nursery onboarding, plant listings, and incoming customer inquiries across All India.',
     statNurseries: 'Total Nurseries',
     statPending: 'Pending Approvals',
     statPlants: 'Total Plants',
@@ -97,7 +97,7 @@ export const translations = {
     statNurseriesSub: 'Registered local nurseries',
     statPendingSub: 'Requires admin review',
     statPlantsSub: 'Live listed varieties',
-    statCitiesSub: 'Sangli, Miraj, Kolhapur & Karad',
+    statCitiesSub: 'All India Coverage',
     statInquiriesSub: 'WhatsApp & Call inquiries',
     popularCategoriesTitle: 'Popular Plant Categories',
     popularCategoriesSubtitle: 'Demand breakdown based on customer leads and active catalog listings',
@@ -256,7 +256,7 @@ export const translations = {
     systemVersion: 'Dashboard Version',
     systemVersionVal: 'v3.0 Botanical Pure React',
     dataManagementTitle: 'Sample Data Management',
-    dataManagementDesc: 'TreeBazzar currently runs in demo mode using realistic sample data for Sangli, Miraj, and Kolhapur.',
+    dataManagementDesc: 'TreeBazzar currently runs in demo mode using realistic sample data for All India nurseries.',
     btnResetData: 'Reset Demo Data to Defaults',
 
     // Logout Modal
@@ -308,10 +308,10 @@ export const translations = {
     landingViewSite: 'View Public Site',
 
     // Hero Section
-    heroBadge: 'Regional Botanical Marketplace • Sangli • Miraj • Kolhapur',
+    heroBadge: 'All India Botanical Marketplace • Pan India Delivery',
     heroTitleLine1: 'Discover Local Nurseries & Quality Plants',
-    heroTitleLine2: 'Across Western Maharashtra',
-    heroSubtitle: 'Directly browse genuine saplings, fruit trees, and indoor greenery from verified growers in Sangli, Miraj, Kolhapur, and Karad with zero middleman commissions.',
+    heroTitleLine2: 'Across All India',
+    heroSubtitle: 'Directly browse genuine saplings, fruit trees, and indoor greenery from verified growers across India with zero middleman commissions.',
     heroSearchPlaceholder: 'Search plants, mango, teak, rose, or nursery name...',
     heroAllCities: 'All Cities',
     heroCitySangli: 'Sangli',
@@ -358,7 +358,7 @@ export const translations = {
     why3Desc: 'Send pre-filled plant inquiries in 1 click and receive live sapling photos or quotes.',
 
     // Partner CTA
-    ctaTitle: 'Are You a Nursery Owner in Western Maharashtra?',
+    ctaTitle: 'Are You a Nursery Owner? Join TreeBazzar All India!',
     ctaSubtitle: 'Join TreeBazzar today to showcase your plants to thousands of local buyers, farmers, and landscape designers.',
     ctaButton: 'Register Your Nursery Free',
 
@@ -464,7 +464,7 @@ export const translations = {
     statNurseriesSub: 'नोंदणीकृत स्थानिक रोपवाटिका',
     statPendingSub: 'तातडीने मंजुरी आवश्यक',
     statPlantsSub: 'कॅटलॉगमधील उपलब्ध प्रकार',
-    statCitiesSub: 'सांगली, मिरज, कोल्हापूर व कराड',
+    statCitiesSub: 'संपूर्ण भारत कव्हरेज',
     statInquiriesSub: 'व्हॉट्सॲप व थेट कॉल्स',
     popularCategoriesTitle: 'लोकप्रिय वनस्पती श्रेणी',
     popularCategoriesSubtitle: 'ग्राहक मागणी व सक्रिय स्टॉकनुसार श्रेणींची वर्गवारी',
@@ -675,10 +675,10 @@ export const translations = {
     landingViewSite: 'पब्लिक साइट पहा',
 
     // Hero Section
-    heroBadge: 'स्थानिक रोपवाटिका बाजारपेठ • सांगली • मिरज • कोल्हापूर • कराड',
+    heroBadge: 'संपूर्ण भारत वनस्पती बाजारपेठ • पॅन इंडिया डिलिव्हरी',
     heroTitleLine1: 'स्थानिक रोपवाटिका आणि दर्जेदार वनस्पती',
-    heroTitleLine2: 'थेट तुमच्या जवळ शोधा',
-    heroSubtitle: 'सांगली, मिरज, कोल्हापूर आणि कराडमधील पडताळणी केलेल्या रोपवाटिकांकडून थेट दर्जेदार रोपे, फळझाडे आणि इनडोअर झाडे निवडा व व्हॉट्सॲपवर संपर्क साधा.',
+    heroTitleLine2: 'संपूर्ण भारतात शोधा',
+    heroSubtitle: 'संपूर्ण भारतातील पडताळणी केलेल्या रोपवाटिकांकडून थेट दर्जेदार रोपे, फळझाडे आणि इनडोअर झाडे निवडा व व्हॉट्सॲपवर संपर्क साधा.',
     heroSearchPlaceholder: 'झाडे, आंबा, सागवान, गुलाब किंवा नर्सरीचे नाव शोधा...',
     heroAllCities: 'सर्व शहरे',
     heroCitySangli: 'सांगली',
@@ -725,7 +725,7 @@ export const translations = {
     why3Desc: 'एका क्लिकमध्ये झाडांचे फोटो आणि दर थेट व्हॉट्सॲपवर मिळवा.',
 
     // Partner CTA
-    ctaTitle: 'तुम्ही सांगली, मिरज किंवा कोल्हापुरात रोपवाटिका चालक आहात का?',
+    ctaTitle: 'तुम्ही भारतात कुठेही रोपवाटिका चालक आहात का? ट्री बाजारला जोडा!',
     ctaSubtitle: 'ट्री बाजारशी जोडून तुमची झाडे हजारो स्थानिक शेतकरी आणि ग्राहकांपर्यंत थेट पोहोचवा.',
     ctaButton: 'मोफत रोपवाटिका नोंदणी करा',
 

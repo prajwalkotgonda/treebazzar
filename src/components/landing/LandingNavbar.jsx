@@ -41,7 +41,7 @@ export default function LandingNavbar({ onOpenLogin, onOpenRegisterNursery }) {
                 <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-[#2E7D32]" />
               </span>
               <p className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase hidden sm:block -mt-0.5">
-                Sangli • Miraj • Kolhapur
+                All India
               </p>
             </div>
           </a>

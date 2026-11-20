@@ -130,7 +130,7 @@ export default function Sidebar({
               <span className="font-semibold text-slate-800 text-[11px] truncate max-w-[170px]" title={cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ')}>
                 {cities.length > 0 
                   ? cities.slice(0, 3).map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ') + (cities.length > 3 ? '...' : '')
-                  : (lang === 'mr' ? 'सांगली • मिरज • कोल्हापूर' : 'Sangli • Miraj • Kolhapur')}
+                  : (lang === 'mr' ? 'संपूर्ण भारत' : 'All India')}
               </span>
             </div>
             <span className="flex h-2 w-2 relative">

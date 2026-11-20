@@ -301,12 +301,12 @@ export default function ReportsView({
               <p className="text-xs font-semibold text-slate-600 mt-0.5">
                 {lang === 'mr' 
                   ? 'स्थानिक रोपवाटिका डिजिटल मार्केटप्लेस • पश्चिम महाराष्ट्र' 
-                  : 'Regional Botanical Marketplace • Western Maharashtra'}
+                  : 'All India Botanical Marketplace'}
               </p>
               <p className="text-[11px] text-slate-500 font-medium">
                 {lang === 'mr' 
                   ? 'हब: सांगली • मिरज • कोल्हापूर • कराड' 
-                  : 'Hub: Sangli • Miraj • Kolhapur • Karad Regional Network'}
+                  : 'All India Nursery Network'}
               </p>
             </div>
           </div>
@@ -390,7 +390,7 @@ export default function ReportsView({
             {nurseries.length}
           </span>
           <p className="text-[11px] text-slate-600 font-semibold mt-0.5 truncate">
-            {cities.length > 0 ? cities.map(c => c.nameEn).join(', ') : 'Sangli, Miraj, Kolhapur'}
+            {cities.length > 0 ? cities.map(c => c.nameEn).join(', ') : 'All India'}
           </p>
         </div>
 
@@ -631,7 +631,7 @@ export default function ReportsView({
               {lang === 'mr' ? 'अधिकृत स्वाक्षरी व शिक्का' : 'Authorized Signatory & Seal'}
             </div>
             <div className="text-[10px] text-slate-500 font-semibold">
-              Super Admin • TreeBazzar Operations (Western Maharashtra)
+              Super Admin • TreeBazzar Operations (All India)
             </div>
           </div>
 

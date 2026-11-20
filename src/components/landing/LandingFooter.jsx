@@ -16,7 +16,7 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
 
   const hubsText = cities.length > 0
     ? cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(' • ') + (lang === 'mr' ? ' प्रादेशिक हब' : ' Regional Hub')
-    : 'Sangli • Miraj • Kolhapur • Karad Regional Hub';
+    : 'All India Regional Hub';
 
   return (
     <footer className="bg-slate-900 text-white pt-14 pb-8 border-t border-slate-800">
@@ -37,8 +37,8 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
             
             <p className="text-xs text-slate-400 max-w-sm leading-relaxed mb-4">
               {lang === 'mr' 
-                ? 'पश्चिम महाराष्ट्रातील स्थानिक शेतकरी, बागकाम प्रेमी आणि रोपवाटिका चालकांना जोडणारा अग्रगण्य हरित मंच.'
-                : 'Western Maharashtra\'s premier local plant nursery discovery marketplace connecting farmers, home gardeners, and verified nurseries.'}
+                ? 'संपूर्ण भारतातील स्थानिक शेतकरी, बागकाम प्रेमी आणि रोपवाटिका चालकांना जोडणारा अग्रगण्य हरित मंच.'
+                : 'India\'s premier local plant nursery discovery marketplace connecting farmers, home gardeners, and verified nurseries across All India.'}
             </p>
 
             <div className="flex items-center gap-2 text-xs text-slate-400 mb-5">

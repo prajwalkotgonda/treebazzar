@@ -80,9 +80,18 @@ export default async function handler(req, res) {
     const cleanEmail = (email && email.includes('@')) ? email.trim() : 'nursery@treebazzar.com';
 
     // Base URL for callbacks
+    const isTestMode = env !== 'prod' && env !== 'production';
     const origin = req.headers.origin || req.headers.referer ? new URL(req.headers.referer || req.headers.origin).origin : 'http://localhost:3001';
-    const surl = `${origin}/api/payu/response?status=success`;
-    const furl = `${origin}/api/payu/response?status=failure`;
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+
+    // In PayU Test Mode on localhost, PayU security blocks non-HTTPS / localhost redirect URLs with "Some problem occurred"
+    // Use official PayU sandbox test handler on localhost, and your custom callback URL when deployed or in production
+    const surl = (isTestMode && isLocalhost)
+      ? 'https://test.payu.in/admin/test_response'
+      : `${origin}/api/payu/response?status=success`;
+    const furl = (isTestMode && isLocalhost)
+      ? 'https://test.payu.in/admin/test_response'
+      : `${origin}/api/payu/response?status=failure`;
 
     // SHA-512 Hash Generation Formula:
     // sha512(key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||salt)

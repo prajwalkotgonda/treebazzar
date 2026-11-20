@@ -359,7 +359,7 @@ export default function OverviewView({
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
-            <span>Western Maharashtra Hub</span>
+            <span>All India Hub</span>
             <span className="font-semibold text-[#1E5631]">TreeBazzar Admin</span>
           </div>
         </div>

@@ -8,7 +8,7 @@ export default function PartnerCta({ onOpenRegisterNursery }) {
   const benefits = [
     lang === 'mr' ? '६ दिवस मोफत ट्रायल (Free Trial)' : '6 Days Free Trial',
     lang === 'mr' ? 'थेट ग्राहकांचे व्हॉट्सॲप मेसेज' : 'Direct Customer Leads on WhatsApp',
-    lang === 'mr' ? 'सांगली, मिरज व कोल्हापूरमध्ये प्रसिद्धी' : 'Promote in Sangli, Miraj & Kolhapur',
+    lang === 'mr' ? 'संपूर्ण भारतात प्रसिद्धी' : 'Promote Across All India',
     lang === 'mr' ? 'शून्य कमिशन' : 'Zero Brokerage / Keep 100% Revenue'
   ];
 

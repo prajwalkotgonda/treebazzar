@@ -146,7 +146,7 @@ export default function AppDownloadSection() {
                   <div className="p-3 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between">
                     <span className="text-slate-400 text-[11px]">{lang === 'mr' ? 'कव्हरेज' : 'Coverage'}</span>
                     <span className="font-semibold text-white">
-                      Sangli • Miraj • Kolhapur
+                      All India
                     </span>
                   </div>
                 </div>
