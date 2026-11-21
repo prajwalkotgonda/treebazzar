@@ -1,5 +1,5 @@
 import React from 'react';
-import { Leaf, MapPin, Mail, Phone, Heart, Globe } from 'lucide-react';
+import { Leaf, Mail, Phone, Heart, Globe } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import GooglePlayButton from '../common/GooglePlayButton';
 
@@ -83,17 +83,7 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
               {t('footerContact')}
             </h4>
             <div className="space-y-2.5 text-xs text-slate-300">
-              <div className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <p className="leading-relaxed text-[11px] text-slate-300">
-                  House No. 21, Balaji Nagar,<br />
-                  Near Law College, Ghulewadi,<br />
-                  Taluka Sangamner, District Ahilyanagar,<br />
-                  Maharashtra - 422605, India.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 pt-0.5">
+              <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <a href="mailto:TreeBazzar@gmail.com" className="hover:text-emerald-300 transition-colors">
                   TreeBazzar@gmail.com

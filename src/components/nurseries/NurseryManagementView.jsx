@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Store, Search, CheckCircle2, XCircle, AlertCircle, Eye, 
   Plus, Phone, MapPin, Calendar, Check, X, Edit2, Trash2, ShieldAlert, Loader2,
-  RotateCcw, Ban, Clock
+  RotateCcw, Ban, Clock, CalendarPlus
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import NurseryDetailsModal from '../common/NurseryDetailsModal';
@@ -22,6 +22,7 @@ export default function NurseryManagementView({
   onRevoke,
   onSuspend,
   onUnsuspend,
+  onExtendTrial,
   onAddNursery,
   onUpdateNursery,
   onDeleteNursery,
@@ -170,7 +171,7 @@ export default function NurseryManagementView({
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           {[
             { id: 'all', label: lang === 'mr' ? 'सर्व रोपवाटिका' : 'All Nurseries', count: counts.all },
-            { id: 'trial', label: lang === 'mr' ? '⏱️ फ्री ट्रायल (६ दिवस)' : '⏱️ Free Trial (6 Days)', count: counts.trial },
+            { id: 'trial', label: lang === 'mr' ? '⏱️ फ्री ट्रायल (३ दिवस)' : '⏱️ Free Trial (3 Days)', count: counts.trial },
             { id: 'pending', label: lang === 'mr' ? 'सबस्क्रिप्शन प्रलंबित' : 'Pending Subscription', count: counts.pending, alert: counts.pending > 0 },
             { id: 'approved', label: lang === 'mr' ? 'मंजूर' : 'Approved', count: counts.approved },
             { id: 'suspended', label: lang === 'mr' ? 'निलंबित' : 'Suspended', count: counts.suspended },
@@ -303,10 +304,17 @@ export default function NurseryManagementView({
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
                             <span>{lang === 'mr' ? 'फ्री ट्रायल चालू' : 'Free Trial'}</span>
                           </span>
-                          <span className="text-[10px] text-slate-500 font-semibold pl-1">
-                            {lang === 'mr' 
-                              ? `${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 6} दिवस बाकी` 
-                              : `${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 6}d left`}
+                          <span className="text-[10px] text-slate-500 font-semibold pl-1 flex items-center gap-1">
+                            <span>
+                              {lang === 'mr' 
+                                ? `${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 3} दिवस बाकी` 
+                                : `${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 3}d left`}
+                            </span>
+                            {(nursery.trialExtensionsCount || 0) > 0 && (
+                              <span className="text-[9px] bg-blue-100 text-blue-800 font-bold px-1 rounded">
+                                +{(nursery.trialExtensionsCount || 0) * 3}d
+                              </span>
+                            )}
                           </span>
                         </div>
                       )}
@@ -315,11 +323,11 @@ export default function NurseryManagementView({
                         <div className="flex flex-col gap-0.5 items-start">
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs">
                             <Clock className="w-3 h-3 text-amber-600 shrink-0" />
-                            <span>{nursery.isTrialExpired ? (lang === 'mr' ? '६ दिवस संपले' : 'Trial Expired') : (lang === 'mr' ? 'प्रलंबित' : 'Pending')}</span>
+                            <span>{nursery.isTrialExpired ? (lang === 'mr' ? '३ दिवस संपले' : 'Trial Expired') : (lang === 'mr' ? 'प्रलंबित' : 'Pending')}</span>
                           </span>
                           <span className="text-[10px] text-amber-800 font-semibold pl-1 flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                            <span>{lang === 'mr' ? 'सबस्क्रिप्शन आवश्यक' : 'Subscription Due'}</span>
+                            <span>{lang === 'mr' ? 'पेमेंट / मुदतवाढ आवश्यक' : 'Subscription Due'}</span>
                           </span>
                         </div>
                       )}
@@ -351,9 +359,26 @@ export default function NurseryManagementView({
                       <div className="flex items-center justify-end gap-2">
                         
                         {/* 1. Decision Actions Group */}
-                        {/* Pending / Trial Expired: Approve Subscription & Reject */}
+                        {/* Pending / Trial Expired: Approve Subscription, +3 Days Extension, & Reject */}
                         {((nursery.isTrialExpired || nursery.status === 'pending') && nursery.status !== 'approved' && !nursery.isTrialActive && !nursery.isSuspended) && (
                           <div className="flex items-center gap-1.5">
+                            {/* Option to extend +3 days free trial if owner hasn't paid yet */}
+                            {(Number(nursery.trialExtensionsCount) || 0) < 2 ? (
+                              <button
+                                onClick={() => onExtendTrial && onExtendTrial(nursery.id)}
+                                disabled={processingId === nursery.id}
+                                title={lang === 'mr' ? '३ दिवस मोफत वाढवा (+३ दिवस)' : 'Extend +3 Days Free Trial'}
+                                className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs hover:shadow"
+                              >
+                                <CalendarPlus className="w-3.5 h-3.5 text-blue-600" />
+                                <span>{lang === 'mr' ? `+३ दिवस वाढवा (${(nursery.trialExtensionsCount || 0)}/२)` : `+3 Days (${(nursery.trialExtensionsCount || 0)}/2)`}</span>
+                              </button>
+                            ) : (
+                              <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-bold border border-slate-200" title={lang === 'mr' ? 'कमाल मर्यादा पूर्ण (९ दिवस मोफत दिले)' : 'Max 9 days trial reached'}>
+                                {lang === 'mr' ? 'मर्यादा पूर्ण' : 'Max Trial'}
+                              </span>
+                            )}
+
                             <button
                               onClick={() => handleApproveWithFeedback(nursery.id)}
                               disabled={processingId === nursery.id}
@@ -383,9 +408,21 @@ export default function NurseryManagementView({
                           </div>
                         )}
 
-                        {/* Active Free Trial Nursery Action: Optional Early Subscription Approval */}
+                        {/* Active Free Trial Nursery Action: +3 Days Extension or Early Approval */}
                         {nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && (
                           <div className="flex items-center gap-1.5">
+                            {(Number(nursery.trialExtensionsCount) || 0) < 2 ? (
+                              <button
+                                onClick={() => onExtendTrial && onExtendTrial(nursery.id)}
+                                disabled={processingId === nursery.id}
+                                title={lang === 'mr' ? '३ दिवस मोफत वाढवा (+३ दिवस)' : 'Extend +3 Days Free Trial'}
+                                className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                              >
+                                <CalendarPlus className="w-3.5 h-3.5 text-blue-600" />
+                                <span>{lang === 'mr' ? `+३ दिवस वाढवा (${(nursery.trialExtensionsCount || 0)}/२)` : `+3 Days (${(nursery.trialExtensionsCount || 0)}/2)`}</span>
+                              </button>
+                            ) : null}
+
                             <button
                               onClick={() => handleApproveWithFeedback(nursery.id)}
                               disabled={processingId === nursery.id}
@@ -563,6 +600,10 @@ export default function NurseryManagementView({
           onClose={() => setDetailsNursery(null)}
           onApprove={async (id) => {
             if (onApprove) await onApprove(id);
+            setDetailsNursery(null);
+          }}
+          onExtendTrial={async (id) => {
+            if (onExtendTrial) await onExtendTrial(id);
             setDetailsNursery(null);
           }}
           onOpenReject={(n) => {

@@ -39,7 +39,7 @@ export function sanitizePayload(obj) {
 }
 
 /**
- * Helper to calculate 6-Day Free Trial and Subscription lifecycle for a nursery
+ * Helper to calculate 3-Day Free Trial (with +3 +3 Admin Extension) and Subscription lifecycle for a nursery
  */
 export function getNurseryTrialInfo(data) {
   if (!data) {
@@ -49,8 +49,9 @@ export function getNurseryTrialInfo(data) {
       isTrialExpired: false,
       daysLeft: 0,
       trialStartDate: new Date().toISOString(),
-      trialEndDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
-      trialDaysTotal: 6
+      trialEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      trialDaysTotal: 3,
+      trialExtensionsCount: 0
     };
   }
 
@@ -80,13 +81,15 @@ export function getNurseryTrialInfo(data) {
     createdTime = Date.now();
   }
 
-  const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000;
+  const trialDaysTotal = Number(data.trialDaysTotal) || 3;
+  const trialExtensionsCount = Number(data.trialExtensionsCount) || (trialDaysTotal > 3 ? Math.floor((trialDaysTotal - 3) / 3) : 0);
+
   let trialEndTime;
   if (data.trialEndDate) {
     trialEndTime = new Date(data.trialEndDate).getTime();
   }
   if (!trialEndTime || isNaN(trialEndTime)) {
-    trialEndTime = createdTime + SIX_DAYS_MS;
+    trialEndTime = createdTime + trialDaysTotal * 24 * 60 * 60 * 1000;
   }
 
   const now = Date.now();
@@ -103,7 +106,8 @@ export function getNurseryTrialInfo(data) {
     daysLeft,
     trialStartDate: new Date(createdTime).toISOString(),
     trialEndDate: new Date(trialEndTime).toISOString(),
-    trialDaysTotal: 6
+    trialDaysTotal,
+    trialExtensionsCount
   };
 }
 
@@ -130,14 +134,14 @@ export function normalizeNursery(data, id) {
   const isRejected = rawStatus === 'rejected';
   const isRevoked = rawStatus === 'revoked';
 
-  // Calculate 6-Day Free Trial Information
+  // Calculate 3-Day Free Trial Information (3+3+3 Model)
   const trialInfo = getNurseryTrialInfo(data);
 
   // Status mapping:
   // 1. Suspended or Rejected always takes precedence
   // 2. If approved / subscribed: 'approved'
-  // 3. If within 6 days trial: 'trial' (Active free trial, no admin block)
-  // 4. If 6 days passed and not approved: 'pending' (Trial Expired, needs Admin subscription approval)
+  // 3. If within 3 days trial (or extended +3/+3): 'trial' (Active free trial, no admin block)
+  // 4. If trial expired and not approved: 'pending' (Trial Expired, needs payment or Admin +3 days extension)
   let normalizedStatus;
   if (isSuspended) {
     normalizedStatus = 'suspended';
@@ -195,15 +199,16 @@ export function normalizeNursery(data, id) {
     isActive,
     isSuspended: isSuspended || isRejected,
 
-    // 6-Day Free Trial & Subscription Lifecycle
+    // 3-Day Free Trial (3+3+3 Model) & Subscription Lifecycle
     trialStartDate: trialInfo.trialStartDate,
     trialEndDate: trialInfo.trialEndDate,
-    trialDaysTotal: 6,
+    trialDaysTotal: trialInfo.trialDaysTotal,
+    trialExtensionsCount: trialInfo.trialExtensionsCount,
     trialDaysLeft: trialInfo.daysLeft,
     isTrialActive: trialInfo.isTrialActive,
     isTrialExpired: trialInfo.isTrialExpired,
     isSubscribed: trialInfo.isSubscribed,
-    subscriptionPlan: data.subscriptionPlan || (trialInfo.isSubscribed ? 'paid_annual' : 'free_trial_6d'),
+    subscriptionPlan: data.subscriptionPlan || (trialInfo.isSubscribed ? 'paid_annual' : 'free_trial_3d'),
     subscriptionStatus: trialInfo.isSubscribed ? 'active' : (trialInfo.isTrialActive ? 'trial' : 'pending_approval'),
 
     rejectionReason,
@@ -767,7 +772,8 @@ export async function saveNurseryToFirestore(nursery) {
     isSuspended: isSuspended,
     trialStartDate: norm.trialStartDate,
     trialEndDate: norm.trialEndDate,
-    trialDaysTotal: norm.trialDaysTotal || 6,
+    trialDaysTotal: norm.trialDaysTotal || 3,
+    trialExtensionsCount: norm.trialExtensionsCount || 0,
     trialDaysLeft: norm.trialDaysLeft,
     isTrialActive: isTrialActive,
     isTrialExpired: Boolean(norm.isTrialExpired),

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   X, Phone, MessageSquare, MapPin, Calendar, Award, CheckCircle2, 
   AlertCircle, XCircle, ExternalLink, ShieldCheck, Sprout, Building, Compass,
-  CreditCard, Loader2, Ban, RotateCcw
+  CreditCard, Loader2, Ban, RotateCcw, CalendarPlus
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
@@ -13,6 +13,7 @@ export default function NurseryDetailsModal({
   isOpen, 
   onClose, 
   onApprove, 
+  onExtendTrial,
   onOpenReject,
   onOpenRevoke,
   onOpenSuspend,
@@ -129,7 +130,7 @@ export default function NurseryDetailsModal({
               {isTrialActive && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500 text-white shadow-lg shadow-blue-500/30">
                   <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                  {lang === 'mr' ? `फ्री ट्रायल (${nursery.trialDaysLeft ?? 6} दिवस बाकी)` : `Free Trial (${nursery.trialDaysLeft ?? 6}d left)`}
+                  {lang === 'mr' ? `फ्री ट्रायल (${nursery.trialDaysLeft ?? 3} दिवस बाकी)` : `Free Trial (${nursery.trialDaysLeft ?? 3}d left)`}
                 </span>
               )}
               {isSuspended && (
@@ -143,7 +144,7 @@ export default function NurseryDetailsModal({
                   <AlertCircle className="w-4 h-4" />
                   {nursery.status === 'revoked' 
                     ? (lang === 'mr' ? 'रद्द (प्रलंबित)' : 'Revoked (Pending)') 
-                    : (isTrialExpired ? (lang === 'mr' ? '६ दिवस संपले' : 'Trial Expired') : t('statusPending'))}
+                    : (isTrialExpired ? (lang === 'mr' ? '३ दिवस संपले' : 'Trial Expired') : t('statusPending'))}
                 </span>
               )}
               {isRejected && (

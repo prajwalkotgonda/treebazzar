@@ -364,9 +364,93 @@ function DashboardContent({
     }
   };
 
+  // Admin Free Trial Extension (3 + 3 + 3 Model)
+  const handleExtendTrial = async (nurseryId) => {
+    const targetNursery = nurseries.find(n => n.id === nurseryId);
+    if (!targetNursery) return;
+
+    const nurseryName = targetNursery?.name || targetNursery?.nurseryName || (lang === 'mr' ? 'रोपवाटिका' : 'Nursery');
+    const currentExtensions = Number(targetNursery.trialExtensionsCount) || 0;
+    const currentTotalDays = Number(targetNursery.trialDaysTotal) || 3;
+
+    // Check maximum extensions (max 2 extensions: 3 + 3 + 3 = 9 days max)
+    if (currentExtensions >= 2 || currentTotalDays >= 9) {
+      showToast({
+        type: 'warning',
+        title: lang === 'mr' ? 'कमाल मर्यादा गाठली!' : 'Maximum Extensions Reached',
+        message: lang === 'mr' 
+          ? `"${nurseryName}" ला आधीच २ वेळा ३ दिवस वाढवून दिले आहेत (एकूण ९ दिवस). आता पुढील सेवा सुरू ठेवण्यासाठी कृपया सबस्क्रिप्शन भरण्यास सांगा.` 
+          : `Maximum trial extensions (9 days total) already granted for "${nurseryName}". Please ask owner to subscribe.`
+      });
+      return;
+    }
+
+    const nextExtensions = currentExtensions + 1;
+    const nextTotalDays = currentTotalDays + 3;
+
+    // Calculate new trial end date: from max of (now, current trialEndDate) + 3 days
+    const currentEnd = targetNursery.trialEndDate ? new Date(targetNursery.trialEndDate).getTime() : Date.now();
+    const baseTime = isNaN(currentEnd) || currentEnd < Date.now() ? Date.now() : currentEnd;
+    const newEndTime = baseTime + 3 * 24 * 60 * 60 * 1000;
+    const newEndDateIso = new Date(newEndTime).toISOString();
+    const newDaysLeft = Math.max(1, Math.ceil((newEndTime - Date.now()) / (1000 * 60 * 60 * 24)));
+
+    const updatedNursery = {
+      ...targetNursery,
+      status: 'trial',
+      isActive: true,
+      isTrialActive: true,
+      isTrialExpired: false,
+      isSubscribed: false,
+      trialEndDate: newEndDateIso,
+      trialDaysTotal: nextTotalDays,
+      trialExtensionsCount: nextExtensions,
+      trialDaysLeft: newDaysLeft,
+      updatedAt: new Date().toISOString()
+    };
+
+    setNurseries(prev => prev.map(n => n.id === nurseryId ? updatedNursery : n));
+
+    showToast({
+      type: 'info',
+      title: lang === 'mr' ? '+३ दिवस जोडत आहे...' : 'Extending +3 Days...',
+      message: lang === 'mr' ? `"${nurseryName}" साठी ३ दिवस मोफत मुदतवाढ दिली जात आहे.` : `Granting +3 free trial days to "${nurseryName}"...`
+    });
+
+    try {
+      await updateNurseryInFirestore(nurseryId, {
+        status: 'trial',
+        isActive: true,
+        isTrialActive: true,
+        isTrialExpired: false,
+        isSubscribed: false,
+        trialEndDate: newEndDateIso,
+        trialDaysTotal: nextTotalDays,
+        trialExtensionsCount: nextExtensions,
+        trialDaysLeft: newDaysLeft,
+        updatedAt: new Date().toISOString()
+      });
+
+      showToast({
+        type: 'success',
+        title: lang === 'mr' ? '+३ दिवस मोफत वाढवले!' : '+3 Days Trial Extended!',
+        message: lang === 'mr'
+          ? `"${nurseryName}" चे ३ दिवस मोफत वाढवले (एकूण: ${nextTotalDays} दिवस, टप्पा: ${nextExtensions}/२).`
+          : `Granted +3 free trial days for "${nurseryName}" (Total: ${nextTotalDays} days, Stage: ${nextExtensions}/2).`
+      });
+    } catch (err) {
+      console.error('Nursery extend trial sync error:', err);
+      showToast({
+        type: 'error',
+        title: lang === 'mr' ? 'त्रुटी आढळली' : 'Error',
+        message: lang === 'mr' ? 'डेटाबेसमध्ये बदल सेव्ह करताना अडचण आली.' : 'Failed to update nursery trial in database.'
+      });
+    }
+  };
+
   const handleAddNursery = (newNurseryData) => {
     const now = new Date();
-    const trialEnd = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const trialEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     const isApproved = newNurseryData.status === 'approved';
 
     const newEntry = {
@@ -379,9 +463,10 @@ function DashboardContent({
       isTrialExpired: false,
       trialStartDate: newNurseryData.trialStartDate || now.toISOString(),
       trialEndDate: newNurseryData.trialEndDate || trialEnd.toISOString(),
-      trialDaysTotal: 6,
-      trialDaysLeft: 6,
-      subscriptionPlan: isApproved ? 'paid_annual' : 'free_trial',
+      trialDaysTotal: 3,
+      trialExtensionsCount: 0,
+      trialDaysLeft: 3,
+      subscriptionPlan: isApproved ? 'paid_annual' : 'free_trial_3d',
       subscriptionStatus: isApproved ? 'active' : 'trial',
       isSubscriptionApproved: isApproved,
       registrationDate: newNurseryData.registrationDate || now.toISOString().split('T')[0]
@@ -392,7 +477,7 @@ function DashboardContent({
 
     showToast({
       type: 'success',
-      title: lang === 'mr' ? 'रोपवाटिका जोडली' : 'Nursery Registered',
+      title: lang === 'mr' ? 'रोपवाटिका जोडली (३ दिवस मोफत ट्रायल)' : 'Nursery Registered (3-Day Free Trial)',
       message: `${newEntry.name} registered successfully.`
     });
   };
@@ -821,6 +906,7 @@ function DashboardContent({
               onOpenAddCustomer={() => setAddCustomerModalOpen(true)}
               onApproveNursery={handleApproveNursery}
               onRejectNursery={handleRejectNursery}
+              onExtendTrial={handleExtendTrial}
               onApproveOrder={handleApproveOrder}
               onRejectOrder={handleRejectOrder}
             />
@@ -837,6 +923,7 @@ function DashboardContent({
               onRevoke={handleRevokeNursery}
               onSuspend={handleSuspendNursery}
               onUnsuspend={handleUnsuspendNursery}
+              onExtendTrial={handleExtendTrial}
               onAddNursery={handleAddNursery}
               onUpdateNursery={handleUpdateNursery}
               onDeleteNursery={handleDeleteNursery}
@@ -1234,24 +1321,25 @@ function AppRoot() {
     });
   };
 
-  // Nursery partner registration from public landing page (6-Day Free Trial)
+  // Nursery partner registration from public landing page (3-Day Free Trial)
   const handlePartnerAddNursery = (newNurseryData) => {
     const now = new Date();
-    const trialEnd = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const trialEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
     const newEntry = {
       ...newNurseryData,
       id: newNurseryData.id || `nursery-${Date.now()}`,
       status: 'trial',
       verified: false,
-      isActive: true, // Active during 6-day free trial
+      isActive: true, // Active during 3-day free trial
       isTrialActive: true,
       isTrialExpired: false,
       trialStartDate: now.toISOString(),
       trialEndDate: trialEnd.toISOString(),
-      trialDaysTotal: 6,
-      trialDaysLeft: 6,
-      subscriptionPlan: 'free_trial',
+      trialDaysTotal: 3,
+      trialExtensionsCount: 0,
+      trialDaysLeft: 3,
+      subscriptionPlan: 'free_trial_3d',
       subscriptionStatus: 'trial',
       isSubscriptionApproved: false,
       isNew: true,
@@ -1262,10 +1350,10 @@ function AppRoot() {
 
     showToast({
       type: 'success',
-      title: lang === 'mr' ? '६ दिवस मोफत ट्रायल सुरू झाले!' : '6-Day Free Trial Activated!',
+      title: lang === 'mr' ? '३ दिवस मोफत ट्रायल सुरू झाले!' : '3-Day Free Trial Activated!',
       message: lang === 'mr' 
-        ? `"${newEntry.name}" साठी ६ दिवस मोफत ट्रायल सुरू झाले आहे. आता ॲपमध्ये थेट वापरू शकता.` 
-        : `"${newEntry.name}" has been activated on a 6-day free trial. Ready to use!`
+        ? `"${newEntry.name}" साठी ३ दिवस मोफत ट्रायल सुरू झाले आहे. आता ॲपमध्ये थेट वापरू शकता.` 
+        : `"${newEntry.name}" has been activated on a 3-day free trial. Ready to use!`
     });
   };
 
