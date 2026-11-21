@@ -16,6 +16,7 @@ import SuspendConfirmModal from '../common/SuspendConfirmModal';
 export default function NurseryManagementView({ 
   nurseries = [], 
   cities: citiesProp = [],
+  plants = [],
   initialTab = 'all',
   onApprove, 
   onReject,
@@ -88,13 +89,42 @@ export default function NurseryManagementView({
     };
   }, [nurseries]);
 
-  // Available cities dynamically extracted from actual nurseries
+  // Available cities dynamically extracted from actual nurseries + cities added in City Management
   const availableCities = useMemo(() => {
-    const unique = Array.from(new Set(nurseries.map(n => n.city).filter(Boolean))).sort();
-    return unique.map(c => ({ value: c, label: c }));
-  }, [nurseries]);
+    const map = new Map();
 
-  // Filtered nurseries
+    // 1. Cities added via City Management
+    (citiesProp || []).forEach(c => {
+      const nameEn = (c.nameEn || c.name || '').trim();
+      const nameMr = (c.nameMr || '').trim();
+      if (nameEn) {
+        map.set(nameEn.toLowerCase(), {
+          value: nameEn,
+          label: lang === 'mr' && nameMr ? nameMr : nameEn,
+          nameEn,
+          nameMr
+        });
+      }
+    });
+
+    // 2. Cities from registered nurseries
+    (nurseries || []).forEach(n => {
+      const city = (n.city || '').trim();
+      const cityMr = (n.cityMr || '').trim();
+      if (city && !map.has(city.toLowerCase())) {
+        map.set(city.toLowerCase(), {
+          value: city,
+          label: lang === 'mr' && cityMr ? cityMr : city,
+          nameEn: city,
+          nameMr: cityMr
+        });
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+  }, [nurseries, citiesProp, lang]);
+
+  // Filtered nurseries (by status tab, city, and universal search matching nursery, product/plant, or city)
   const filteredNurseries = useMemo(() => {
     const q = (localSearch || searchQuery).toLowerCase().trim();
 
@@ -114,25 +144,133 @@ export default function NurseryManagementView({
         if (n.status !== 'rejected') return false;
       }
 
-      // 2. City filter
-      if (selectedCity !== 'all' && n.city?.toLowerCase() !== selectedCity.toLowerCase()) {
+      // 2. City Dropdown Filter
+      if (selectedCity !== 'all') {
+        const sel = selectedCity.toLowerCase();
+        const nCity = (n.city || '').toLowerCase();
+        const nCityMr = (n.cityMr || '').toLowerCase();
+        const nDist = (n.district || '').toLowerCase();
+
+        const matchedCityObj = (citiesProp || []).find(c => 
+          (c.nameEn || c.name || '').toLowerCase() === sel ||
+          (c.nameMr || '').toLowerCase() === sel
+        );
+        const cEn = (matchedCityObj?.nameEn || matchedCityObj?.name || '').toLowerCase();
+        const cMr = (matchedCityObj?.nameMr || '').toLowerCase();
+
+        const matchesCity = nCity === sel || nCityMr === sel ||
+          (cEn && (nCity === cEn || nDist === cEn)) ||
+          (cMr && (nCity === cMr || nCityMr === cMr || nDist === cMr));
+
+        if (!matchesCity) return false;
+      }
+
+      // 3. Search query: Match Nursery Name, Owner, Phone, City, OR any Product/Plant sold by nursery
+      if (q) {
+        // Generic nursery keyword search -> matches all nurseries in current tab/city
+        const genericNurseryKeywords = ['nursery', 'nurseries', 'नर्सरी', 'रोपवाटिका', 'रोपवाटिकांची'];
+        if (genericNurseryKeywords.some(k => q === k || q.includes(k))) {
+          n._matchingProduct = null;
+          return true;
+        }
+
+        // A) Direct nursery attributes (Name, Owner, City, District, Address, Phone)
+        const nameEn = (n.name || n.nurseryName || '').toLowerCase();
+        const nameMr = (n.nameMr || n.nurseryNameMr || '').toLowerCase();
+        const owner = (n.ownerName || n.owner || '').toLowerCase();
+        const city = (n.city || '').toLowerCase();
+        const cityMr = (n.cityMr || '').toLowerCase();
+        const district = (n.district || '').toLowerCase();
+        const address = (n.address || '').toLowerCase();
+        const phone = (n.phone || '').toLowerCase();
+        const whatsapp = (n.whatsapp || '').toLowerCase();
+
+        if (
+          nameEn.includes(q) ||
+          nameMr.includes(q) ||
+          owner.includes(q) ||
+          city.includes(q) ||
+          cityMr.includes(q) ||
+          district.includes(q) ||
+          address.includes(q) ||
+          phone.includes(q) ||
+          whatsapp.includes(q)
+        ) {
+          n._matchingProduct = null;
+          return true;
+        }
+
+        // B) City match via cities collection (handles Marathi & English city searches)
+        const matchingCityObj = (citiesProp || []).find(c => {
+          const cEn = (c.nameEn || c.name || '').toLowerCase();
+          const cMr = (c.nameMr || '').toLowerCase();
+          return cEn.includes(q) || cMr.includes(q) || q.includes(cEn) || (cMr && q.includes(cMr));
+        });
+        if (matchingCityObj) {
+          const cEn = (matchingCityObj.nameEn || matchingCityObj.name || '').toLowerCase();
+          const cMr = (matchingCityObj.nameMr || '').toLowerCase();
+          if (
+            city === cEn || 
+            city === cMr || 
+            cityMr === cMr || 
+            district === cEn || 
+            address.includes(cEn) || 
+            (cMr && address.includes(cMr))
+          ) {
+            n._matchingProduct = null;
+            return true;
+          }
+        }
+
+        // C) Specialties / Plant products list of this nursery
+        const specialties = Array.isArray(n.specialties) ? n.specialties : [];
+        const matchedSpecialty = specialties.find(s => s.toLowerCase().includes(q));
+        if (matchedSpecialty) {
+          n._matchingProduct = matchedSpecialty;
+          return true;
+        }
+
+        const facilities = Array.isArray(n.facilities) ? n.facilities : [];
+        const matchedFacility = facilities.find(f => f.toLowerCase().includes(q));
+        if (matchedFacility) {
+          n._matchingProduct = matchedFacility;
+          return true;
+        }
+
+        // D) Product / Plant varieties associated with this nursery
+        if (plants && plants.length > 0) {
+          const nurseryPlants = plants.filter(p => 
+            p.nurseryId === n.id || 
+            (p.nurseryName && (
+              p.nurseryName.toLowerCase() === nameEn || 
+              (nameMr && p.nurseryName.toLowerCase() === nameMr)
+            ))
+          );
+
+          const matchedPlant = nurseryPlants.find(p => {
+            const pEn = (p.nameEn || p.name || '').toLowerCase();
+            const pMr = (p.nameMr || '').toLowerCase();
+            const pBot = (p.botanicalName || '').toLowerCase();
+            const pCat = (p.category || '').toLowerCase();
+            const pCatMr = (p.categoryMr || '').toLowerCase();
+            const pDesc = (p.descriptionEn || p.description || '').toLowerCase();
+            const pDescMr = (p.descriptionMr || '').toLowerCase();
+            return pEn.includes(q) || pMr.includes(q) || pBot.includes(q) || pCat.includes(q) || pCatMr.includes(q) || pDesc.includes(q) || pDescMr.includes(q);
+          });
+
+          if (matchedPlant) {
+            n._matchingProduct = lang === 'mr' && matchedPlant.nameMr ? matchedPlant.nameMr : (matchedPlant.nameEn || matchedPlant.name);
+            return true;
+          }
+        }
+
         return false;
       }
 
-      // 3. Search query (by nursery name, owner name, city, phone)
-      if (q) {
-        const nameEn = (n.name || '').toLowerCase();
-        const nameMr = (n.nameMr || '').toLowerCase();
-        const owner = (n.ownerName || n.owner || '').toLowerCase();
-        const city = (n.city || '').toLowerCase();
-        const phone = (n.phone || '').toLowerCase();
-
-        return nameEn.includes(q) || nameMr.includes(q) || owner.includes(q) || city.includes(q) || phone.includes(q);
-      }
-
+      n._matchingProduct = null;
       return true;
     });
-  }, [nurseries, activeTab, selectedCity, localSearch, searchQuery]);
+  }, [nurseries, activeTab, selectedCity, localSearch, searchQuery, plants, citiesProp, lang]);
 
   return (
     <div className="space-y-5">
@@ -209,19 +347,50 @@ export default function NurseryManagementView({
           </select>
 
           {/* Local Search Input */}
-          <div className="relative flex-1 sm:w-56">
+          <div className="relative flex-1 sm:w-64">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder={lang === 'mr' ? 'नाव, शहर शोधा...' : 'Search nursery...'}
+              placeholder={lang === 'mr' ? 'नर्सरी, प्रॉडक्ट किंवा शहर शोधा...' : 'Search nursery, product, city...'}
               value={localSearch}
               onChange={e => setLocalSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#2E7D32]"
+              className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#2E7D32]"
             />
+            {localSearch && (
+              <button
+                type="button"
+                onClick={() => setLocalSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                title={lang === 'mr' ? 'शोध पुसा' : 'Clear'}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
       </div>
+
+      {/* Search & City Active Filter Feedback Bar */}
+      {(localSearch || searchQuery || selectedCity !== 'all') && (
+        <div className="p-3 bg-emerald-50/90 border border-emerald-200/90 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse" />
+            <span className="text-xs font-bold text-[#1E5631]">
+              {lang === 'mr'
+                ? `${localSearch || searchQuery ? `"${localSearch || searchQuery}" शोध` : ''} ${selectedCity !== 'all' ? `(शहर: ${selectedCity})` : ''} नुसार ${filteredNurseries.length} रोपवाटिका सापडल्या`
+                : `Found ${filteredNurseries.length} nurseries ${localSearch || searchQuery ? `matching "${localSearch || searchQuery}"` : ''} ${selectedCity !== 'all' ? `in ${selectedCity}` : ''}`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setLocalSearch(''); setSelectedCity('all'); }}
+            className="text-xs font-bold text-emerald-800 hover:text-emerald-950 underline cursor-pointer"
+          >
+            {lang === 'mr' ? 'फिल्टर्स रीसेट करा' : 'Reset filters'}
+          </button>
+        </div>
+      )}
 
       {/* Nurseries Table & Card List */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
@@ -247,15 +416,22 @@ export default function NurseryManagementView({
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1E5631] flex items-center justify-center font-bold text-xs shrink-0">
-                          {nursery.name.charAt(0)}
+                          {(nursery.name || nursery.nurseryName || 'N').charAt(0)}
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-slate-900 truncate">
-                            {nursery.name}
+                            {nursery.name || nursery.nurseryName}
                           </p>
                           <p className="text-[11px] text-slate-500">
                             {nursery.ownerName || nursery.owner}
                           </p>
+                          {nursery._matchingProduct && (
+                            <div className="mt-1">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-[#1E5631] text-[10px] font-bold border border-emerald-200 shadow-2xs">
+                                🌱 {lang === 'mr' ? 'उपलब्ध प्रॉडक्ट:' : 'Product:'} {nursery._matchingProduct}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>

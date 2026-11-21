@@ -917,6 +917,7 @@ function DashboardContent({
             <NurseryManagementView
               nurseries={nurseries}
               cities={cities}
+              plants={plants}
               initialTab={nurseryInitialTab}
               onApprove={handleApproveNursery}
               onReject={handleRejectNursery}
