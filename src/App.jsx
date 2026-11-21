@@ -1136,11 +1136,16 @@ function AppRoot() {
   const [plants, setPlants] = useState(() => {
     try {
       const saved = localStorage.getItem('tb_plants');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(p => !String(p.id).startsWith('plant_17950'));
+        }
+      }
     } catch (e) {
       console.error(e);
     }
-    return INITIAL_PLANTS;
+    return [];
   });
 
   const [orders, setOrders] = useState(() => {
@@ -1225,16 +1230,16 @@ function AppRoot() {
     // 1. Initial sync from Firestore for nurseries, plants, leads, and orders
     syncAllData().then(({ nurseries: fbNurseries, plants: fbPlants, leads: fbLeads, orders: fbOrders }) => {
       if (!isSubscribed) return;
-      if (fbNurseries && fbNurseries.length > 0) {
+      if (fbNurseries && Array.isArray(fbNurseries)) {
         setNurseries(fbNurseries);
       }
-      if (fbPlants && fbPlants.length > 0) {
+      if (fbPlants && Array.isArray(fbPlants)) {
         setPlants(fbPlants);
       }
-      if (fbLeads && fbLeads.length > 0) {
+      if (fbLeads && Array.isArray(fbLeads)) {
         setInquiries(fbLeads);
       }
-      if (fbOrders && fbOrders.length > 0) {
+      if (fbOrders && Array.isArray(fbOrders)) {
         setOrders(fbOrders);
       }
     }).catch(err => console.warn('Initial Firestore sync error:', err));
@@ -1246,25 +1251,25 @@ function AppRoot() {
     let unsubOrders = () => {};
 
     subscribeToCollection('nurseries', (data) => {
-      if (isSubscribed && data && data.length > 0) {
+      if (isSubscribed && Array.isArray(data)) {
         setNurseries(data);
       }
     }).then(unsub => { if (unsub) unsubNurseries = unsub; }).catch(console.warn);
 
     subscribeToCollection('plants', (data) => {
-      if (isSubscribed && data && data.length > 0) {
+      if (isSubscribed && Array.isArray(data)) {
         setPlants(data);
       }
     }).then(unsub => { if (unsub) unsubPlants = unsub; }).catch(console.warn);
 
     subscribeToCollection('leads', (data) => {
-      if (isSubscribed && data && data.length > 0) {
+      if (isSubscribed && Array.isArray(data)) {
         setInquiries(data);
       }
     }).then(unsub => { if (unsub) unsubLeads = unsub; }).catch(console.warn);
 
     subscribeToCollection('orders', (data) => {
-      if (isSubscribed && data && data.length > 0) {
+      if (isSubscribed && Array.isArray(data)) {
         setOrders(data);
       }
     }).then(unsub => { if (unsub) unsubOrders = unsub; }).catch(console.warn);
