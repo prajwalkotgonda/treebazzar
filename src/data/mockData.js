@@ -481,12 +481,7 @@ export const FALLBACK_PLANT_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www
 
 export const FALLBACK_NURSERY_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250' viewBox='0 0 24 24' fill='none' stroke='%231E5631' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='100%25' height='100%25' fill='%23E8F5E9'/%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E";
 
-export const INITIAL_CITIES = [
-  { id: 'city-1', nameEn: 'Sangli', nameMr: 'सांगली' },
-  { id: 'city-2', nameEn: 'Miraj', nameMr: 'मिरज' },
-  { id: 'city-3', nameEn: 'Kolhapur', nameMr: 'कोल्हापूर' },
-  { id: 'city-4', nameEn: 'Karad', nameMr: 'कराड' }
-];
+export const INITIAL_CITIES = [];
 
 export const INITIAL_ORDERS = [
   {

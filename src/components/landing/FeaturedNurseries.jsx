@@ -112,12 +112,12 @@ export default function FeaturedNurseries({
         : `Hello ${nurseryName}, I found your nursery on TreeBazzar. I would like to inquire about your available plant varieties and saplings.`
     );
     
-    const defaultCity = cities[0]?.nameEn || 'Sangli';
+    const defaultCity = nursery.city || 'Maharashtra';
     if (onContactLead) {
       onContactLead({
         customerName: 'Website Visitor',
         customerPhone: '+91 98XXXXXX',
-        customerCity: selectedCity !== 'all' ? selectedCity : defaultCity,
+        customerCity: defaultCity,
         type: 'whatsapp',
         plantOrNursery: nurseryName,
         notes: `Direct inquiry from TreeBazzar landing page to ${nurseryName}`
@@ -131,13 +131,13 @@ export default function FeaturedNurseries({
     e.stopPropagation();
     const phone = (nursery.phone || '9822145678').replace(/\D/g, '');
     const nurseryName = lang === 'mr' && nursery.nameMr ? nursery.nameMr : nursery.name;
-    const defaultCity = cities[0]?.nameEn || 'Sangli';
+    const defaultCity = nursery.city || 'Maharashtra';
 
     if (onContactLead) {
       onContactLead({
         customerName: 'Website Visitor',
         customerPhone: '+91 98XXXXXX',
-        customerCity: selectedCity !== 'all' ? selectedCity : defaultCity,
+        customerCity: defaultCity,
         type: 'call',
         plantOrNursery: nurseryName,
         notes: `Direct phone call lead from TreeBazzar landing page to ${nurseryName}`

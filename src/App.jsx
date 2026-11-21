@@ -1176,11 +1176,21 @@ function AppRoot() {
   const [cities, setCities] = useState(() => {
     try {
       const saved = localStorage.getItem('tb_cities');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const isLegacy = parsed.length <= 4 && parsed.some(c => c.nameEn === 'Sangli' || c.nameEn === 'Miraj');
+          if (isLegacy) {
+            localStorage.removeItem('tb_cities');
+            return [];
+          }
+          return parsed;
+        }
+      }
     } catch (e) {
       console.error(e);
     }
-    return INITIAL_CITIES;
+    return [];
   });
 
   // Sync state changes to localStorage
