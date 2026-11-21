@@ -164,11 +164,15 @@ export default function CustomersView({
                             <p className="font-bold text-slate-900 truncate">
                               {customer.name}
                             </p>
-                            {customer.notes && (
+                            {customer.email ? (
+                              <p className="text-[11px] text-slate-400 truncate max-w-[200px]">
+                                {customer.email}
+                              </p>
+                            ) : customer.notes && !/mango|guava|citrus|pomegranate|orchard|timber|sapling|plant/i.test(customer.notes) ? (
                               <p className="text-[11px] text-slate-400 truncate max-w-[200px]">
                                 {customer.notes}
                               </p>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       </td>

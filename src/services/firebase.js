@@ -120,7 +120,7 @@ export function normalizeNursery(data, id) {
   const name = data.name || data.nurseryName || data.nameEn || 'Unnamed Nursery';
   const nameMr = data.nameMr || data.nurseryNameMr || name;
   const ownerName = data.ownerName || data.owner || data.ownerNameEn || 'Nursery Owner';
-  const city = data.city || data.district || data.cityEn || 'Sangli';
+  const city = data.city || data.district || data.cityEn || '';
   const district = data.district || city;
   const phone = data.phone || data.ownerPhone || '';
   const whatsapp = data.whatsapp || phone.replace(/\D/g, '') || '';
@@ -292,7 +292,7 @@ export function normalizeLead(data, id) {
   const docId = id || data.id || `lead-${Date.now()}`;
   const customerName = data.customerName || data.name || 'Anonymous Customer';
   const customerPhone = data.customerPhone || data.phone || '';
-  const city = data.city || data.customerCity || data.district || 'Sangli';
+  const city = data.city || data.customerCity || data.district || '';
   const plantName = data.plantName || data.plant || '';
   const nurseryName = data.nurseryName || data.nursery || '';
   const actionType = data.actionType || data.type || data.inquiryType || 'whatsapp';
@@ -327,7 +327,7 @@ export function normalizeOrder(data, id) {
   const docId = id || data.id || data.orderId || `ORD-${Date.now()}`;
   const customerName = data.customerName || data.userName || data.name || 'Customer';
   const customerPhone = data.customerPhone || data.phone || data.userPhone || '';
-  const customerCity = data.customerCity || data.city || 'Sangli';
+  const customerCity = data.customerCity || data.city || '';
   const nurseryId = data.nurseryId || '';
   const nurseryName = data.nurseryName || data.nursery || 'TreeBazzar Nursery';
   const plantName = data.plantName || data.plant || data.items?.[0]?.name || data.items?.[0]?.plantName || 'Plant Saplings';

@@ -114,7 +114,7 @@ export default function OrderDetailsModal({
               </p>
               <p className="text-slate-600 flex items-center gap-1 mt-0.5">
                 <MapPin className="w-3 h-3 text-slate-400" />
-                {order.deliveryAddress || `${order.customerCity || 'Sangli'}, Maharashtra`}
+                {order.deliveryAddress || (order.customerCity ? `${order.customerCity}, Maharashtra` : 'Maharashtra')}
               </p>
             </div>
 

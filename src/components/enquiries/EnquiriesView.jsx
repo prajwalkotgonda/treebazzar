@@ -193,7 +193,7 @@ export default function EnquiriesView({
                         </p>
                         <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
                           <MapPin className="w-3 h-3 text-[#2E7D32]" />
-                          <span>{inq.customerCity || 'Sangli'}</span>
+                          {inq.customerCity && <span>{inq.customerCity}</span>}
                         </div>
                       </td>
 

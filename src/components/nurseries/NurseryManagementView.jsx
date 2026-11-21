@@ -440,7 +440,7 @@ export default function NurseryManagementView({
                     <td className="py-3 px-4 text-slate-700 font-medium">
                       <div className="inline-flex items-center gap-1.5 max-w-[140px] truncate" title={nursery.city}>
                         <MapPin className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />
-                        <span className="truncate">{nursery.city || 'Sangli'}</span>
+                        <span className="truncate">{nursery.city || '-'}</span>
                       </div>
                     </td>
 

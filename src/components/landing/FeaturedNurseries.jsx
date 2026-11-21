@@ -234,10 +234,12 @@ export default function FeaturedNurseries({
                     </div>
 
                     {/* City Badge */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-slate-800 text-[10px] font-bold shadow-xs">
-                      <MapPin className="w-3 h-3 text-[#2E7D32]" />
-                      <span>{nursery.city || 'Sangli'}</span>
-                    </div>
+                    {nursery.city && (
+                      <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-slate-800 text-[10px] font-bold shadow-xs">
+                        <MapPin className="w-3 h-3 text-[#2E7D32]" />
+                        <span>{nursery.city}</span>
+                      </div>
+                    )}
 
                     {/* Bottom overlay text */}
                     <div className="absolute bottom-3 left-3 right-3 text-white">

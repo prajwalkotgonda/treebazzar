@@ -15,7 +15,7 @@ export default function AddEnquiryModal({
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
-    customerCity: cities[0]?.nameEn || 'Sangli',
+    customerCity: cities[0]?.nameEn || '',
     plantName: '',
     nurseryName: '',
     inquiryType: 'WhatsApp',

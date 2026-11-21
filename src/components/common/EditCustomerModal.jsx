@@ -15,7 +15,7 @@ export default function EditCustomerModal({
     name: '',
     phone: '',
     email: '',
-    city: 'Sangli',
+    city: '',
     address: '',
     notes: ''
   });
@@ -26,7 +26,7 @@ export default function EditCustomerModal({
         name: customer.name || '',
         phone: customer.phone || '',
         email: customer.email || '',
-        city: customer.city || (cities[0]?.nameEn || 'Sangli'),
+        city: customer.city || (cities[0]?.nameEn || ''),
         address: customer.address || '',
         notes: customer.notes || ''
       });

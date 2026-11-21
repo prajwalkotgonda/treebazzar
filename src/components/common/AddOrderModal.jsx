@@ -15,7 +15,7 @@ export default function AddOrderModal({
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
-    customerCity: 'Sangli',
+    customerCity: '',
     nurseryId: '',
     plantName: '',
     quantity: 1,
@@ -34,7 +34,7 @@ export default function AddOrderModal({
       setFormData(prev => ({
         ...prev,
         nurseryId: firstNursery.id,
-        customerCity: firstNursery.city || 'Sangli'
+        customerCity: firstNursery.city || ''
       }));
     }
   }, [nurseries, isOpen]);

@@ -137,7 +137,7 @@ export default function FeaturedPlants({
       onContactLead({
         customerName: 'Website Visitor',
         customerPhone: '+91 98XXXXXX',
-        customerCity: linkedNursery?.city || (selectedCity !== 'all' ? selectedCity : 'Sangli'),
+        customerCity: linkedNursery?.city || (selectedCity !== 'all' ? selectedCity : ''),
         type: 'whatsapp',
         plantOrNursery: `${plantName} (${nurseryName})`,
         notes: `Customer WhatsApp inquiry on plant: ${plantName} - ₹${plant.priceMin}-₹${plant.priceMax}`
@@ -227,7 +227,7 @@ export default function FeaturedPlants({
               const subName = lang === 'mr' ? plant.nameEn : (plant.botanicalName || plant.nameMr);
               const linkedNursery = nurseryMap[plant.nurseryId] || nurseryMap[plant.nurseryName];
               const nurseryName = linkedNursery?.name || plant.nurseryName || 'Local Nursery';
-              const nurseryCity = linkedNursery?.city || 'Sangli';
+              const nurseryCity = linkedNursery?.city || '';
               const isInStock = plant.stockStatus !== 'out_of_stock';
               const imgUrl = plant.photoUrl || plant.image || FALLBACK_PLANT_IMAGE;
 

@@ -14,7 +14,7 @@ export default function AddCustomerModal({
     name: '',
     phone: '',
     email: '',
-    city: cities[0]?.nameEn || 'Sangli',
+    city: cities[0]?.nameEn || '',
     address: '',
     notes: ''
   });
@@ -98,7 +98,7 @@ export default function AddCustomerModal({
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
               className={`w-full px-3 py-2 text-xs rounded-xl border ${errors.name ? 'border-rose-500' : 'border-slate-200'} focus:outline-hidden focus:border-[#2E7D32]`}
-              placeholder="e.g. Rahul Patil"
+              placeholder={lang === 'mr' ? 'उदा. ज्ञानेश्वर पाटील' : 'e.g. Ramesh Patil'}
             />
             {errors.name && <p className="text-[11px] text-rose-500 mt-0.5">{errors.name}</p>}
           </div>
@@ -156,7 +156,7 @@ export default function AddCustomerModal({
               value={formData.address}
               onChange={e => setFormData({ ...formData, address: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#2E7D32]"
-              placeholder="e.g. Farm No. 14, Tasgaon Road, Sangli"
+              placeholder={lang === 'mr' ? 'उदा. मु. पो. संगमनेर, जि. अहिल्यानगर' : 'e.g. Near Bus Stand, Sangamner'}
             />
           </div>
 
@@ -169,7 +169,7 @@ export default function AddCustomerModal({
               value={formData.notes}
               onChange={e => setFormData({ ...formData, notes: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#2E7D32]"
-              placeholder="e.g. Mango orchard planter, wholesale buyer"
+              placeholder={lang === 'mr' ? 'उदा. नियमित खरेदीदार, शेतकरी' : 'e.g. Regular buyer, farmer'}
             />
           </div>
 

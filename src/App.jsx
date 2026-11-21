@@ -631,12 +631,12 @@ function DashboardContent({
             id: `CUST-${Date.now().toString().slice(-4)}`,
             name: newOrder.customerName,
             phone: newOrder.customerPhone,
-            city: newOrder.customerCity || 'Sangli',
+            city: newOrder.customerCity || '',
             address: newOrder.deliveryAddress || '',
             totalOrders: 1,
             totalSpent: newOrder.totalAmount || 0,
             joinedDate: new Date().toISOString().split('T')[0],
-            notes: 'Created via order placement'
+            notes: ''
           };
           saveCustomerToFirestore(newCust).catch(console.warn);
           return [newCust, ...prev];
@@ -1157,7 +1157,17 @@ function AppRoot() {
   const [orders, setOrders] = useState(() => {
     try {
       const saved = localStorage.getItem('tb_orders');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const dummyOrderIds = ['ORD-101', 'ORD-102', 'ORD-103', 'ORD-104', 'ORD-105', 'ORD-106', 'ORD-107'];
+          const cleaned = parsed.filter(o => !dummyOrderIds.includes(o.id));
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem('tb_orders', JSON.stringify(cleaned));
+          }
+          return cleaned;
+        }
+      }
     } catch (e) {
       console.error(e);
     }
@@ -1167,7 +1177,18 @@ function AppRoot() {
   const [customers, setCustomers] = useState(() => {
     try {
       const saved = localStorage.getItem('tb_customers');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const dummyIds = ['CUST-1', 'CUST-2', 'CUST-3', 'CUST-4', 'CUST-5', 'CUST-6'];
+          const dummyNames = ['Rahul Patil', 'Amit Jadhav', 'Sneha Kulkarni', 'Sagar Shinde', 'Priya Deshmukh', 'Vikram Mohite'];
+          const cleaned = parsed.filter(c => !dummyIds.includes(c.id) && !dummyNames.includes(c.name));
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem('tb_customers', JSON.stringify(cleaned));
+          }
+          return cleaned;
+        }
+      }
     } catch (e) {
       console.error(e);
     }
@@ -1177,7 +1198,17 @@ function AppRoot() {
   const [inquiries, setInquiries] = useState(() => {
     try {
       const saved = localStorage.getItem('tb_inquiries');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const dummyInqIds = ['inq-1', 'inq-2', 'inq-3', 'inq-4', 'inq-5', 'inq-6', 'INQ-501', 'INQ-502', 'INQ-503', 'INQ-504', 'INQ-505', 'INQ-506'];
+          const cleaned = parsed.filter(i => !dummyInqIds.includes(i.id));
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem('tb_inquiries', JSON.stringify(cleaned));
+          }
+          return cleaned;
+        }
+      }
     } catch (e) {
       console.error(e);
     }
@@ -1398,8 +1429,8 @@ function AppRoot() {
     const newInquiry = {
       id: `inq-${Date.now()}`,
       customerName: leadData.customerName || 'Website Visitor',
-      customerPhone: leadData.customerPhone || '+91 9822145678',
-      customerCity: leadData.customerCity || (cities[0]?.nameEn || 'Sangli'),
+      customerPhone: leadData.customerPhone || '',
+      customerCity: leadData.customerCity || (cities[0]?.nameEn || ''),
       inquiryType: leadData.type || 'WhatsApp',
       plantName: leadData.plantOrNursery || 'Plant Inquiry',
       plantOrNursery: leadData.plantOrNursery || 'Plant Inquiry',
@@ -1410,6 +1441,31 @@ function AppRoot() {
     };
     setInquiries(prev => [newInquiry, ...prev]);
     addLeadToFirestore(newInquiry).catch(console.warn);
+
+    // Also register real customer profile
+    if (newInquiry.customerName && newInquiry.customerPhone && newInquiry.customerName !== 'Website Visitor') {
+      setCustomers(prev => {
+        const clean = newInquiry.customerPhone.replace(/\D/g, '');
+        if (!clean) return prev;
+        const exists = prev.some(c => c.phone?.replace(/\D/g, '') === clean || c.name === newInquiry.customerName);
+        if (!exists) {
+          const newCust = {
+            id: `CUST-${Date.now().toString().slice(-4)}`,
+            name: newInquiry.customerName,
+            phone: newInquiry.customerPhone,
+            city: newInquiry.customerCity || '',
+            address: '',
+            totalOrders: 0,
+            totalSpent: 0,
+            joinedDate: new Date().toISOString().split('T')[0],
+            notes: ''
+          };
+          saveCustomerToFirestore(newCust).catch(console.warn);
+          return [newCust, ...prev];
+        }
+        return prev;
+      });
+    }
   };
 
   const handleAddCity = (cityData) => {
