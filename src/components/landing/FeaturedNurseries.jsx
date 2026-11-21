@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Store, MapPin, Phone, MessageSquare, ShieldCheck, 
-  ExternalLink, CheckCircle2, Calendar, Sprout, ArrowRight, Sparkles, Plus 
+  ExternalLink, CheckCircle2, Calendar, Sprout, ArrowRight, Sparkles, Plus, Search 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
 
 export default function FeaturedNurseries({ 
   nurseries = [], 
+  plants = [],
+  searchQuery = '',
   selectedCity, 
   onCityChange, 
   onSelectNursery,
@@ -32,32 +34,87 @@ export default function FeaturedNurseries({
         ])
   ];
 
-  // Show ONLY nurseries that have an active paid subscription (no free trials, no expired trials, no pending, no suspended)
-  const displayNurseries = nurseries
-    .filter(n => {
-      // 1. Must not be suspended, rejected or revoked
-      if (n.isSuspended || n.status === 'suspended' || n.status === 'rejected' || n.status === 'revoked') {
+  // Show ONLY nurseries that have an active paid subscription, filtered by city and searchQuery
+  const displayNurseries = useMemo(() => {
+    const q = (searchQuery || '').toLowerCase().trim();
+
+    return nurseries
+      .filter(n => {
+        // 1. Must not be suspended, rejected or revoked
+        if (n.isSuspended || n.status === 'suspended' || n.status === 'rejected' || n.status === 'revoked') {
+          return false;
+        }
+        // 2. Free trial nurseries MUST NOT be displayed to public visitors
+        if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_3d' || n.subscriptionPlan === 'free_trial_6d') {
+          return false;
+        }
+        // 3. Pending approval or expired trial nurseries MUST NOT be displayed
+        if (n.status === 'pending' || n.isTrialExpired) {
+          return false;
+        }
+        // 4. Must be confirmed subscribed partner
+        const isSubscribed = Boolean(
+          n.isSubscribed === true ||
+          n.subscriptionStatus === 'active' ||
+          n.isSubscriptionApproved === true ||
+          n.subscriptionPlan === 'paid_annual' ||
+          n.paymentStatus === 'paid'
+        );
+        return isSubscribed && n.status === 'approved';
+      })
+      .filter(n => selectedCity === 'all' || !selectedCity || n.city?.toLowerCase() === selectedCity.toLowerCase())
+      .filter(n => {
+        if (!q) return true;
+
+        // Generic nursery search keywords -> user specifically typed "nursery", "नर्सरी", etc. -> show all nurseries
+        const genericNurseryKeywords = ['nursery', 'nurseries', 'नर्सरी', 'रोपवाटिका', 'रोपवाटिकांची', 'नर्सरीज'];
+        if (genericNurseryKeywords.some(k => q.includes(k) || k.includes(q))) {
+          return true;
+        }
+
+        // Generic plant search keywords -> user typed "plant", "झाड", "वनस्पती" -> all nurseries cultivate plants
+        const genericPlantKeywords = ['plant', 'plants', 'tree', 'trees', 'झाड', 'झाडे', 'रोप', 'रोपे', 'वनस्पती', 'प्लांट'];
+        if (genericPlantKeywords.some(k => q.includes(k) || k.includes(q))) {
+          return true;
+        }
+
+        // Specific nursery matching (name, marathi name, owner, city, address, specialties, facilities)
+        const nameEn = (n.name || '').toLowerCase();
+        const nameMr = (n.nameMr || '').toLowerCase();
+        const owner = (n.ownerName || n.owner || '').toLowerCase();
+        const city = (n.city || '').toLowerCase();
+        const address = (n.address || '').toLowerCase();
+        const specialties = Array.isArray(n.specialties) ? n.specialties.join(' ').toLowerCase() : '';
+        const facilities = Array.isArray(n.facilities) ? n.facilities.join(' ').toLowerCase() : '';
+
+        if (
+          nameEn.includes(q) ||
+          nameMr.includes(q) ||
+          owner.includes(q) ||
+          city.includes(q) ||
+          address.includes(q) ||
+          specialties.includes(q) ||
+          facilities.includes(q)
+        ) {
+          return true;
+        }
+
+        // Also check if any plant that belongs to this nursery matches the query
+        if (plants && plants.length > 0) {
+          const nurseryPlants = plants.filter(p => p.nurseryId === n.id || p.nurseryName?.toLowerCase() === nameEn);
+          const hasMatchingPlant = nurseryPlants.some(p => {
+            const pEn = (p.nameEn || p.name || '').toLowerCase();
+            const pMr = (p.nameMr || '').toLowerCase();
+            const pBot = (p.botanicalName || '').toLowerCase();
+            const pCat = (p.category || '').toLowerCase();
+            return pEn.includes(q) || pMr.includes(q) || pBot.includes(q) || pCat.includes(q);
+          });
+          if (hasMatchingPlant) return true;
+        }
+
         return false;
-      }
-      // 2. Free trial nurseries MUST NOT be displayed to public visitors
-      if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_3d' || n.subscriptionPlan === 'free_trial_6d') {
-        return false;
-      }
-      // 3. Pending approval or expired trial nurseries MUST NOT be displayed
-      if (n.status === 'pending' || n.isTrialExpired) {
-        return false;
-      }
-      // 4. Must be confirmed subscribed partner
-      const isSubscribed = Boolean(
-        n.isSubscribed === true ||
-        n.subscriptionStatus === 'active' ||
-        n.isSubscriptionApproved === true ||
-        n.subscriptionPlan === 'paid_annual' ||
-        n.paymentStatus === 'paid'
-      );
-      return isSubscribed && n.status === 'approved';
-    })
-    .filter(n => selectedCity === 'all' || !selectedCity || n.city?.toLowerCase() === selectedCity.toLowerCase());
+      });
+  }, [nurseries, selectedCity, searchQuery, plants]);
 
   const handleWhatsApp = (e, nursery) => {
     e.stopPropagation();
@@ -155,6 +212,23 @@ export default function FeaturedNurseries({
             )}
           </div>
         </div>
+
+        {/* Search Results Indicator Bar */}
+        {searchQuery && (
+          <div className="mb-6 p-3 bg-emerald-50/90 border border-emerald-200/90 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2E7D32] animate-pulse" />
+              <span className="text-xs font-bold text-[#1E5631]">
+                {lang === 'mr' 
+                  ? `"${searchQuery}" साठी ${displayNurseries.length} रोपवाटिका सापडल्या`
+                  : `Found ${displayNurseries.length} nurseries matching "${searchQuery}"`}
+              </span>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500">
+              {lang === 'mr' ? 'थेट रोपवाटिका मालकांशी संपर्क साधा' : 'Connect directly with nursery owners'}
+            </span>
+          </div>
+        )}
 
         {/* Nurseries Grid */}
         {displayNurseries.length > 0 ? (
@@ -264,12 +338,16 @@ export default function FeaturedNurseries({
           <div className="bg-white rounded-3xl p-10 text-center border border-slate-200">
             <Store className="w-10 h-10 text-slate-300 mx-auto mb-2" />
             <p className="text-sm font-bold text-slate-700">
-              {lang === 'mr' ? 'सध्या सबस्क्रिप्शन घेतलेल्या रोपवाटिका येथे दिसतील' : 'Subscribed partner nurseries will appear here once active'}
+              {searchQuery
+                ? (lang === 'mr' ? `"${searchQuery}" नावाशी जुळणारी रोपवाटिका उपलब्ध नाही` : `No nurseries found matching "${searchQuery}"`)
+                : (lang === 'mr' ? 'सध्या सबस्क्रिप्शन घेतलेल्या रोपवाटिका येथे दिसतील' : 'Subscribed partner nurseries will appear here once active')}
             </p>
             <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-              {lang === 'mr' 
-                ? 'नवीन रोपवाटिका ३ दिवस मोफत ट्रायलवर असतात. त्यांनी सबस्क्रिप्शन घेतल्यानंतर त्या येथे ग्राहकांसाठी थेट उपलब्ध होतात.' 
-                : 'New partner nurseries are currently on 3-day free trial. Once subscribed, they go live on the customer marketplace.'}
+              {searchQuery
+                ? (lang === 'mr' ? 'खाली वनस्पती यादीमध्ये शोधा किंवा दुसरा शब्द वापरून पहा.' : 'Try searching another keyword or browse plant varieties below.')
+                : (lang === 'mr' 
+                  ? 'नवीन रोपवाटिका ३ दिवस मोफत ट्रायलवर असतात. त्यांनी सबस्क्रिप्शन घेतल्यानंतर त्या येथे ग्राहकांसाठी थेट उपलब्ध होतात.' 
+                  : 'New partner nurseries are currently on 3-day free trial. Once subscribed, they go live on the customer marketplace.')}
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
               <button

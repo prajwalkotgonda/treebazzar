@@ -113,25 +113,39 @@ export default function HeroSection({
     : 'All India';
 
   const popularTags = [
+    { en: 'Nurseries', mr: 'रोपवाटिका' },
+    { en: 'Plants', mr: 'वनस्पती' },
     { en: 'Kesar Mango', mr: 'केशर आंबा' },
     { en: 'Tissue Teak (Sagwan)', mr: 'सागवान' },
     { en: 'Areca Palm', mr: 'अरेका पाम' },
-    { en: 'Desi Rose', mr: 'देशी गुलाब' },
-    { en: 'Guava (Peru)', mr: 'सरदार पेरू' }
+    { en: 'Desi Rose', mr: 'देशी गुलाब' }
   ];
 
   const handleTagClick = (tag) => {
     const val = lang === 'mr' ? tag.mr : tag.en;
     onSearchChange(val);
-    const plantsElem = document.getElementById('plants');
-    if (plantsElem) plantsElem.scrollIntoView({ behavior: 'smooth' });
+    const q = val.toLowerCase();
+    const isNursery = q.includes('nurser') || q.includes('नर्सरी') || q.includes('रोपवाटिका');
+    const targetElem = document.getElementById(isNursery ? 'nurseries' : 'plants');
+    if (targetElem) targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (onSearchSubmit) onSearchSubmit();
+    const q = (searchQuery || '').toLowerCase().trim();
+    const isNurseryQuery = ['nursery', 'nurseries', 'नर्सरी', 'रोपवाटिका', 'रोपवाटिकांची', 'नर्सरीज'].some(k => q.includes(k));
+
+    if (isNurseryQuery) {
+      const nurseriesElem = document.getElementById('nurseries');
+      if (nurseriesElem) {
+        nurseriesElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    }
+
     const plantsElem = document.getElementById('plants');
-    if (plantsElem) plantsElem.scrollIntoView({ behavior: 'smooth' });
+    if (plantsElem) plantsElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (

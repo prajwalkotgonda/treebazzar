@@ -77,11 +77,27 @@ export default function FeaturedPlants({
 
       // Keyword query filter
       if (q) {
+        // 1. Generic plant search keywords -> user typed "plant", "plants", "झाड", "झाडे", "रोप", "रोपे", "वनस्पती", "प्लांट" -> match all plants
+        const genericPlantKeywords = ['plant', 'plants', 'tree', 'trees', 'झाड', 'झाडे', 'रोप', 'रोपे', 'वनस्पती', 'प्लांट', 'कलम', 'रोपांची'];
+        if (genericPlantKeywords.some(k => q.includes(k) || k.includes(q))) {
+          return true;
+        }
+
+        // 2. Generic nursery keywords -> user typed "nursery", "नर्सरी", "रोपवाटिका" -> show all plants from nurseries
+        const genericNurseryKeywords = ['nursery', 'nurseries', 'नर्सरी', 'रोपवाटिका', 'रोपवाटिकांची'];
+        if (genericNurseryKeywords.some(k => q.includes(k) || k.includes(q))) {
+          return true;
+        }
+
         const nameEn = (plant.nameEn || plant.name || '').toLowerCase();
         const nameMr = (plant.nameMr || '').toLowerCase();
         const botanical = (plant.botanicalName || '').toLowerCase();
         const category = (plant.category || '').toLowerCase();
+        const categoryMr = (plant.categoryMr || '').toLowerCase();
+        const descEn = (plant.descriptionEn || plant.description || '').toLowerCase();
+        const descMr = (plant.descriptionMr || '').toLowerCase();
         const nurseryName = (plant.nurseryName || linkedNursery?.name || '').toLowerCase();
+        const nurseryNameMr = (linkedNursery?.nameMr || '').toLowerCase();
         const city = (linkedNursery?.city || '').toLowerCase();
 
         return (
@@ -89,7 +105,11 @@ export default function FeaturedPlants({
           nameMr.includes(q) ||
           botanical.includes(q) ||
           category.includes(q) ||
+          categoryMr.includes(q) ||
+          descEn.includes(q) ||
+          descMr.includes(q) ||
           nurseryName.includes(q) ||
+          nurseryNameMr.includes(q) ||
           city.includes(q)
         );
       }
@@ -181,6 +201,23 @@ export default function FeaturedPlants({
           </div>
 
         </div>
+
+        {/* Search Results Indicator Bar */}
+        {searchQuery && (
+          <div className="mb-6 p-3 bg-emerald-50/90 border border-emerald-200/90 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2E7D32] animate-pulse" />
+              <span className="text-xs font-bold text-[#1E5631]">
+                {lang === 'mr' 
+                  ? `"${searchQuery}" साठी ${filteredPlants.length} वनस्पती / रोपे उपलब्ध`
+                  : `Found ${filteredPlants.length} plants matching "${searchQuery}"`}
+              </span>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500">
+              {lang === 'mr' ? 'थेट व्हॉट्सॲपवर माहिती विचारा' : 'Direct WhatsApp inquiry to nursery'}
+            </span>
+          </div>
+        )}
 
         {/* Plants Grid */}
         {filteredPlants.length > 0 ? (
@@ -283,10 +320,14 @@ export default function FeaturedPlants({
           <div className="bg-[#F8FAF9] rounded-3xl p-10 text-center border border-slate-200">
             <Sprout className="w-10 h-10 text-slate-300 mx-auto mb-2" />
             <p className="text-sm font-bold text-slate-700">
-              {lang === 'mr' ? 'कोणतीही झाडे आढळली नाहीत' : 'No plants match your search or filters'}
+              {searchQuery
+                ? (lang === 'mr' ? `"${searchQuery}" नावाशी जुळणारी झाडे आढळली नाहीत` : `No plants found matching "${searchQuery}"`)
+                : (lang === 'mr' ? 'कोणतीही झाडे आढळली नाहीत' : 'No plants match your search or filters')}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              {lang === 'mr' ? 'कृपया दुसरा शब्द किंवा श्रेणी निवडून प्रयत्न करा' : 'Try searching another variety or selecting all categories'}
+              {searchQuery
+                ? (lang === 'mr' ? 'वर दिलेली रोपवाटिका यादी पहा किंवा दुसरा शोध शब्द वापरा.' : 'Check the nurseries section above or try another search term.')
+                : (lang === 'mr' ? 'कृपया दुसरा शब्द किंवा श्रेणी निवडून प्रयत्न करा' : 'Try searching another variety or selecting all categories')}
             </p>
           </div>
         )}

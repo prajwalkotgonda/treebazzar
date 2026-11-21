@@ -79,6 +79,8 @@ export default function LandingPage({
       {/* 4. Verified Nurseries Showcase */}
       <FeaturedNurseries
         nurseries={nurseries}
+        plants={plants}
+        searchQuery={searchQuery}
         selectedCity={selectedCity}
         onCityChange={setSelectedCity}
         onSelectNursery={(n) => setSelectedNursery(n)}
