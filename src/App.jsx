@@ -1126,11 +1126,16 @@ function AppRoot() {
   const [nurseries, setNurseries] = useState(() => {
     try {
       const saved = localStorage.getItem('tb_nurseries');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(n => !String(n.id).startsWith('nursery_1795'));
+        }
+      }
     } catch (e) {
       console.error(e);
     }
-    return INITIAL_NURSERIES;
+    return [];
   });
 
   const [plants, setPlants] = useState(() => {
