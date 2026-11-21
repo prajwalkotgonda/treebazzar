@@ -19,21 +19,6 @@ export default function FeaturedNurseries({
 }) {
   const { lang, t } = useLanguage();
 
-  const cityFilterOptions = [
-    { value: 'all', label: t('heroAllCities') },
-    ...(cities.length > 0
-      ? cities.map(c => ({
-          value: c.nameEn,
-          label: lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn
-        }))
-      : [
-          { value: 'Sangli', label: 'Sangli' },
-          { value: 'Miraj', label: 'Miraj' },
-          { value: 'Kolhapur', label: 'Kolhapur' },
-          { value: 'Karad', label: 'Karad' }
-        ])
-  ];
-
   // Show ONLY nurseries that have an active paid subscription, filtered by city and searchQuery
   const displayNurseries = useMemo(() => {
     const q = (searchQuery || '').toLowerCase().trim();
@@ -181,36 +166,17 @@ export default function FeaturedNurseries({
             </p>
           </div>
 
-          {/* City Filter Pills & Add Nursery Action */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex flex-wrap items-center gap-1.5">
-              {cityFilterOptions.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => onCityChange(item.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    selectedCity === item.value
-                      ? 'bg-[#1E5631] text-white shadow-xs'
-                      : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-
-            {onOpenRegisterNursery && (
-              <button
-                type="button"
-                onClick={onOpenRegisterNursery}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200/80 text-xs font-bold transition-all cursor-pointer shadow-2xs"
-              >
-                <Plus className="w-3.5 h-3.5 text-[#2E7D32]" />
-                <span>{lang === 'mr' ? 'रोपवाटिका जोडा' : 'Add Nursery'}</span>
-              </button>
-            )}
-          </div>
+          {/* Add Nursery Action */}
+          {onOpenRegisterNursery && (
+            <button
+              type="button"
+              onClick={onOpenRegisterNursery}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200/80 text-xs font-bold transition-all cursor-pointer shadow-2xs shrink-0 self-start md:self-auto"
+            >
+              <Plus className="w-3.5 h-3.5 text-[#2E7D32]" />
+              <span>{lang === 'mr' ? 'रोपवाटिका जोडा' : 'Add Nursery'}</span>
+            </button>
+          )}
         </div>
 
         {/* Search Results Indicator Bar */}
