@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, MapPin, Leaf, CheckCircle2, PhoneCall, Sparkles, Store, Sprout, ArrowRight, ChevronDown, X 
+  Search, MapPin, Leaf, CheckCircle2, PhoneCall, Sparkles, Store, Sprout, ArrowRight, X 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import heroBg from '../../assets/landing-bg.jpg';
@@ -91,26 +91,6 @@ export default function HeroSection({
       if (timer) clearTimeout(timer);
     };
   }, [targetLine1, targetLine2, lang]);
-
-  const cityOptions = [
-    { value: 'all', label: t('heroAllCities') },
-    ...(cities.length > 0
-      ? cities.map(c => ({
-          value: c.nameEn,
-          label: lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn
-        }))
-      : [
-          { value: 'Sangli', label: t('heroCitySangli') },
-          { value: 'Miraj', label: t('heroCityMiraj') },
-          { value: 'Kolhapur', label: t('heroCityKolhapur') },
-          { value: 'Karad', label: t('heroCityKarad') }
-        ])
-  ];
-
-  const hubsCount = cities.length > 0 ? cities.length : 4;
-  const hubsNames = cities.length > 0
-    ? cities.map(c => (lang === 'mr' && c.nameMr ? c.nameMr : c.nameEn)).join(', ')
-    : 'All India';
 
   const popularTags = [
     { en: 'Nurseries', mr: 'रोपवाटिका' },
@@ -303,10 +283,10 @@ export default function HeroSection({
             </div>
             <div className="min-w-0">
               <div className="text-base font-black text-slate-900 leading-tight">
-                {hubsCount} {lang === 'mr' ? 'हब्स' : 'Hubs'}
+                {lang === 'mr' ? 'संपूर्ण भारत' : 'All India'}
               </div>
-              <p className="text-[10px] text-slate-600 font-semibold leading-tight line-clamp-1 truncate" title={hubsNames}>
-                {hubsNames}
+              <p className="text-[10px] text-slate-600 font-semibold leading-tight line-clamp-1 truncate">
+                {lang === 'mr' ? 'सर्व शहरे व जिल्हे कव्हरेज' : 'All Cities & Regions Network'}
               </p>
             </div>
           </div>

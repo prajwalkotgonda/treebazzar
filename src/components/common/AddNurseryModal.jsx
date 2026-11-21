@@ -16,7 +16,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
     ownerName: '',
     phone: '',
     whatsapp: '',
-    city: cities[0]?.nameEn || 'Sangli',
+    city: '',
     address: '',
     status: 'approved',
     specialties: ['Grafted Fruit Trees', 'Indoor Plants'],
@@ -65,9 +65,9 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
       phone: formData.phone.trim().startsWith('+91') ? formData.phone.trim() : `+91 ${formData.phone.trim()}`,
       ownerPhone: formData.phone.trim().startsWith('+91') ? formData.phone.trim() : `+91 ${formData.phone.trim()}`,
       whatsapp: formData.whatsapp.trim() || formData.phone.replace(/\D/g, ''),
-      city: formData.city.trim() || 'Sangli',
-      district: formData.city.trim() || 'Sangli',
-      address: formData.address.trim() || `${formData.city}, Maharashtra`,
+      city: formData.city.trim() || 'Maharashtra',
+      district: formData.city.trim() || 'Maharashtra',
+      address: formData.address.trim() || `${formData.city || 'Maharashtra'}, India`,
       status: hasPaid ? 'approved' : 'trial',
       verified: hasPaid,
       isActive: true,
@@ -284,28 +284,15 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                {lang === 'mr' ? 'शहर किंवा जिल्हा' : 'City / District'} <span className="text-rose-500">*</span>
+                {lang === 'mr' ? 'शहर / तालुका / जिल्हा' : 'City / Taluka / District'} <span className="text-rose-500">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                placeholder={lang === 'mr' ? 'उदा. संगमनेर, अहिल्यानगर, पुणे...' : 'e.g. Sangamner, Pune, Nashik...'}
                 className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
-              >
-                {cities && cities.length > 0 ? (
-                  cities.map(c => (
-                    <option key={c.id || c.nameEn} value={c.nameEn}>
-                      {c.nameEn} {c.nameMr ? `(${c.nameMr})` : ''}
-                    </option>
-                  ))
-                ) : (
-                  <>
-                    <option value="Sangli">Sangli (सांगली)</option>
-                    <option value="Miraj">Miraj (मिरज)</option>
-                    <option value="Kolhapur">Kolhapur (कोल्हापूर)</option>
-                    <option value="Karad">Karad (कराड)</option>
-                  </>
-                )}
-              </select>
+              />
             </div>
 
             <div>

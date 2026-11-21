@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, ArrowRight, CheckCircle2, Leaf, PhoneCall } from 'lucide-react';
+import { Store, ArrowRight, CheckCircle2, Leaf, PhoneCall, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function PartnerCta({ onOpenRegisterNursery }) {
@@ -67,6 +67,21 @@ export default function PartnerCta({ onOpenRegisterNursery }) {
 
           </div>
 
+        </div>
+
+        {/* Platform Disclaimer & Anti-Fraud Notice */}
+        <div className="mt-8 sm:mt-10 p-4 sm:p-5 rounded-2xl bg-amber-50/90 border border-amber-200/90 shadow-xs flex items-start gap-3 sm:gap-4 text-left">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-amber-100 text-amber-800 shrink-0 mt-0.5">
+            <ShieldAlert className="w-5 h-5 text-amber-700" />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 mb-1">
+              <span>{t('platformDisclaimerTitle')}</span>
+            </h4>
+            <p className="text-[11px] sm:text-xs text-amber-900/90 leading-relaxed font-medium">
+              {t('platformDisclaimerText')}
+            </p>
+          </div>
         </div>
 
       </div>

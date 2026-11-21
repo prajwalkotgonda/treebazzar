@@ -108,6 +108,14 @@ export default function LandingFooter({ onOpenLogin, cities = [] }) {
 
         </div>
 
+        {/* Platform Legal Disclaimer */}
+        <div className="pt-6 pb-2 text-[11px] text-slate-400 border-b border-slate-800/80 leading-relaxed">
+          <p>
+            <span className="font-bold text-amber-400">⚠️ {lang === 'mr' ? 'अस्वीकरण (Disclaimer):' : 'Disclaimer:'}</span>{' '}
+            {t('platformDisclaimerText')}
+          </p>
+        </div>
+
         {/* Bottom Copyright */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
           <p>
