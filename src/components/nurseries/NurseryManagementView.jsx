@@ -88,17 +88,11 @@ export default function NurseryManagementView({
     };
   }, [nurseries]);
 
-  // Available cities list
+  // Available cities dynamically extracted from actual nurseries
   const availableCities = useMemo(() => {
-    if (citiesProp && citiesProp.length > 0) {
-      return citiesProp.map(c => ({
-        value: c.nameEn,
-        label: lang === 'mr' && c.nameMr ? `${c.nameEn} (${c.nameMr})` : c.nameEn
-      }));
-    }
-    const unique = Array.from(new Set(nurseries.map(n => n.city).filter(Boolean)));
+    const unique = Array.from(new Set(nurseries.map(n => n.city).filter(Boolean))).sort();
     return unique.map(c => ({ value: c, label: c }));
-  }, [citiesProp, nurseries, lang]);
+  }, [nurseries]);
 
   // Filtered nurseries
   const filteredNurseries = useMemo(() => {

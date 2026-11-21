@@ -133,17 +133,13 @@ export default function AddEnquiryModal({
               <label className="block text-xs font-bold text-slate-700 mb-1">
                 {lang === 'mr' ? 'शहर निवडा' : 'Customer City'}
               </label>
-              <select
+              <input
+                type="text"
                 value={formData.customerCity}
                 onChange={e => setFormData({ ...formData, customerCity: e.target.value })}
+                placeholder={lang === 'mr' ? 'उदा. संगमनेर, अहिल्यानगर...' : 'e.g. Sangamner, Pune...'}
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-hidden focus:border-[#2E7D32]"
-              >
-                {cities.map(c => (
-                  <option key={c.id || c.nameEn} value={c.nameEn}>
-                    {lang === 'mr' && c.nameMr ? `${c.nameEn} (${c.nameMr})` : c.nameEn}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>

@@ -29,6 +29,12 @@ export default function CustomersView({
   const [viewingCustomer, setViewingCustomer] = useState(null);
   const [deletingCustomer, setDeletingCustomer] = useState(null);
 
+  // Available cities dynamically extracted from actual customers
+  const availableCities = useMemo(() => {
+    const unique = Array.from(new Set(customers.map(c => c.city).filter(Boolean))).sort();
+    return unique.map(c => ({ value: c, label: c }));
+  }, [customers]);
+
   // Filtered customers
   const filteredCustomers = useMemo(() => {
     const q = (localSearch || searchQuery).toLowerCase().trim();
@@ -98,9 +104,9 @@ export default function CustomersView({
             className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-hidden focus:border-[#2E7D32]"
           >
             <option value="all">{lang === 'mr' ? 'सर्व शहरे' : 'All Cities'}</option>
-            {cities.map(c => (
-              <option key={c.id || c.nameEn} value={c.nameEn}>
-                {lang === 'mr' && c.nameMr ? `${c.nameEn} (${c.nameMr})` : c.nameEn}
+            {availableCities.map(c => (
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </select>
