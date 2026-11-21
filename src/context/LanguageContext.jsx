@@ -362,6 +362,10 @@ export const translations = {
     ctaSubtitle: 'Join TreeBazzar today to showcase your plants to thousands of local buyers, farmers, and landscape designers.',
     ctaButton: 'Register Your Nursery Free',
 
+    // Platform Disclaimer
+    platformDisclaimerTitle: 'Important Notice / Platform Disclaimer',
+    platformDisclaimerText: 'TreeBazzar is strictly an online discovery and connecting platform between buyers and local nurseries. TreeBazzar and its management are not responsible or liable for any fraudulent activities, financial disputes, transaction failures, or product quality issues between buyers and sellers. Users are strongly advised to independently verify all details before making payments.',
+
     // Footer
     footerRights: 'TreeBazzar • Local Nursery Marketplace & Plant Discovery',
     footerQuickLinks: 'Quick Links',

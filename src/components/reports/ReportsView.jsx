@@ -2,7 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { 
   BarChart3, Download, Printer, Store, 
   IndianRupee, MessageSquare, CheckCircle2, 
-  Leaf, ShieldCheck
+  Leaf, ShieldCheck, Sprout, Phone, MapPin, 
+  Clock, Search, MessageCircle, AlertCircle, 
+  Check, X, FileSpreadsheet
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -16,6 +18,8 @@ export default function ReportsView({
 }) {
   const { lang, t } = useLanguage();
   const [dateFilter, setDateFilter] = useState('all'); // 'all', 'month', 'week', 'today'
+  const [inquirySearch, setInquirySearch] = useState('');
+  const [inquiryStatusFilter, setInquiryStatusFilter] = useState('all'); // 'all', 'New', 'Contacted', 'Converted'
 
   // Filter orders by date range
   const filteredOrders = useMemo(() => {
@@ -39,6 +43,60 @@ export default function ReportsView({
     });
     return filtered.length > 0 ? filtered : orders; // Graceful fallback
   }, [orders, dateFilter]);
+
+  // Filter inquiries by date range and search/status
+  const filteredInquiries = useMemo(() => {
+    let list = inquiries;
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      list = list.filter(i => {
+        const dateStr = i.date || i.timestamp;
+        if (!dateStr) return true;
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return true;
+        if (dateFilter === 'today') return d.toDateString() === now.toDateString();
+        if (dateFilter === 'week') {
+          const diffDays = (now - d) / (1000 * 60 * 60 * 24);
+          return diffDays >= 0 && diffDays <= 7;
+        }
+        if (dateFilter === 'month') {
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }
+        return true;
+      });
+    }
+
+    if (inquiryStatusFilter !== 'all') {
+      list = list.filter(i => (i.status || 'New').toLowerCase() === inquiryStatusFilter.toLowerCase());
+    }
+
+    if (inquirySearch.trim()) {
+      const q = inquirySearch.toLowerCase().trim();
+      list = list.filter(i => 
+        (i.plantName || '').toLowerCase().includes(q) ||
+        (i.plantOrNursery || '').toLowerCase().includes(q) ||
+        (i.customerName || '').toLowerCase().includes(q) ||
+        (i.customerPhone || '').toLowerCase().includes(q) ||
+        (i.customerCity || '').toLowerCase().includes(q) ||
+        (i.nurseryName || '').toLowerCase().includes(q) ||
+        (i.notes || '').toLowerCase().includes(q)
+      );
+    }
+
+    return list;
+  }, [inquiries, dateFilter, inquiryStatusFilter, inquirySearch]);
+
+  const inquiryCounts = useMemo(() => {
+    return {
+      total: inquiries.length,
+      filtered: filteredInquiries.length,
+      new: inquiries.filter(i => (i.status || 'New').toLowerCase() === 'new').length,
+      contacted: inquiries.filter(i => (i.status || '').toLowerCase() === 'contacted').length,
+      converted: inquiries.filter(i => (i.status || '').toLowerCase() === 'converted').length,
+      whatsapp: inquiries.filter(i => (i.inquiryType || '').toLowerCase() === 'whatsapp').length,
+      call: inquiries.filter(i => (i.inquiryType || '').toLowerCase() === 'call').length,
+    };
+  }, [inquiries, filteredInquiries]);
 
   // Summary Metrics Calculation
   const totalRevenue = useMemo(() => {
@@ -80,6 +138,40 @@ export default function ReportsView({
     const link = document.createElement('a');
     link.setAttribute('href', url);
     link.setAttribute('download', `TreeBazzar_Executive_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Functional Inquiries CSV Export
+  const handleExportInquiriesCsv = () => {
+    const headers = ['Inquiry ID', 'Date & Time', 'Plant Name', 'Plant Category', 'Customer Name', 'Phone', 'City', 'Target Nursery', 'Inquiry Mode', 'Customer Notes', 'Status'];
+    const rows = filteredInquiries.map(i => {
+      const matched = plants.find(p => 
+        (i.plantName && p.nameEn && i.plantName.toLowerCase().includes(p.nameEn.toLowerCase())) ||
+        (i.plantName && p.nameMr && i.plantName.includes(p.nameMr))
+      );
+      return [
+        `"${i.id || ''}"`,
+        `"${i.timestamp || i.date || ''}"`,
+        `"${(i.plantName || i.plantOrNursery || '').replace(/"/g, '""')}"`,
+        `"${matched?.category || ''}"`,
+        `"${(i.customerName || '').replace(/"/g, '""')}"`,
+        `"${i.customerPhone || ''}"`,
+        `"${i.customerCity || ''}"`,
+        `"${(i.nurseryName || '').replace(/"/g, '""')}"`,
+        `"${i.inquiryType || 'WhatsApp'}"`,
+        `"${(i.notes || '').replace(/"/g, '""')}"`,
+        `"${i.status || 'New'}"`
+      ];
+    });
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `TreeBazzar_Plant_Inquiries_Report_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -313,6 +405,296 @@ export default function ReportsView({
           <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
             {lang === 'mr' ? 'WhatsApp व थेट संपर्क' : 'WhatsApp & Direct Leads'}
           </p>
+        </div>
+
+      </div>
+
+      {/* =========================================================================
+          SECTION 2: Detailed Plant Inquiries Report (वनस्पती चौकशी संपूर्ण तपशील अहवाल)
+          ========================================================================= */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden print:border-slate-300 print:shadow-none print-avoid-break">
+        
+        {/* Table Header Strip & Inquiries Search/Filter Controls */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-emerald-50/60 to-white flex flex-col md:flex-row md:items-center justify-between gap-4 print:bg-white print:p-2">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#1E5631] text-white flex items-center justify-center shadow-xs">
+                <Sprout className="w-4 h-4 text-emerald-300" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  {lang === 'mr' ? 'वनस्पती ग्राहक चौकशी संपूर्ण तपशील अहवाल' : 'Plant Inquiries & Customer Demand Detailed Report'}
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-[#1E5631]">
+                    {filteredInquiries.length} {lang === 'mr' ? 'नोंदी' : 'records'}
+                  </span>
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {lang === 'mr' 
+                    ? 'ग्राहकांकडून आलेल्या सर्व रोपांच्या चौकशी, मागणी, थेट संपर्क आणि पाठपुरावा सद्यस्थिती' 
+                    : 'Complete audit log of customer plant inquiries, varieties requested, direct contacts, and status'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Search, Filter & CSV Export Controls (Screen Only) */}
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
+            {/* Search Input */}
+            <div className="relative min-w-[200px] flex-1 sm:flex-initial">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder={lang === 'mr' ? 'रोप, ग्राहक किंवा फोन शोधा...' : 'Search plant, customer, phone...'}
+                value={inquirySearch}
+                onChange={(e) => setInquirySearch(e.target.value)}
+                className="w-full pl-8 pr-7 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-hidden focus:border-[#2E7D32]"
+              />
+              {inquirySearch && (
+                <button
+                  onClick={() => setInquirySearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+              {[
+                { id: 'all', label: lang === 'mr' ? 'सर्व' : 'All' },
+                { id: 'New', label: lang === 'mr' ? 'नवीन' : 'New' },
+                { id: 'Contacted', label: lang === 'mr' ? 'संपर्क केला' : 'Contacted' },
+                { id: 'Converted', label: lang === 'mr' ? 'ऑर्डर झाली' : 'Converted' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setInquiryStatusFilter(tab.id)}
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                    inquiryStatusFilter.toLowerCase() === tab.id.toLowerCase()
+                      ? 'bg-white text-slate-900 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Inquiries CSV Export Button */}
+            <button
+              onClick={handleExportInquiriesCsv}
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer"
+              title="Download Plant Inquiries Spreadsheet"
+            >
+              <Download className="w-3.5 h-3.5 text-[#2E7D32]" />
+              <span className="hidden sm:inline">{lang === 'mr' ? 'चौकशी CSV' : 'Export Inquiries CSV'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Quick KPI Strip inside the section */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-slate-50/70 border-b border-slate-100 text-xs print:bg-slate-100">
+          <div className="p-2 rounded-lg bg-white border border-slate-200/80">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">{lang === 'mr' ? 'एकूण चौकशी' : 'Total Inquiries'}</span>
+            <p className="text-base font-black text-slate-900">{inquiryCounts.total}</p>
+          </div>
+          <div className="p-2 rounded-lg bg-white border border-slate-200/80">
+            <span className="text-[10px] font-bold text-emerald-600 uppercase">WhatsApp</span>
+            <p className="text-base font-black text-emerald-800">{inquiryCounts.whatsapp}</p>
+          </div>
+          <div className="p-2 rounded-lg bg-white border border-slate-200/80">
+            <span className="text-[10px] font-bold text-blue-600 uppercase">{lang === 'mr' ? 'फोन कॉल्स' : 'Direct Calls'}</span>
+            <p className="text-base font-black text-blue-800">{inquiryCounts.call}</p>
+          </div>
+          <div className="p-2 rounded-lg bg-white border border-slate-200/80">
+            <span className="text-[10px] font-bold text-purple-600 uppercase">{lang === 'mr' ? 'ऑर्डर रूपांतरित' : 'Converted Leads'}</span>
+            <p className="text-base font-black text-purple-800">{inquiryCounts.converted}</p>
+          </div>
+        </div>
+
+        {/* Detailed Inquiries Table */}
+        <div className="overflow-x-auto">
+          {filteredInquiries.length > 0 ? (
+            <table className="w-full text-xs text-left">
+              <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 print:border-slate-300">
+                <tr>
+                  <th className="py-2.5 px-3.5 w-10 text-center">#</th>
+                  <th className="py-2.5 px-3">{lang === 'mr' ? 'तारीख व वेळ' : 'Date & Time'}</th>
+                  <th className="py-2.5 px-3">{lang === 'mr' ? 'रोपाचे नाव व वर्गवारी (Plant Variety)' : 'Plant Variety & Category'}</th>
+                  <th className="py-2.5 px-3">{lang === 'mr' ? 'ग्राहक व संपर्क क्रमांक' : 'Customer & Phone'}</th>
+                  <th className="py-2.5 px-3">{lang === 'mr' ? 'शहर / ठिकाण' : 'City Hub'}</th>
+                  <th className="py-2.5 px-3">{lang === 'mr' ? 'रोपवाटिका पुरवठादार' : 'Nursery Partner'}</th>
+                  <th className="py-2.5 px-3 text-center">{lang === 'mr' ? 'माध्यम' : 'Channel'}</th>
+                  <th className="py-2.5 px-3">{lang === 'mr' ? 'चौकशी संदेश / आवश्यकता' : 'Customer Message / Requirement'}</th>
+                  <th className="py-2.5 px-3.5 text-center">{lang === 'mr' ? 'सद्यस्थिती' : 'Status'}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 print:divide-slate-200">
+                {filteredInquiries.map((inq, idx) => {
+                  const matchedPlant = plants.find(p => 
+                    (inq.plantName && p.nameEn && inq.plantName.toLowerCase().includes(p.nameEn.toLowerCase())) ||
+                    (inq.plantName && p.nameMr && inq.plantName.includes(p.nameMr))
+                  );
+                  const plantImg = matchedPlant?.photoUrl || matchedPlant?.image;
+                  const plantName = inq.plantName || inq.plantOrNursery || 'Plant Variety';
+                  const isWhatsApp = (inq.inquiryType || '').toLowerCase() === 'whatsapp';
+                  const isCall = (inq.inquiryType || '').toLowerCase() === 'call';
+
+                  return (
+                    <tr key={inq.id || idx} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3 px-3.5 text-center text-slate-400 font-mono text-[11px]">
+                        {idx + 1}
+                      </td>
+
+                      {/* Date & Time */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-slate-700 font-medium">
+                          <Clock className="w-3 h-3 text-slate-400 shrink-0 print:hidden" />
+                          <span className="font-mono text-[11px]">
+                            {inq.timestamp || inq.date || 'Recent'}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Plant Variety & Category */}
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5 min-w-[180px]">
+                          <div className="w-9 h-9 rounded-lg overflow-hidden bg-emerald-50 border border-emerald-100 shrink-0 flex items-center justify-center">
+                            {plantImg ? (
+                              <img 
+                                src={plantImg} 
+                                alt={plantName} 
+                                className="w-full h-full object-cover"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            ) : (
+                              <Sprout className="w-4 h-4 text-[#2E7D32]" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-900 leading-snug">
+                              {plantName}
+                            </p>
+                            {matchedPlant?.nameMr && lang === 'mr' && (
+                              <p className="text-[10px] text-emerald-800 font-semibold leading-tight">
+                                {matchedPlant.nameMr}
+                              </p>
+                            )}
+                            {matchedPlant?.category && (
+                              <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-[#1E5631] border border-emerald-200/60">
+                                {lang === 'mr' && matchedPlant.categoryMr ? matchedPlant.categoryMr : matchedPlant.category}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Customer Name & Phone */}
+                      <td className="py-3 px-3 min-w-[150px]">
+                        <p className="font-bold text-slate-900 leading-tight">
+                          {inq.customerName || (lang === 'mr' ? 'ग्राहक' : 'Customer')}
+                        </p>
+                        {inq.customerPhone ? (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <a 
+                              href={`tel:${inq.customerPhone}`}
+                              className="font-mono text-[11px] text-slate-600 hover:text-[#1E5631] font-semibold flex items-center gap-1"
+                            >
+                              <Phone className="w-2.5 h-2.5 text-slate-400 print:hidden" />
+                              <span>{inq.customerPhone}</span>
+                            </a>
+                            <a
+                              href={`https://wa.me/91${inq.customerPhone.replace(/\D/g, '').slice(-10)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Message on WhatsApp"
+                              className="p-0.5 text-emerald-600 hover:text-emerald-700 print:hidden"
+                            >
+                              <MessageCircle className="w-3 h-3" />
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-slate-400">N/A</span>
+                        )}
+                      </td>
+
+                      {/* City Hub */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 text-slate-700 font-semibold">
+                          <MapPin className="w-3 h-3 text-[#2E7D32] print:hidden" />
+                          <span>{inq.customerCity || (cities[0]?.nameEn || 'All India')}</span>
+                        </span>
+                      </td>
+
+                      {/* Target Nursery */}
+                      <td className="py-3 px-3">
+                        <span className="font-semibold text-slate-800 block truncate max-w-[150px]" title={inq.nurseryName}>
+                          {inq.nurseryName || (lang === 'mr' ? 'स्थानिक रोपवाटिका' : 'Local Nursery')}
+                        </span>
+                      </td>
+
+                      {/* Channel */}
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {isWhatsApp ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            <MessageCircle className="w-3 h-3" />
+                            <span>WhatsApp</span>
+                          </span>
+                        ) : isCall ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                            <Phone className="w-3 h-3" />
+                            <span>Call</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                            <span>{inq.inquiryType || 'Web Form'}</span>
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Message / Requirements */}
+                      <td className="py-3 px-3 max-w-[220px]">
+                        <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed" title={inq.notes}>
+                          {inq.notes || (lang === 'mr' ? 'थेट रोपांची मागणी व चौकशी.' : 'Direct plant inquiry and pricing query.')}
+                        </p>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
+                        {(inq.status || 'New').toLowerCase() === 'converted' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            <Check className="w-3 h-3" />
+                            <span>{lang === 'mr' ? 'ऑर्डर झाली' : 'Converted'}</span>
+                          </span>
+                        ) : (inq.status || '').toLowerCase() === 'contacted' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                            <Phone className="w-3 h-3" />
+                            <span>{lang === 'mr' ? 'संपर्क केला' : 'Contacted'}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                            <AlertCircle className="w-3 h-3" />
+                            <span>{lang === 'mr' ? 'नवीन' : 'New'}</span>
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div className="py-12 text-center text-slate-400">
+              <MessageSquare className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+              <p className="text-xs font-bold text-slate-600">
+                {lang === 'mr' ? 'या कालावधीत कोणतीही वनस्पती चौकशी सापडली नाही' : 'No plant inquiries found for this period'}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {lang === 'mr' ? 'वेबसाईटवरून ग्राहकांनी रोपांची मागणी केल्यावर येथे सर्व तपशील दिसतील.' : 'Customer plant leads submitted from the website will automatically display here.'}
+              </p>
+            </div>
+          )}
         </div>
 
       </div>

@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { PLANT_CATEGORIES, FALLBACK_PLANT_IMAGE } from '../../data/mockData';
-import AddPlantModal from '../common/AddPlantModal';
 import EditPlantModal from '../common/EditPlantModal';
 import DeleteConfirmModal from '../common/DeleteConfirmModal';
 
@@ -282,16 +281,6 @@ export default function PlantCatalogView({
           </table>
         </div>
       </div>
-
-      {/* Add Plant Modal */}
-      {isAddModalOpen && (
-        <AddPlantModal
-          isOpen={isAddModalOpen}
-          onClose={onCloseAddModal}
-          onAddPlant={onAddPlant}
-          nurseries={nurseries}
-        />
-      )}
 
       {/* Edit Plant Modal */}
       {editingPlant && (

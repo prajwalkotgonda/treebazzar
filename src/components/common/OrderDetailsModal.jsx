@@ -1,15 +1,33 @@
 import React from 'react';
-import { X, Printer, ShoppingBag, MapPin, Phone, Calendar, User, Store, IndianRupee, CheckCircle2, Clock } from 'lucide-react';
+import { 
+  X, Printer, ShoppingBag, MapPin, Phone, Calendar, User, Store, 
+  IndianRupee, CheckCircle2, Clock, Sprout, Tag, ShieldCheck 
+} from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function OrderDetailsModal({ 
   isOpen, 
   onClose, 
-  order 
+  order,
+  plants = []
 }) {
   const { lang, t } = useLanguage();
 
   if (!isOpen || !order) return null;
+
+  // Match plant details
+  const matchedPlant = plants.find(p => 
+    p.id === order.plantId || 
+    (order.plantName && p.nameEn && order.plantName.toLowerCase().trim() === p.nameEn.toLowerCase().trim()) ||
+    (order.plantName && p.nameEn && order.plantName.toLowerCase().includes(p.nameEn.toLowerCase())) ||
+    (order.plantName && p.nameMr && order.plantName.includes(p.nameMr))
+  );
+
+  const plantImg = order.plantImage || matchedPlant?.photoUrl || matchedPlant?.image;
+  const plantCategory = order.plantCategory || matchedPlant?.category;
+  const plantCategoryMr = order.plantCategoryMr || matchedPlant?.categoryMr;
+  const plantNameMr = order.plantNameMr || matchedPlant?.nameMr;
+  const botanicalName = order.botanicalName || matchedPlant?.botanicalName;
 
   const handlePrint = () => {
     window.print();
@@ -116,44 +134,94 @@ export default function OrderDetailsModal({
             </div>
           </div>
 
-          {/* Items Table */}
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
+          {/* Items Table with Full Plant Details */}
+          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
             <table className="w-full text-xs text-left">
-              <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+              <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
-                  <th className="py-2.5 px-3">Item / Plant Variety</th>
-                  <th className="py-2.5 px-3 text-center">Qty</th>
-                  <th className="py-2.5 px-3 text-right">Rate</th>
-                  <th className="py-2.5 px-3 text-right">Amount</th>
+                  <th className="py-2.5 px-3.5">{lang === 'mr' ? 'ऑर्डर केलेले रोप / तपशील (Plant Details)' : 'Item / Plant Variety'}</th>
+                  <th className="py-2.5 px-3 text-center">{lang === 'mr' ? 'नग संख्या' : 'Qty'}</th>
+                  <th className="py-2.5 px-3 text-right">{lang === 'mr' ? 'प्रति रोप दर' : 'Rate'}</th>
+                  <th className="py-2.5 px-3.5 text-right">{lang === 'mr' ? 'एकूण रक्कम' : 'Amount'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 <tr>
-                  <td className="py-3 px-3 font-semibold text-slate-800">
-                    {order.plantName}
+                  <td className="py-3 px-3.5">
+                    <div className="flex items-center gap-3">
+                      {/* Plant Image / Thumbnail */}
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-emerald-50 border border-emerald-100 shrink-0 flex items-center justify-center">
+                        {plantImg ? (
+                          <img 
+                            src={plantImg} 
+                            alt={order.plantName} 
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        ) : (
+                          <Sprout className="w-6 h-6 text-[#2E7D32]" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-900 text-sm">
+                          {order.plantName}
+                        </p>
+                        {plantNameMr && (
+                          <p className="text-xs text-emerald-800 font-semibold">
+                            {plantNameMr}
+                          </p>
+                        )}
+                        {botanicalName && (
+                          <p className="text-[11px] text-slate-400 italic">
+                            {botanicalName}
+                          </p>
+                        )}
+                        {plantCategory && (
+                          <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-[#1E5631] border border-emerald-200/80">
+                            {lang === 'mr' && plantCategoryMr ? plantCategoryMr : plantCategory}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </td>
-                  <td className="py-3 px-3 text-center font-bold text-slate-700">
-                    {order.quantity}
+                  <td className="py-3 px-3 text-center font-black text-slate-800 text-sm">
+                    {order.quantity} {lang === 'mr' ? 'रोपे' : 'plants'}
                   </td>
-                  <td className="py-3 px-3 text-right text-slate-600">
-                    ₹{order.unitPrice || (order.totalAmount / (order.quantity || 1))}
+                  <td className="py-3 px-3 text-right text-slate-700 font-semibold font-mono">
+                    ₹{order.unitPrice || matchedPlant?.priceMin || Math.round((order.totalAmount || 0) / (order.quantity || 1))}
                   </td>
-                  <td className="py-3 px-3 text-right font-bold text-slate-900">
+                  <td className="py-3 px-3.5 text-right font-black text-slate-900 text-sm font-mono">
                     ₹{Number(order.totalAmount || 0).toLocaleString('en-IN')}
                   </td>
                 </tr>
               </tbody>
-              <tfoot className="bg-emerald-50/60 font-bold border-t border-slate-200">
+              <tfoot className="bg-emerald-50/70 font-bold border-t border-slate-200">
                 <tr>
-                  <td colSpan="3" className="py-2.5 px-3 text-right text-slate-700 text-xs">
+                  <td colSpan="3" className="py-2.5 px-3.5 text-right text-slate-700 text-xs">
                     {lang === 'mr' ? 'एकूण रक्कम (Grand Total):' : 'Grand Total:'}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-emerald-900 text-sm font-black">
+                  <td className="py-2.5 px-3.5 text-right text-[#1E5631] text-sm font-black font-mono">
                     ₹{Number(order.totalAmount || 0).toLocaleString('en-IN')}
                   </td>
                 </tr>
               </tfoot>
             </table>
+          </div>
+
+          {/* Plant Quality Guarantee Strip */}
+          <div className="p-3 bg-emerald-50/50 border border-emerald-200/60 rounded-xl flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#2E7D32] shrink-0" />
+              <span className="text-slate-700 font-medium">
+                {lang === 'mr' 
+                  ? 'खात्रीशीर व निरोगी कलमे / रोपे (१००% अस्सल नर्सरी व्हरायटी)' 
+                  : 'Certified Healthy Saplings • 100% Authentic Nursery Variety'}
+              </span>
+            </div>
+            <span className="font-bold text-[#1E5631] text-[11px]">
+              {order.nurseryName}
+            </span>
           </div>
 
           {order.notes && (

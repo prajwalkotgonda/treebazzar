@@ -210,40 +210,13 @@ export default function HeroSection({
         </div>
 
         {/* Modern & Professional Search Bar */}
-        <div className="max-w-3xl mx-auto mb-6 px-1">
+        <div className="max-w-2xl mx-auto mb-6 px-1">
           <form 
             onSubmit={handleSubmit}
-            className="group/search bg-white rounded-2xl sm:rounded-full p-2 sm:p-2.5 shadow-xl shadow-slate-900/8 border border-slate-200/90 hover:border-emerald-300 focus-within:border-[#2E7D32] focus-within:ring-4 focus-within:ring-[#2E7D32]/12 focus-within:shadow-2xl focus-within:shadow-emerald-950/15 transition-all duration-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-1.5"
+            className="group/search bg-white rounded-2xl sm:rounded-full p-2 sm:p-2.5 shadow-xl shadow-slate-900/8 border border-slate-200/90 hover:border-emerald-300 focus-within:border-[#2E7D32] focus-within:ring-4 focus-within:ring-[#2E7D32]/12 focus-within:shadow-2xl focus-within:shadow-emerald-950/15 transition-all duration-200 flex items-center gap-2"
           >
-            {/* City Selector */}
-            <div className="relative sm:w-52 shrink-0 flex items-center bg-slate-50/80 sm:bg-transparent rounded-xl sm:rounded-full px-3 py-2 sm:py-1.5 transition-colors group/city hover:bg-slate-100/70 sm:hover:bg-slate-50">
-              <div className="w-8 h-8 rounded-full bg-emerald-100/80 text-[#1E5631] flex items-center justify-center shrink-0 mr-2.5 border border-emerald-200/60 shadow-2xs">
-                <MapPin className="w-4 h-4 text-[#2E7D32]" />
-              </div>
-              <div className="relative flex-1 min-w-0 pr-6">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider leading-none mb-0.5">
-                  {lang === 'mr' ? 'शहर / जिल्हा' : 'Location'}
-                </span>
-                <select
-                  value={selectedCity}
-                  onChange={(e) => onCityChange(e.target.value)}
-                  className="w-full text-xs sm:text-sm font-bold text-slate-900 bg-transparent appearance-none border-0 p-0 m-0 cursor-pointer focus:outline-none focus:ring-0 leading-tight"
-                >
-                  {cityOptions.map(c => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover/city:text-slate-700 pointer-events-none absolute right-1 bottom-0.5 transition-colors" />
-              </div>
-            </div>
-
-            {/* Subtle Vertical Divider (Desktop) */}
-            <div className="hidden sm:block w-[1.5px] h-8 bg-slate-200/90 mx-1 shrink-0" aria-hidden="true" />
-
             {/* Keyword Input */}
-            <div className="relative flex-1 flex items-center px-2 sm:px-3 py-1">
+            <div className="relative flex-1 flex items-center px-3 py-1">
               <Search className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-800/60 shrink-0 mr-2.5 sm:mr-3" />
               <input
                 type="text"

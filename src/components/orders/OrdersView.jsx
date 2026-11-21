@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ShoppingBag, Search, Plus, Eye, Edit2, Trash2, Check, X, 
-  MapPin, Phone, Calendar, IndianRupee, Truck, CheckCircle2, AlertCircle, Loader2
+  MapPin, Phone, Calendar, IndianRupee, Truck, CheckCircle2, AlertCircle, Loader2, Sprout
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import AddOrderModal from '../common/AddOrderModal';
@@ -214,14 +214,66 @@ export default function OrdersView({
                       </p>
                     </td>
 
-                    {/* Plant Variety & Qty */}
+                    {/* Plant Variety & Complete Details */}
                     <td className="py-3 px-4">
-                      <p className="font-semibold text-slate-900">
-                        {order.plantName}
-                      </p>
-                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
-                        {order.quantity} {lang === 'mr' ? 'रोपे' : 'plants'}
-                      </span>
+                      {(() => {
+                        const matchedPlant = plants.find(p => 
+                          p.id === order.plantId || 
+                          (order.plantName && p.nameEn && order.plantName.toLowerCase().trim() === p.nameEn.toLowerCase().trim()) ||
+                          (order.plantName && p.nameEn && order.plantName.toLowerCase().includes(p.nameEn.toLowerCase())) ||
+                          (order.plantName && p.nameMr && order.plantName.includes(p.nameMr))
+                        );
+
+                        const plantImg = order.plantImage || matchedPlant?.photoUrl || matchedPlant?.image;
+                        const plantCat = order.plantCategory || matchedPlant?.category;
+                        const plantCatMr = order.plantCategoryMr || matchedPlant?.categoryMr;
+                        const plantMr = order.plantNameMr || matchedPlant?.nameMr;
+
+                        return (
+                          <div className="flex items-center gap-2.5">
+                            {/* Plant Thumbnail */}
+                            <div className="w-11 h-11 rounded-xl overflow-hidden bg-emerald-50 border border-emerald-100/90 shrink-0 flex items-center justify-center shadow-2xs">
+                              {plantImg ? (
+                                <img 
+                                  src={plantImg} 
+                                  alt={order.plantName} 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                              ) : (
+                                <Sprout className="w-5 h-5 text-[#2E7D32]" />
+                              )}
+                            </div>
+
+                            <div className="min-w-0">
+                              <p className="font-bold text-slate-900 text-xs sm:text-sm leading-tight truncate max-w-[190px]" title={order.plantName}>
+                                {order.plantName}
+                              </p>
+                              {plantMr && lang === 'mr' && (
+                                <p className="text-[11px] text-emerald-800 font-semibold leading-tight truncate max-w-[190px]">
+                                  {plantMr}
+                                </p>
+                              )}
+                              
+                              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                {plantCat && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-[#1E5631] border border-emerald-200/70">
+                                    {lang === 'mr' && plantCatMr ? plantCatMr : plantCat}
+                                  </span>
+                                )}
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-900 text-white">
+                                  {order.quantity} {lang === 'mr' ? 'रोपे' : 'plants'}
+                                </span>
+                                {(order.unitPrice || matchedPlant?.priceMin) && (
+                                  <span className="text-[10px] text-slate-500 font-semibold">
+                                    ₹{order.unitPrice || matchedPlant?.priceMin}/नग
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     {/* Nursery */}
@@ -402,6 +454,7 @@ export default function OrdersView({
           isOpen={Boolean(viewingOrder)}
           onClose={() => setViewingOrder(null)}
           order={viewingOrder}
+          plants={plants}
         />
       )}
 

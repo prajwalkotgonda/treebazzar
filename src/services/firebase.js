@@ -233,11 +233,11 @@ export function normalizePlant(data, id) {
   const docId = id || data.id || `plt-${Date.now()}`;
   const nameEn = data.nameEn || data.name || 'Plant Variety';
   const nameMr = data.nameMr || data.name || nameEn;
-  const botanicalName = data.botanicalName || data.scientificName || 'Botanical var. sp.';
+  const botanicalName = data.botanicalName || data.scientificName || '';
   const category = data.category || 'Fruit Trees';
   const categoryMr = data.categoryMr || category;
-  const nurseryId = data.nurseryId || 'nur-01';
-  const nurseryName = data.nurseryName || 'Master Nursery';
+  const nurseryId = data.nurseryId || '';
+  const nurseryName = data.nurseryName || data.nursery || '';
   const priceMin = Number(data.priceMin) || Number(data.price) || Number(data.varieties?.[0]?.price) || 150;
   const priceMax = Number(data.priceMax) || Number(data.price) || Number(data.varieties?.[0]?.price) || priceMin;
   const photoUrl = data.photoUrl || data.imageUrl || data.images?.[0] || 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=800&auto=format&fit=crop&q=80';

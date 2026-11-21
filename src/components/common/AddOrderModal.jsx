@@ -39,13 +39,19 @@ export default function AddOrderModal({
     }
   }, [nurseries, isOpen]);
 
-  // When plant is selected, auto set unitPrice
+  // When plant is selected, auto set unitPrice and plant details
   const handlePlantChange = (plantId) => {
     const selected = plants.find(p => p.id === plantId);
     if (selected) {
       setFormData(prev => ({
         ...prev,
+        plantId: selected.id,
         plantName: selected.nameEn || selected.name || '',
+        plantNameMr: selected.nameMr || '',
+        plantCategory: selected.category || '',
+        plantCategoryMr: selected.categoryMr || '',
+        plantImage: selected.photoUrl || selected.image || '',
+        botanicalName: selected.botanicalName || '',
         nurseryId: selected.nurseryId || prev.nurseryId,
         unitPrice: selected.priceMin || selected.price || 100
       }));
@@ -104,7 +110,13 @@ export default function AddOrderModal({
       customerCity: formData.customerCity,
       nurseryId: formData.nurseryId || (nurseries[0]?.id || 'nur-1'),
       nurseryName: nurseryName,
+      plantId: formData.plantId || '',
       plantName: formData.plantName.trim(),
+      plantNameMr: formData.plantNameMr || '',
+      plantCategory: formData.plantCategory || '',
+      plantCategoryMr: formData.plantCategoryMr || '',
+      plantImage: formData.plantImage || '',
+      botanicalName: formData.botanicalName || '',
       quantity: Number(formData.quantity) || 1,
       unitPrice: Number(formData.unitPrice) || 0,
       totalAmount: totalAmount,
