@@ -52,7 +52,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
 
   const buildNurseryObject = (paymentInfo = null) => {
     const now = new Date();
-    const trialEnd = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const trialEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     const hasPaid = Boolean(paymentInfo);
 
     return {
@@ -73,11 +73,12 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
       isActive: true,
       isTrialActive: !hasPaid,
       isTrialExpired: false,
-      trialDaysTotal: 6,
-      trialDaysLeft: 6,
+      trialDaysTotal: 3,
+      trialExtensionsCount: 0,
+      trialDaysLeft: 3,
       trialStartDate: now.toISOString(),
       trialEndDate: trialEnd.toISOString(),
-      subscriptionPlan: hasPaid ? 'paid_annual' : 'free_trial',
+      subscriptionPlan: hasPaid ? 'paid_annual' : 'free_trial_3d',
       subscriptionStatus: hasPaid ? 'active' : 'trial',
       isSubscriptionApproved: hasPaid,
       isNew: true,

@@ -40,7 +40,7 @@ export default function FeaturedNurseries({
         return false;
       }
       // 2. Free trial nurseries MUST NOT be displayed to public visitors
-      if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_6d') {
+      if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_3d' || n.subscriptionPlan === 'free_trial_6d') {
         return false;
       }
       // 3. Pending approval or expired trial nurseries MUST NOT be displayed
@@ -268,8 +268,8 @@ export default function FeaturedNurseries({
             </p>
             <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
               {lang === 'mr' 
-                ? 'नवीन रोपवाटिका ६ दिवस मोफत ट्रायलवर असतात. त्यांनी सबस्क्रिप्शन घेतल्यानंतर त्या येथे ग्राहकांसाठी थेट उपलब्ध होतात.' 
-                : 'New partner nurseries are currently on 6-day free trial. Once subscribed, they go live on the customer marketplace.'}
+                ? 'नवीन रोपवाटिका ३ दिवस मोफत ट्रायलवर असतात. त्यांनी सबस्क्रिप्शन घेतल्यानंतर त्या येथे ग्राहकांसाठी थेट उपलब्ध होतात.' 
+                : 'New partner nurseries are currently on 3-day free trial. Once subscribed, they go live on the customer marketplace.'}
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
               <button
@@ -284,7 +284,7 @@ export default function FeaturedNurseries({
                   onClick={onOpenRegisterNursery}
                   className="px-4 py-2 bg-[#1E5631] text-white text-xs font-bold rounded-xl hover:bg-[#2E7D32] transition-colors cursor-pointer"
                 >
-                  {lang === 'mr' ? '+ रोपवाटिका जोडा (६ दिवस मोफत ट्रायल)' : '+ Join as Partner (6-Day Free Trial)'}
+                  {lang === 'mr' ? '+ रोपवाटिका जोडा (३ दिवस मोफत ट्रायल)' : '+ Join as Partner (3-Day Free Trial)'}
                 </button>
               )}
             </div>

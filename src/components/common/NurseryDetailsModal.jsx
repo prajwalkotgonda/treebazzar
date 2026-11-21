@@ -160,6 +160,102 @@ export default function NurseryDetailsModal({
         {/* Modal Content */}
         <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           
+          {/* Prominent Free Trial Expired Popup/Banner */}
+          {isTrialExpired && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-400 shadow-md text-amber-950 animate-in fade-in zoom-in-95">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                  <AlertCircle className="w-6 h-6 stroke-[2.5]" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-black text-amber-950">
+                      {lang === 'mr' ? '⚠️ ३ दिवसांची मोफत चाचणी (Free Trial) संपली आहे!' : '⚠️ 3-Day Free Trial Has Ended!'}
+                    </h3>
+                    {(Number(nursery.trialExtensionsCount) || 0) > 0 && (
+                      <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
+                        {lang === 'mr' ? `वाढवलेले टप्पे: ${nursery.trialExtensionsCount}/२` : `Extensions: ${nursery.trialExtensionsCount}/2`}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-bold text-amber-900 mt-1 leading-relaxed">
+                    {lang === 'mr' 
+                      ? 'तुमची रोपवाटिका ग्राहकांसाठी थेट चालू राहण्यासाठी आणि पुढील ऑर्डर/चौकशा मिळवण्यासाठी कृपया ₹१०० वार्षिक सबस्क्रिप्शन पेमेंट भरा, तुमची प्रोसेस लगेच चालू होईल.' 
+                      : 'To keep your nursery listed and receiving customer orders, please pay the ₹100 annual subscription. Your account will be activated immediately.'}
+                  </p>
+
+                  {/* Immediate Action Buttons */}
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2.5">
+                    {/* Pay ₹100 Subscription */}
+                    <button
+                      type="button"
+                      onClick={handlePayFee}
+                      disabled={payingFee}
+                      className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-[#1E5631] hover:brightness-110 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-sm transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+                    >
+                      {payingFee ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-emerald-200" />
+                      ) : (
+                        <CreditCard className="w-4 h-4 text-emerald-200" />
+                      )}
+                      <span>{lang === 'mr' ? 'पेमेंट भरा (PayU ₹१००)' : 'Pay ₹100 Subscription (PayU)'}</span>
+                    </button>
+
+                    {/* Admin Action: +3 Days Free Extension */}
+                    {onExtendTrial && (
+                      <>
+                        {(Number(nursery.trialExtensionsCount) || 0) < 2 ? (
+                          <button
+                            type="button"
+                            onClick={() => onExtendTrial(nursery.id)}
+                            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+                          >
+                            <CalendarPlus className="w-4 h-4 text-blue-200" />
+                            <span>
+                              {lang === 'mr' 
+                                ? `ॲडमिन: +३ दिवस मोफत वाढवा (${(nursery.trialExtensionsCount || 0)}/२)` 
+                                : `Admin: Extend +3 Days (${(nursery.trialExtensionsCount || 0)}/2)`}
+                            </span>
+                          </button>
+                        ) : (
+                          <span className="text-[11px] font-bold text-slate-600 bg-white border border-slate-300 px-3 py-1.5 rounded-xl shadow-2xs">
+                            {lang === 'mr' ? 'कमाल मर्यादा गाठली (एकूण ९ दिवस / २ वेळा वाढवले)' : 'Max Trial Limit Reached (9 Days Total)'}
+                          </span>
+                        )}
+                      </>
+                    )}
+
+                    {/* Instant 1-Click Test Verification */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const res = simulatePayUTestPayment({
+                          amount: 100,
+                          nurseryName: nursery.name || nursery.nurseryName,
+                          ownerName: nursery.ownerName || nursery.owner,
+                          phone: nursery.ownerPhone || nursery.phone
+                        });
+                        nursery.paymentStatus = 'paid';
+                        nursery.payuPaymentId = res.paymentId;
+                        nursery.payuTxnId = res.txnid;
+                        setPaymentMsg({ type: 'success', text: `PayU Test Payment Verified! ID: ${res.paymentId}` });
+                      }}
+                      className="px-3 py-2 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                    >
+                      {lang === 'mr' ? '⚡ १-क्लिक चाचणी पेमेंट (Instant Test)' : '⚡ 1-Click Test Verify'}
+                    </button>
+                  </div>
+
+                  {paymentMsg && (
+                    <div className={`mt-2.5 p-2 rounded-lg text-xs font-bold ${paymentMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                      {paymentMsg.text}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Suspension notice banner if status is suspended */}
           {isSuspended && (
             <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
@@ -373,16 +469,27 @@ export default function NurseryDetailsModal({
             </div>
           </div>
 
-          {/* 6-Day Free Trial & Subscription Status Box */}
+          {/* 3-Day Free Trial (3+3+3 Model) & Subscription Status Box */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-[#1E5631]" />
-              {lang === 'mr' ? 'सबस्क्रिप्शन व ६-दिवस मोफत ट्रायल स्थिती' : 'Subscription & 6-Day Free Trial'}
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-[#1E5631]" />
+                {lang === 'mr' ? 'सबस्क्रिप्शन व ३-दिवस मोफत ट्रायल स्थिती (3+3+3 मॉडेल)' : 'Subscription & 3-Day Free Trial (3+3+3 Model)'}
+              </span>
+              {(Number(nursery.trialExtensionsCount) || 0) > 0 && (
+                <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md">
+                  {lang === 'mr' ? `वाढवलेले टप्पे: ${nursery.trialExtensionsCount}/२` : `Extended: ${nursery.trialExtensionsCount}/2`}
+                </span>
+              )}
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <span className="text-[10px] text-slate-400 font-bold uppercase block">{lang === 'mr' ? 'प्लॅन' : 'Plan'}</span>
-                <span className="font-bold text-slate-800">{isApproved ? (lang === 'mr' ? 'वार्षिक पार्टनर' : 'Paid Annual') : (lang === 'mr' ? '६ दिवस फ्री ट्रायल' : '6-Day Trial')}</span>
+                <span className="font-bold text-slate-800">
+                  {isApproved 
+                    ? (lang === 'mr' ? 'वार्षिक पार्टनर' : 'Paid Annual') 
+                    : (lang === 'mr' ? `३ दिवस मोफत ट्रायल (एकूण ${nursery.trialDaysTotal || 3} दिवस)` : `3-Day Trial (${nursery.trialDaysTotal || 3}d total)`)}
+                </span>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <span className="text-[10px] text-slate-400 font-bold uppercase block">{lang === 'mr' ? 'ट्रायल सुरू' : 'Trial Start'}</span>
@@ -390,7 +497,7 @@ export default function NurseryDetailsModal({
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <span className="text-[10px] text-slate-400 font-bold uppercase block">{lang === 'mr' ? 'ट्रायल समाप्ती' : 'Trial Ends'}</span>
-                <span className="font-bold text-slate-800">{nursery.trialEndDate ? new Date(nursery.trialEndDate).toLocaleDateString() : 'After 6 Days'}</span>
+                <span className="font-bold text-slate-800">{nursery.trialEndDate ? new Date(nursery.trialEndDate).toLocaleDateString() : 'After 3 Days'}</span>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <span className="text-[10px] text-slate-400 font-bold uppercase block">{lang === 'mr' ? 'स्थिती' : 'Status'}</span>
@@ -398,7 +505,7 @@ export default function NurseryDetailsModal({
                   {isApproved 
                     ? (lang === 'mr' ? 'सक्रिय सबस्क्राइबर' : 'Active Subscribed') 
                     : (isTrialActive 
-                        ? (lang === 'mr' ? `${nursery.trialDaysLeft ?? 6} दिवस बाकी` : `${nursery.trialDaysLeft ?? 6}d Left`) 
+                        ? (lang === 'mr' ? `${nursery.trialDaysLeft ?? 3} दिवस बाकी` : `${nursery.trialDaysLeft ?? 3}d Left`) 
                         : (lang === 'mr' ? 'मंजुरी प्रलंबित' : 'Pending Approval'))}
                 </span>
               </div>
@@ -445,6 +552,19 @@ export default function NurseryDetailsModal({
           <div className="flex items-center gap-2">
             {(isPending || isTrialActive) && (
               <>
+                {onExtendTrial && (Number(nursery.trialExtensionsCount) || 0) < 2 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onExtendTrial(nursery.id);
+                      onClose();
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                  >
+                    <CalendarPlus className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{lang === 'mr' ? `+३ दिवस वाढवा (${(nursery.trialExtensionsCount || 0)}/२)` : `+3 Days (${(nursery.trialExtensionsCount || 0)}/2)`}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   disabled={isApproving}

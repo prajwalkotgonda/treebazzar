@@ -29,7 +29,7 @@ export default function LandingPage({
   const subscribedNurseries = React.useMemo(() => {
     return nurseries.filter(n => {
       if (n.isSuspended || n.status === 'suspended' || n.status === 'rejected' || n.status === 'revoked') return false;
-      if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_6d') return false;
+      if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_3d' || n.subscriptionPlan === 'free_trial_6d') return false;
       if (n.status === 'pending' || n.isTrialExpired) return false;
       const isSub = Boolean(
         n.isSubscribed === true ||

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Store, Sprout, ShoppingBag, Users, MessageSquare, IndianRupee, 
   Plus, Check, X, ArrowRight, CheckCircle2, Clock, AlertTriangle, 
-  Sparkles, ExternalLink, Loader2 
+  Sparkles, ExternalLink, Loader2, CalendarPlus 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -20,6 +20,7 @@ export default function OverviewView({
   onOpenAddCustomer,
   onApproveNursery,
   onRejectNursery,
+  onExtendTrial,
   onApproveOrder,
   onRejectOrder
 }) {
@@ -196,7 +197,7 @@ export default function OverviewView({
                         <Clock className="w-3 h-3 text-amber-700 shrink-0" />
                         <span>
                           {nursery.isTrialExpired 
-                            ? (lang === 'mr' ? '६ दिवस संपले' : 'Trial Expired') 
+                            ? (lang === 'mr' ? '३ दिवस संपले' : 'Trial Expired') 
                             : (lang === 'mr' ? 'प्रलंबित' : 'Pending')}
                         </span>
                       </span>
@@ -212,7 +213,20 @@ export default function OverviewView({
                   </div>
 
                   {/* 1-Click Action Buttons */}
-                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                  <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+                    {/* +3 Days Free Extension */}
+                    {onExtendTrial && (Number(nursery.trialExtensionsCount) || 0) < 2 && (
+                      <button
+                        onClick={() => handleActionWithFeedback(nursery.id, onExtendTrial)}
+                        disabled={processingId === nursery.id}
+                        title={lang === 'mr' ? '३ दिवस मोफत वाढवा (+३ दिवस)' : 'Extend +3 Days Free Trial'}
+                        className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                      >
+                        <CalendarPlus className="w-3.5 h-3.5 text-blue-600" />
+                        <span>{lang === 'mr' ? `+३ दिवस (${(nursery.trialExtensionsCount || 0)}/२)` : `+3 Days (${(nursery.trialExtensionsCount || 0)}/2)`}</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => handleActionWithFeedback(nursery.id, onApproveNursery)}
                       disabled={processingId === nursery.id}

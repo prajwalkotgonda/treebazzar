@@ -80,7 +80,7 @@ function DashboardContent({
   const [addNurseryModalOpen, setAddNurseryModalOpen] = useState(false);
   const [addCustomerModalOpen, setAddCustomerModalOpen] = useState(false);
 
-  // Status Badges Counts (Excludes active 6-day trial nurseries)
+  // Status Badges Counts (Excludes active 3-day trial nurseries)
   const pendingNurseriesCount = nurseries.filter(n => 
     !n.isSuspended && 
     n.status !== 'approved' && 
