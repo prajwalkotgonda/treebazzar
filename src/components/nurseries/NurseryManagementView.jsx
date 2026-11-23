@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Store, Search, CheckCircle2, XCircle, AlertCircle, Eye, 
   Plus, Phone, MapPin, Calendar, Check, X, Edit2, Trash2, ShieldAlert, Loader2,
-  RotateCcw, Ban, Clock, CalendarPlus
+  RotateCcw, Ban, Clock, CalendarPlus, LayoutGrid, ChevronRight
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { BUSINESS_TYPES, getBusinessType } from '../../data/businessTypes';
 import NurseryDetailsModal from '../common/NurseryDetailsModal';
 import RejectModal from '../common/RejectModal';
 import AddNurseryModal from '../common/AddNurseryModal';
@@ -18,6 +19,7 @@ export default function NurseryManagementView({
   cities: citiesProp = [],
   plants = [],
   initialTab = 'all',
+  initialBusinessType = 'all',
   onApprove, 
   onReject,
   onRevoke,
@@ -32,8 +34,17 @@ export default function NurseryManagementView({
   const { t, lang } = useLanguage();
 
   const [activeTab, setActiveTab] = useState(initialTab); // 'all', 'pending', 'approved', 'suspended', 'rejected'
+  const [selectedBusinessType, setSelectedBusinessType] = useState(initialBusinessType || 'all');
   const [localSearch, setLocalSearch] = useState('');
   const [selectedCity, setSelectedCity] = useState('all');
+
+  useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
+
+  useEffect(() => {
+    if (initialBusinessType) setSelectedBusinessType(initialBusinessType);
+  }, [initialBusinessType]);
 
   // Modals state
   const [detailsNursery, setDetailsNursery] = useState(null);
@@ -87,6 +98,23 @@ export default function NurseryManagementView({
       suspended: suspendedCount,
       rejected: rejectedCount
     };
+  }, [nurseries]);
+
+  // Counts per 7 business types
+  const businessTypeCounts = useMemo(() => {
+    const map = { all: nurseries.length };
+    BUSINESS_TYPES.forEach(bt => {
+      map[bt.id] = 0;
+    });
+    nurseries.forEach(n => {
+      const type = n.businessType || 'nursery_plants_producer';
+      if (map[type] !== undefined) {
+        map[type]++;
+      } else {
+        map['nursery_plants_producer'] = (map['nursery_plants_producer'] || 0) + 1;
+      }
+    });
+    return map;
   }, [nurseries]);
 
   // Available cities dynamically extracted from actual nurseries + cities added in City Management
@@ -144,7 +172,13 @@ export default function NurseryManagementView({
         if (n.status !== 'rejected') return false;
       }
 
-      // 2. City Dropdown Filter
+      // 2. Business Type Classification Filter (7 Types)
+      if (selectedBusinessType !== 'all') {
+        const nType = (n.businessType || 'nursery_plants_producer').toLowerCase();
+        if (nType !== selectedBusinessType.toLowerCase()) return false;
+      }
+
+      // 3. City Dropdown Filter
       if (selectedCity !== 'all') {
         const sel = selectedCity.toLowerCase();
         const nCity = (n.city || '').toLowerCase();
@@ -270,7 +304,7 @@ export default function NurseryManagementView({
       n._matchingProduct = null;
       return true;
     });
-  }, [nurseries, activeTab, selectedCity, localSearch, searchQuery, plants, citiesProp, lang]);
+  }, [nurseries, activeTab, selectedBusinessType, selectedCity, localSearch, searchQuery, plants, citiesProp, lang]);
 
   return (
     <div className="space-y-5">
@@ -294,6 +328,80 @@ export default function NurseryManagementView({
           <Plus className="w-4 h-4" />
           <span>{lang === 'mr' ? '+ नवीन रोपवाटिका जोडा' : '+ Add Nursery'}</span>
         </button>
+      </div>
+
+      {/* 7 Business Types Classification Filters Bar */}
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-emerald-50 text-[#1E5631] flex items-center justify-center">
+              <LayoutGrid className="w-3.5 h-3.5" />
+            </div>
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              {lang === 'mr' ? 'व्यवसाय वर्गवारी (७ प्रकार)' : 'All 7 Business Types'}
+            </h3>
+            {selectedBusinessType !== 'all' && (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-[#1E5631]">
+                {getBusinessType(selectedBusinessType)?.[lang === 'mr' ? 'titleMr' : 'titleEn']}
+              </span>
+            )}
+          </div>
+          {selectedBusinessType !== 'all' && (
+            <button
+              onClick={() => setSelectedBusinessType('all')}
+              className="text-[11px] font-bold text-[#1E5631] hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <span>{lang === 'mr' ? 'सर्व दाखवा (Reset)' : 'Show All Types'}</span>
+              <RotateCcw className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+
+        {/* 7 Business Types Horizontal Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <button
+            onClick={() => setSelectedBusinessType('all')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              selectedBusinessType === 'all'
+                ? 'bg-[#1E5631] text-white shadow-xs'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/60'
+            }`}
+          >
+            <span>{lang === 'mr' ? 'सर्व ७ व्यवसाय' : 'All 7 Types'}</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+              selectedBusinessType === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {nurseries.length}
+            </span>
+          </button>
+
+          {BUSINESS_TYPES.map(bt => {
+            const count = businessTypeCounts[bt.id] || 0;
+            const isSelected = selectedBusinessType === bt.id;
+            const title = lang === 'mr' ? bt.titleMr : bt.titleEn;
+
+            return (
+              <button
+                key={bt.id}
+                onClick={() => setSelectedBusinessType(bt.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  isSelected
+                    ? 'bg-[#1E5631] text-white shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/60'
+                }`}
+                title={lang === 'mr' ? bt.subtitleMr : bt.subtitleEn}
+              >
+                <span>{bt.emoji}</span>
+                <span>{title}</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Filter and Tab Strip */}
@@ -425,6 +533,18 @@ export default function NurseryManagementView({
                           <p className="text-[11px] text-slate-500">
                             {nursery.ownerName || nursery.owner}
                           </p>
+                          {/* Business Type Badge */}
+                          {(() => {
+                            const bt = getBusinessType(nursery.businessType);
+                            return (
+                              <div className="mt-1 flex items-center gap-1">
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-2xs ${bt.badgeClass}`}>
+                                  <span>{bt.emoji}</span>
+                                  <span>{lang === 'mr' ? bt.shortTitleMr : bt.shortTitleEn}</span>
+                                </span>
+                              </div>
+                            );
+                          })()}
                           {nursery._matchingProduct && (
                             <div className="mt-1">
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-[#1E5631] text-[10px] font-bold border border-emerald-200 shadow-2xs">

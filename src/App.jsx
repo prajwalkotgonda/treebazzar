@@ -71,6 +71,7 @@ function DashboardContent({
   // Navigation & View State (Default to 'dashboard')
   const [activeView, setActiveView] = useState('dashboard');
   const [nurseryInitialTab, setNurseryInitialTab] = useState('all');
+  const [nurseryInitialBusinessType, setNurseryInitialBusinessType] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -849,10 +850,11 @@ function DashboardContent({
   };
 
   // Navigation Helper
-  const handleNavigate = (view, subTab = 'all') => {
+  const handleNavigate = (view, subTab = 'all', businessType = 'all') => {
     setActiveView(view);
-    if (view === 'nurseries' && subTab) {
-      setNurseryInitialTab(subTab);
+    if (view === 'nurseries') {
+      if (subTab) setNurseryInitialTab(subTab);
+      if (businessType) setNurseryInitialBusinessType(businessType);
     }
   };
 
@@ -919,6 +921,7 @@ function DashboardContent({
               cities={cities}
               plants={plants}
               initialTab={nurseryInitialTab}
+              initialBusinessType={nurseryInitialBusinessType}
               onApprove={handleApproveNursery}
               onReject={handleRejectNursery}
               onRevoke={handleRevokeNursery}

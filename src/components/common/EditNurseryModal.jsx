@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Store, MapPin, Phone, User, Check, Building2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { BUSINESS_TYPES } from '../../data/businessTypes';
 
 export default function EditNurseryModal({ 
   isOpen, 
@@ -15,9 +16,10 @@ export default function EditNurseryModal({
     name: '',
     nameMr: '',
     ownerName: '',
+    businessType: 'nursery_plants_producer',
     phone: '',
     whatsapp: '',
-    city: 'Sangli',
+    city: '',
     address: '',
     status: 'approved',
     specialtiesStr: ''
@@ -31,9 +33,10 @@ export default function EditNurseryModal({
         name: nursery.name || nursery.nurseryName || '',
         nameMr: nursery.nameMr || '',
         ownerName: nursery.ownerName || nursery.owner || '',
+        businessType: nursery.businessType || 'nursery_plants_producer',
         phone: (nursery.phone || '').replace('+91 ', ''),
         whatsapp: (nursery.whatsapp || '').replace('+91 ', ''),
-        city: nursery.city || (cities[0]?.nameEn || 'Sangli'),
+        city: nursery.city || (cities[0]?.nameEn || ''),
         address: nursery.address || '',
         status: nursery.status || 'approved',
         specialtiesStr: Array.isArray(nursery.specialties) 
@@ -79,6 +82,7 @@ export default function EditNurseryModal({
       nameMr: formData.nameMr.trim() || formData.name.trim(),
       ownerName: formData.ownerName.trim(),
       owner: formData.ownerName.trim(),
+      businessType: formData.businessType || 'nursery_plants_producer',
       phone: formData.phone.trim().startsWith('+91') ? formData.phone.trim() : `+91 ${formData.phone.trim()}`,
       whatsapp: formData.whatsapp.trim() || formData.phone.trim(),
       city: formData.city,
@@ -151,6 +155,24 @@ export default function EditNurseryModal({
                 placeholder="उदा. ग्रीन व्हॅली रोपवाटिका"
               />
             </div>
+          </div>
+
+          {/* Business Type Classification (7 Categories) */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              {lang === 'mr' ? 'व्यवसाय प्रकार (७ वर्गवारी) *' : 'Business Type (7 Classifications) *'}
+            </label>
+            <select
+              value={formData.businessType}
+              onChange={e => setFormData({ ...formData, businessType: e.target.value })}
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-hidden focus:border-[#2E7D32]"
+            >
+              {BUSINESS_TYPES.map(bt => (
+                <option key={bt.id} value={bt.id}>
+                  {bt.num}. {bt.emoji} {lang === 'mr' ? bt.titleMr : bt.titleEn}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

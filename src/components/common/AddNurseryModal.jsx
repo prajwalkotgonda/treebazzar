@@ -6,6 +6,7 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
 import { initiatePayUCheckout, simulatePayUTestPayment } from '../../services/payu';
+import { BUSINESS_TYPES } from '../../data/businessTypes';
 
 export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities = [] }) {
   const { lang } = useLanguage();
@@ -14,6 +15,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
     name: '',
     nameMr: '',
     ownerName: '',
+    businessType: 'nursery_plants_producer',
     phone: '',
     whatsapp: '',
     city: '',
@@ -62,6 +64,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
       nameMr: formData.nameMr.trim() || formData.name.trim(),
       ownerName: formData.ownerName.trim(),
       owner: formData.ownerName.trim(),
+      businessType: formData.businessType || 'nursery_plants_producer',
       phone: formData.phone.trim().startsWith('+91') ? formData.phone.trim() : `+91 ${formData.phone.trim()}`,
       ownerPhone: formData.phone.trim().startsWith('+91') ? formData.phone.trim() : `+91 ${formData.phone.trim()}`,
       whatsapp: formData.whatsapp.trim() || formData.phone.replace(/\D/g, ''),
@@ -278,6 +281,24 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
               />
               {errors.phone && <p className="text-[11px] text-rose-500 mt-1">{errors.phone}</p>}
             </div>
+          </div>
+
+          {/* Business Type Classification (7 Categories) */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              {lang === 'mr' ? 'व्यवसाय प्रकार (७ वर्गवारी)' : 'Business Type (7 Classifications)'} <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={formData.businessType}
+              onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+            >
+              {BUSINESS_TYPES.map(bt => (
+                <option key={bt.id} value={bt.id}>
+                  {bt.num}. {bt.emoji} {lang === 'mr' ? bt.titleMr : bt.titleEn}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* City / District & Approval Status */}

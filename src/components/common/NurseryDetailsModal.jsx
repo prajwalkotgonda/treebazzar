@@ -7,6 +7,7 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
 import { initiatePayUCheckout, simulatePayUTestPayment } from '../../services/payu';
+import { getBusinessType } from '../../data/businessTypes';
 
 export default function NurseryDetailsModal({ 
   nursery, 
@@ -117,6 +118,13 @@ export default function NurseryDetailsModal({
               <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-md">
                 {nurseryName}
               </h2>
+              {/* Business Type Badge */}
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/90 text-slate-900 shadow-xs">
+                  <span>{getBusinessType(nursery.businessType).emoji}</span>
+                  <span>{lang === 'mr' ? getBusinessType(nursery.businessType).titleMr : getBusinessType(nursery.businessType).titleEn}</span>
+                </span>
+              </div>
             </div>
 
             {/* Status Pill */}

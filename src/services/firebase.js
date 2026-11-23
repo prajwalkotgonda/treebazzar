@@ -219,6 +219,7 @@ export function normalizeNursery(data, id) {
     totalPlants,
     facilities,
     specialties,
+    businessType: data.businessType || data.category || 'nursery_plants_producer',
     location,
     createdAt: data.createdAt || trialInfo.trialStartDate,
     updatedAt: data.updatedAt || new Date().toISOString()

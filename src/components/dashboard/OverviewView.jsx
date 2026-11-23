@@ -2,9 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { 
   Store, Sprout, ShoppingBag, Users, MessageSquare, IndianRupee, 
   Plus, Check, X, ArrowRight, CheckCircle2, Clock, AlertTriangle, 
-  Sparkles, ExternalLink, Loader2, CalendarPlus 
+  Sparkles, ExternalLink, Loader2, CalendarPlus, LayoutGrid, ChevronRight 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { BUSINESS_TYPES } from '../../data/businessTypes';
 
 export default function OverviewView({ 
   nurseries = [], 
@@ -62,6 +63,23 @@ export default function OverviewView({
       .filter(o => o.status !== 'cancelled')
       .reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0);
   }, [orders]);
+
+  // Nursery counts per 7 business types
+  const businessTypeCounts = useMemo(() => {
+    const map = {};
+    BUSINESS_TYPES.forEach(bt => {
+      map[bt.id] = 0;
+    });
+    nurseries.forEach(n => {
+      const type = n.businessType || 'nursery_plants_producer';
+      if (map[type] !== undefined) {
+        map[type]++;
+      } else {
+        map['nursery_plants_producer'] = (map['nursery_plants_producer'] || 0) + 1;
+      }
+    });
+    return map;
+  }, [nurseries]);
 
   // 6 Core Stat Cards
   const statCards = [
@@ -313,68 +331,85 @@ export default function OverviewView({
           )}
         </div>
 
-        {/* Quick Action Shortcuts */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        {/* All 7 Business Types Filter Card (Replaces Quick Actions) */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                {lang === 'mr' ? 'जलद कृती' : 'Quick Actions'}
-              </h3>
-              <span className="text-[11px] text-slate-400">
-                {lang === 'mr' ? 'शॉर्टकट्स' : 'Shortcuts'}
-              </span>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1E5631] flex items-center justify-center">
+                  <LayoutGrid className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  {lang === 'mr' ? 'सर्व ७ व्यवसाय प्रकार' : 'All 7 Business Types'}
+                </h3>
+              </div>
+              <button
+                onClick={() => onNavigate('nurseries', 'all', 'all')}
+                className="text-[11px] font-bold text-[#1E5631] hover:text-[#2E7D32] flex items-center gap-1 transition-colors cursor-pointer group"
+              >
+                <span>{lang === 'mr' ? 'थेट स्टॉक आणि दर' : 'Direct Stock & Rates'}</span>
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+              </button>
             </div>
 
-            <div className="space-y-2.5">
-              <button
-                onClick={onOpenAddPlant}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-200 text-xs font-bold transition-all cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Plus className="w-4 h-4 text-[#2E7D32]" />
-                  <span>{lang === 'mr' ? 'नवीन वनस्पती जोडा' : 'Add New Plant'}</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-emerald-600" />
-              </button>
+            {/* 7 Business Types List */}
+            <div className="space-y-2">
+              {BUSINESS_TYPES.map(bt => {
+                const IconComponent = bt.icon;
+                const count = businessTypeCounts[bt.id] || 0;
+                const title = lang === 'mr' ? bt.titleMr : bt.titleEn;
+                const subtitle = lang === 'mr' ? bt.subtitleMr : bt.subtitleEn;
 
-              <button
-                onClick={onOpenAddOrder}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-bold transition-all cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Plus className="w-4 h-4 text-slate-600" />
-                  <span>{lang === 'mr' ? 'नवीन ऑर्डर तयार करा' : 'Create Customer Order'}</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-              </button>
+                return (
+                  <button
+                    key={bt.id}
+                    onClick={() => onNavigate('nurseries', 'all', bt.id)}
+                    className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-emerald-300 bg-white hover:bg-emerald-50/40 text-left transition-all cursor-pointer group shadow-2xs hover:shadow-xs active:scale-98"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 pr-2">
+                      {/* Number Badge & Icon Container */}
+                      <div className="relative shrink-0">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${bt.iconBg} shadow-2xs`}>
+                          <IconComponent className="w-4 h-4" />
+                        </div>
+                        <span className="absolute -top-1 -left-1 w-4 h-4 rounded-full bg-slate-700 text-white text-[9px] font-black flex items-center justify-center ring-1 ring-white">
+                          {bt.num}
+                        </span>
+                      </div>
 
-              <button
-                onClick={onOpenAddNursery}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-bold transition-all cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Plus className="w-4 h-4 text-slate-600" />
-                  <span>{lang === 'mr' ? 'रोपवाटिका नोंदवा' : 'Register Nursery'}</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-              </button>
+                      {/* Title & Subtitle */}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-bold text-slate-900 group-hover:text-[#1E5631] transition-colors truncate">
+                            {title}
+                          </p>
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate max-w-[200px] sm:max-w-[260px]">
+                          {subtitle}
+                        </p>
+                      </div>
+                    </div>
 
-              <button
-                onClick={onOpenAddCustomer}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-bold transition-all cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Plus className="w-4 h-4 text-slate-600" />
-                  <span>{lang === 'mr' ? 'ग्राहक जोडा' : 'Add New Customer'}</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-              </button>
+                    {/* Count & Arrow */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 group-hover:bg-emerald-100 text-slate-600 group-hover:text-emerald-800 transition-colors">
+                        {count}
+                      </span>
+                      <div className="w-6 h-6 rounded-full bg-emerald-50 group-hover:bg-[#1E5631] text-[#1E5631] group-hover:text-white flex items-center justify-center transition-colors">
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
-            <span>All India Hub</span>
-            <span className="font-semibold text-[#1E5631]">TreeBazzar Admin</span>
+          {/* Footer */}
+          <div className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+            <span>{lang === 'mr' ? 'वर्गवारीनुसार फिल्टर करा' : 'Click to filter nurseries'}</span>
+            <span className="font-semibold text-[#1E5631]">TreeBazzar Network</span>
           </div>
         </div>
 
