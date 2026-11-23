@@ -1047,6 +1047,39 @@ export async function deleteCityFromFirestore(cityId) {
 }
 
 /**
+ * Save Advertisement to Firestore
+ */
+export async function saveAdToFirestore(ad) {
+  const payload = sanitizePayload({
+    ...ad,
+    updatedAt: new Date().toISOString()
+  });
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.setDoc) {
+    try {
+      await fb.setDoc(fb.doc(fb.db, 'ads', ad.id), payload, { merge: true });
+      return true;
+    } catch (err) {}
+  }
+  return await saveDocumentViaRest('ads', ad.id, payload);
+}
+
+/**
+ * Delete Advertisement from Firestore
+ */
+export async function deleteAdFromFirestore(adId) {
+  const fb = await getFirebase();
+  if (fb && fb.db && fb.deleteDoc) {
+    try {
+      await fb.deleteDoc(fb.doc(fb.db, 'ads', adId));
+      return true;
+    } catch (err) {}
+  }
+  return await deleteDocumentViaRest('ads', adId);
+}
+
+
+/**
  * Delete all dummy data from Firestore collections
  */
 export async function clearAllFirestoreCollections() {

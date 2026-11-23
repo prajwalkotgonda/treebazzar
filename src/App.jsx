@@ -10,6 +10,7 @@ import CustomersView from './components/customers/CustomersView';
 import EnquiriesView from './components/enquiries/EnquiriesView';
 import ReportsView from './components/reports/ReportsView';
 import CityManagementView from './components/cities/CityManagementView';
+import AdsManagementView from './components/ads/AdsManagementView';
 import LoginPage from './components/auth/LoginPage';
 import LandingPage from './components/landing/LandingPage';
 import Toast from './components/common/Toast';
@@ -17,13 +18,15 @@ import AddPlantModal from './components/common/AddPlantModal';
 import AddOrderModal from './components/common/AddOrderModal';
 import AddNurseryModal from './components/common/AddNurseryModal';
 import AddCustomerModal from './components/common/AddCustomerModal';
+import CreateAdModal from './components/common/CreateAdModal';
 import { 
   INITIAL_NURSERIES, 
   INITIAL_PLANTS, 
   INITIAL_ORDERS,
   INITIAL_CUSTOMERS,
   INITIAL_INQUIRIES,
-  INITIAL_CITIES 
+  INITIAL_CITIES,
+  INITIAL_ADS 
 } from './data/mockData';
 import { 
   syncAllData,
@@ -43,6 +46,8 @@ import {
   deleteCustomerFromFirestore,
   saveCityToFirestore,
   deleteCityFromFirestore,
+  saveAdToFirestore,
+  deleteAdFromFirestore,
   clearAllFirestoreCollections
 } from './services/firebase';
 
@@ -60,6 +65,10 @@ function DashboardContent({
   inquiries,
   setInquiries,
   cities = [],
+  ads = [],
+  onCreateAd,
+  onToggleAdStatus,
+  onDeleteAd,
   onAddCity,
   onEditCity,
   onDeleteCity,
@@ -80,6 +89,7 @@ function DashboardContent({
   const [addOrderModalOpen, setAddOrderModalOpen] = useState(false);
   const [addNurseryModalOpen, setAddNurseryModalOpen] = useState(false);
   const [addCustomerModalOpen, setAddCustomerModalOpen] = useState(false);
+  const [createAdModalOpen, setCreateAdModalOpen] = useState(false);
 
   // Status Badges Counts (Excludes active 3-day trial nurseries)
   const pendingNurseriesCount = nurseries.filter(n => 
@@ -868,6 +878,7 @@ function DashboardContent({
         pendingCount={pendingNurseriesCount}
         pendingOrdersCount={pendingOrdersCount}
         leadsCount={newEnquiriesCount}
+        adsCount={ads.filter(a => a.status === 'active').length}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         cities={cities}
@@ -901,11 +912,15 @@ function DashboardContent({
               customers={customers}
               inquiries={inquiries}
               cities={cities}
+              ads={ads}
               onNavigate={handleNavigate}
               onOpenAddPlant={() => setAddPlantModalOpen(true)}
               onOpenAddOrder={() => setAddOrderModalOpen(true)}
               onOpenAddNursery={() => setAddNurseryModalOpen(true)}
               onOpenAddCustomer={() => setAddCustomerModalOpen(true)}
+              onOpenCreateAd={() => setCreateAdModalOpen(true)}
+              onToggleAdStatus={onToggleAdStatus}
+              onDeleteAd={onDeleteAd}
               onApproveNursery={handleApproveNursery}
               onRejectNursery={handleRejectNursery}
               onExtendTrial={handleExtendTrial}
@@ -1018,9 +1033,27 @@ function DashboardContent({
             />
           )}
 
+          {/* Ads & Promotions Management */}
+          {activeView === 'ads' && (
+            <AdsManagementView
+              ads={ads}
+              onOpenCreateAd={() => setCreateAdModalOpen(true)}
+              onToggleAdStatus={onToggleAdStatus}
+              onDeleteAd={onDeleteAd}
+            />
+          )}
+
         </main>
 
         {/* Global Quick Modals triggered from Dashboard */}
+        {createAdModalOpen && (
+          <CreateAdModal
+            isOpen={createAdModalOpen}
+            onClose={() => setCreateAdModalOpen(false)}
+            onCreateAd={onCreateAd}
+            nurseries={nurseries}
+          />
+        )}
         {addPlantModalOpen && (
           <AddPlantModal
             isOpen={addPlantModalOpen}
@@ -1238,6 +1271,19 @@ function AppRoot() {
     return [];
   });
 
+  const [ads, setAds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tb_ads');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return INITIAL_ADS;
+  });
+
   // Sync state changes to localStorage
   useEffect(() => {
     try { localStorage.setItem('tb_nurseries', JSON.stringify(nurseries)); } catch (e) {}
@@ -1263,6 +1309,10 @@ function AppRoot() {
     try { localStorage.setItem('tb_cities', JSON.stringify(cities)); } catch (e) {}
   }, [cities]);
 
+  useEffect(() => {
+    try { localStorage.setItem('tb_ads', JSON.stringify(ads)); } catch (e) {}
+  }, [ads]);
+
   // Live Firebase Synchronisation with mobile app & Firestore
   useEffect(() => {
     let isSubscribed = true;
@@ -1284,11 +1334,12 @@ function AppRoot() {
       }
     }).catch(err => console.warn('Initial Firestore sync error:', err));
 
-    // 2. Real-time subscriptions for nurseries, plants, leads, and orders
+    // 2. Real-time subscriptions for nurseries, plants, leads, orders, and ads
     let unsubNurseries = () => {};
     let unsubPlants = () => {};
     let unsubLeads = () => {};
     let unsubOrders = () => {};
+    let unsubAds = () => {};
 
     subscribeToCollection('nurseries', (data) => {
       if (isSubscribed && Array.isArray(data)) {
@@ -1314,12 +1365,19 @@ function AppRoot() {
       }
     }).then(unsub => { if (unsub) unsubOrders = unsub; }).catch(console.warn);
 
+    subscribeToCollection('ads', (data) => {
+      if (isSubscribed && Array.isArray(data) && data.length > 0) {
+        setAds(data);
+      }
+    }).then(unsub => { if (unsub) unsubAds = unsub; }).catch(console.warn);
+
     return () => {
       isSubscribed = false;
       try { unsubNurseries(); } catch (e) {}
       try { unsubPlants(); } catch (e) {}
       try { unsubLeads(); } catch (e) {}
       try { unsubOrders(); } catch (e) {}
+      try { unsubAds(); } catch (e) {}
     };
   }, []);
 
@@ -1334,6 +1392,7 @@ function AppRoot() {
     setCustomers(INITIAL_CUSTOMERS);
     setInquiries(INITIAL_INQUIRIES);
     setCities(INITIAL_CITIES);
+    setAds(INITIAL_ADS);
 
     localStorage.removeItem('tb_nurseries');
     localStorage.removeItem('tb_plants');
@@ -1341,6 +1400,7 @@ function AppRoot() {
     localStorage.removeItem('tb_customers');
     localStorage.removeItem('tb_inquiries');
     localStorage.removeItem('tb_cities');
+    localStorage.removeItem('tb_ads');
 
     showToast({
       type: 'info',
@@ -1510,6 +1570,51 @@ function AppRoot() {
     });
   };
 
+  // ----------------------------------------------------
+  // Branch Advertisement Actions
+  // ----------------------------------------------------
+  const handleCreateAd = (newAdData) => {
+    setAds(prev => [newAdData, ...prev]);
+    saveAdToFirestore(newAdData).catch(console.warn);
+
+    showToast({
+      type: 'success',
+      title: lang === 'mr' ? 'जाहिरात तयार झाली!' : 'Ad Published Successfully!',
+      message: lang === 'mr' 
+        ? `"${newAdData.branchName}" साठी नवीन जाहिरात प्रसिद्ध झाली.` 
+        : `Advertisement for "${newAdData.branchName}" is now active.`
+    });
+  };
+
+  const handleToggleAdStatus = (adId) => {
+    setAds(prev => prev.map(ad => {
+      if (ad.id === adId) {
+        const newStatus = ad.status === 'active' ? 'paused' : 'active';
+        const updated = { ...ad, status: newStatus };
+        saveAdToFirestore(updated).catch(console.warn);
+        return updated;
+      }
+      return ad;
+    }));
+
+    showToast({
+      type: 'info',
+      title: lang === 'mr' ? 'स्थिती बदलली' : 'Status Changed',
+      message: lang === 'mr' ? 'जाहिरातीची स्थिती अपडेट झाली.' : 'Ad status has been updated.'
+    });
+  };
+
+  const handleDeleteAd = (adId) => {
+    setAds(prev => prev.filter(a => a.id !== adId));
+    deleteAdFromFirestore(adId).catch(console.warn);
+
+    showToast({
+      type: 'info',
+      title: lang === 'mr' ? 'जाहिरात हटवली' : 'Ad Removed',
+      message: lang === 'mr' ? 'जाहिरात यशस्वीरित्या हटवली.' : 'Advertisement deleted successfully.'
+    });
+  };
+
   return (
     <>
       {/* 1. Public Customer Landing Page */}
@@ -1518,6 +1623,7 @@ function AppRoot() {
           nurseries={nurseries}
           plants={plants}
           cities={cities}
+          ads={ads}
           onOpenLogin={() => {
             if (isAuthenticated) {
               setCurrentView('admin');
@@ -1555,6 +1661,10 @@ function AppRoot() {
             inquiries={inquiries}
             setInquiries={setInquiries}
             cities={cities}
+            ads={ads}
+            onCreateAd={handleCreateAd}
+            onToggleAdStatus={handleToggleAdStatus}
+            onDeleteAd={handleDeleteAd}
             onAddCity={handleAddCity}
             onEditCity={handleEditCity}
             onDeleteCity={handleDeleteCity}

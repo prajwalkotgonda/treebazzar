@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   LayoutDashboard, Store, Sprout, ShoppingBag, Users, 
-  MessageSquare, BarChart3, Leaf, ChevronRight, MapPin, X, Globe
+  MessageSquare, BarChart3, Leaf, ChevronRight, MapPin, X, Globe, Megaphone
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -11,6 +11,7 @@ export default function Sidebar({
   pendingCount = 0,
   pendingOrdersCount = 0,
   leadsCount = 0,
+  adsCount = 0,
   isOpen, 
   onClose,
   cities = [],
@@ -24,6 +25,15 @@ export default function Sidebar({
       label: t('navDashboard') || 'Dashboard',
       icon: LayoutDashboard,
       badge: null,
+    },
+    {
+      id: 'ads',
+      label: t('navAds') || (lang === 'mr' ? 'जाहिराती आणि ऑफर्स' : 'Ads & Promotions'),
+      icon: Megaphone,
+      badge: adsCount > 0 ? {
+        text: `${adsCount}`,
+        color: 'bg-[#2E7D32] text-white'
+      } : null,
     },
     {
       id: 'nurseries',

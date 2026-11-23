@@ -26,7 +26,8 @@ export default function Header({
     customers: t('navCustomers') || 'Customers',
     inquiries: t('navInquiries') || 'Enquiries',
     reports: t('navReports') || 'Reports',
-    cities: t('navCities') || 'Cities & Hubs'
+    cities: t('navCities') || 'Cities & Hubs',
+    ads: t('navAds') || 'Ads & Promotions'
   }[activeView] || t('navDashboard');
 
   return (

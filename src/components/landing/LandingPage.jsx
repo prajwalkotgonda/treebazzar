@@ -4,6 +4,7 @@ import HeroSection from './HeroSection';
 import CategoryCards from './CategoryCards';
 import FeaturedNurseries from './FeaturedNurseries';
 import FeaturedPlants from './FeaturedPlants';
+import BranchAdsSection from './BranchAdsSection';
 import WhyTreeBazzar from './WhyTreeBazzar';
 import AppDownloadSection from './AppDownloadSection';
 import PartnerCta from './PartnerCta';
@@ -15,6 +16,7 @@ export default function LandingPage({
   nurseries = [], 
   plants = [], 
   cities = [],
+  ads = [],
   onOpenLogin, 
   onAddNursery,
   onContactLead 
@@ -68,6 +70,9 @@ export default function LandingPage({
         totalPlants={plants.length}
         cities={cities}
       />
+
+      {/* 2.5 Branch Ads & Special Offers Banner */}
+      <BranchAdsSection ads={ads} />
 
       {/* 3. Category Showcase Grid */}
       <CategoryCards

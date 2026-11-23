@@ -22,9 +22,17 @@ export const translations = {
     navInquiries: 'Enquiries',
     navReports: 'Reports',
     navCities: 'Cities & Hubs',
+    navAds: 'Ads & Promotions',
     navSettings: 'Settings',
     navLogout: 'Logout',
     mainMenu: 'Main Menu',
+
+    // Advertisements
+    createAd: 'Create Ad',
+    branchName: 'Branch Name',
+    mobileNo: 'Mobile No',
+    adPhoto: 'Photo',
+    adDescription: 'Description',
 
     // Common Actions
     btnAdd: 'Add',
@@ -389,9 +397,17 @@ export const translations = {
     navInquiries: 'चौकशी',
     navReports: 'अहवाल',
     navCities: 'शहरे व हब्स',
+    navAds: 'जाहिराती आणि ऑफर्स',
     navSettings: 'सेटिंग्ज',
     navLogout: 'लॉगआउट',
     mainMenu: 'मुख्य मेनू',
+
+    // Advertisements
+    createAd: 'जाहिरात तयार करा',
+    branchName: 'शाखेचे नाव',
+    mobileNo: 'मोबाईल नंबर',
+    adPhoto: 'फोटो',
+    adDescription: 'माहिती व तपशील',
 
     // Common Actions
     btnAdd: 'जोडा',
