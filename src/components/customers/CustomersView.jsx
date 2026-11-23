@@ -45,14 +45,15 @@ export default function CustomersView({
         return false;
       }
 
-      // 2. Search query
+      // 2. Search query (matches name, phone, address, email, city)
       if (q) {
         const name = (customer.name || '').toLowerCase();
         const phone = (customer.phone || '').toLowerCase();
+        const address = (customer.address || '').toLowerCase();
         const email = (customer.email || '').toLowerCase();
         const city = (customer.city || '').toLowerCase();
 
-        return name.includes(q) || phone.includes(q) || email.includes(q) || city.includes(q);
+        return name.includes(q) || phone.includes(q) || address.includes(q) || email.includes(q) || city.includes(q);
       }
 
       return true;
@@ -133,9 +134,10 @@ export default function CustomersView({
             <table className="w-full text-xs text-left">
               <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                 <tr>
-                  <th className="py-3 px-4">{t('thCustomerName') || 'Customer Name'}</th>
+                  <th className="py-3 px-4">{lang === 'mr' ? 'वापरकर्ता / ग्राहक' : 'User / Customer'}</th>
+                  <th className="py-3 px-4">{lang === 'mr' ? 'मोबाईल नंबर' : 'Mobile No.'}</th>
+                  <th className="py-3 px-4">{lang === 'mr' ? 'पत्ता (Address)' : 'Full Address'}</th>
                   <th className="py-3 px-4">{t('thCity') || 'City / Region'}</th>
-                  <th className="py-3 px-4">{t('thPhone') || 'Contact Phone'}</th>
                   <th className="py-3 px-4 text-center">{t('thTotalOrders') || 'Orders'}</th>
                   <th className="py-3 px-4 text-right">{t('thTotalSpent') || 'Total Spent'}</th>
                   <th className="py-3 px-4">{t('thJoinedDate') || 'Member Since'}</th>
@@ -177,30 +179,48 @@ export default function CustomersView({
                         </div>
                       </td>
 
-                      {/* City */}
-                      <td className="py-3 px-4 text-slate-700 font-medium">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#2E7D32]" />
-                          {customer.city}
-                        </span>
-                      </td>
-
                       {/* Phone & Direct WhatsApp */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-slate-700 font-medium">{customer.phone}</span>
+                          <span className="font-mono text-slate-700 font-bold whitespace-nowrap">+91 {customer.phone}</span>
                           {cleanPhone && (
-                            <a
-                              href={`https://wa.me/91${cleanPhone.slice(-10)}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-1 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
-                              title="WhatsApp Message"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5" />
-                            </a>
+                            <div className="flex items-center gap-1">
+                              <a
+                                href={`tel:${cleanPhone}`}
+                                title={lang === 'mr' ? 'थेट कॉल करा' : 'Call'}
+                                className="p-1 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                              >
+                                <Phone className="w-3 h-3 text-[#1E5631]" />
+                              </a>
+                              <a
+                                href={`https://wa.me/91${cleanPhone.slice(-10)}?text=${encodeURIComponent(`नमस्कार ${customer.name}, TreeBazzar कडून संपर्क करत आहोत.`)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-1 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200"
+                                title="WhatsApp"
+                              >
+                                <MessageCircle className="w-3 h-3 text-[#2E7D32]" />
+                              </a>
+                            </div>
                           )}
                         </div>
+                      </td>
+
+                      {/* Full Address */}
+                      <td className="py-3 px-4 text-slate-700">
+                        <div className="flex items-start gap-1.5 max-w-xs">
+                          <MapPin className="w-3.5 h-3.5 text-[#2E7D32] shrink-0 mt-0.5" />
+                          <span className="line-clamp-2 text-xs leading-snug">
+                            {customer.address || customer.city || (lang === 'mr' ? 'पत्ता उपलब्ध नाही' : 'Address not specified')}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* City */}
+                      <td className="py-3 px-4 text-slate-700 font-medium">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] bg-slate-100 text-slate-700 font-semibold">
+                          {customer.city || 'N/A'}
+                        </span>
                       </td>
 
                       {/* Total Orders */}

@@ -3,10 +3,11 @@ import {
   Store, Sprout, ShoppingBag, Users, MessageSquare, IndianRupee, 
   Plus, Check, X, ArrowRight, CheckCircle2, Clock, AlertTriangle, 
   Sparkles, ExternalLink, Loader2, CalendarPlus, LayoutGrid, ChevronRight,
-  Megaphone, Phone, Building2, Trash2, Power, MessageCircle
+  Megaphone, Phone, Building2, Trash2, Power, MessageCircle, MapPin, Search, Mail, Eye
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { BUSINESS_TYPES } from '../../data/businessTypes';
+import CustomerDetailsModal from '../common/CustomerDetailsModal';
 
 export default function OverviewView({ 
   nurseries = [], 
@@ -32,6 +33,8 @@ export default function OverviewView({
 }) {
   const { t, lang } = useLanguage();
   const [processingId, setProcessingId] = useState(null);
+  const [userSearch, setUserSearch] = useState('');
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState(null);
 
   const handleActionWithFeedback = async (id, actionFn, ...args) => {
     if (processingId) return;
@@ -62,6 +65,19 @@ export default function OverviewView({
   const pendingOrders = useMemo(() => orders.filter(o => o.status === 'pending'), [orders]);
   const totalCustomers = customers.length;
   const totalInquiries = inquiries.length;
+
+  // Filtered users for the Dashboard Users & Customers section
+  const filteredUsers = useMemo(() => {
+    if (!userSearch.trim()) return customers;
+    const q = userSearch.toLowerCase().trim();
+    return customers.filter(c => {
+      const name = (c.name || '').toLowerCase();
+      const phone = (c.phone || '').toLowerCase();
+      const address = (c.address || '').toLowerCase();
+      const city = (c.city || '').toLowerCase();
+      return name.includes(q) || phone.includes(q) || address.includes(q) || city.includes(q);
+    });
+  }, [customers, userSearch]);
 
   const totalRevenue = useMemo(() => {
     return orders
@@ -629,6 +645,223 @@ export default function OverviewView({
             </button>
           </div>
         )}
+      </div>
+
+      {/* Users & Customers Section (सर्व वापरकर्ते आणि ग्राहक फलक) */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-100 mb-4 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#1E5631] flex items-center justify-center shrink-0 shadow-2xs">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                  {lang === 'mr' ? 'सर्व वापरकर्ते व ग्राहक (Users & Customers)' : 'All Users & Customers'}
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-[#1E5631]">
+                  {customers.length} {lang === 'mr' ? 'वापरकर्ते' : 'Users'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                {lang === 'mr' 
+                  ? 'सर्व वापरकर्ते आणि ग्राहकांची माहिती: नाव, मोबाईल नंबर व पत्ता' 
+                  : 'Directory of all users & customers showing Name, Mobile No, and Address'}
+              </p>
+            </div>
+          </div>
+
+          {/* Search Bar & Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Quick Search */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                placeholder={lang === 'mr' ? 'नाव, मोबाईल किंवा पत्ता शोधा...' : 'Search name, mobile, address...'}
+                className="pl-8 pr-7 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-[#2E7D32] w-48 sm:w-56 transition-all"
+              />
+              {userSearch && (
+                <button 
+                  onClick={() => setUserSearch('')} 
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Add User Button */}
+            {onOpenAddCustomer && (
+              <button
+                type="button"
+                onClick={onOpenAddCustomer}
+                className="px-3 py-1.5 rounded-xl bg-[#1E5631] hover:bg-[#2E7D32] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs hover:shadow transition-all cursor-pointer active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{lang === 'mr' ? 'नवीन वापरकर्ता' : '+ Add User'}</span>
+              </button>
+            )}
+
+            {/* View All Directory Button */}
+            <button
+              type="button"
+              onClick={() => onNavigate('customers')}
+              className="text-xs font-bold text-[#1E5631] hover:text-[#2E7D32] flex items-center gap-1 px-2 py-1.5 transition-colors cursor-pointer group"
+            >
+              <span>{lang === 'mr' ? 'सर्व पहा' : 'View All'}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        {filteredUsers.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-slate-50/80 text-slate-600 font-bold border-b border-slate-200">
+                <tr>
+                  <th className="py-2.5 px-3.5">{lang === 'mr' ? 'वापरकर्ता / ग्राहकाचे नाव' : 'User / Customer Name'}</th>
+                  <th className="py-2.5 px-3.5">{lang === 'mr' ? 'मोबाईल नंबर' : 'Mobile Number'}</th>
+                  <th className="py-2.5 px-3.5">{lang === 'mr' ? 'पत्ता (Address)' : 'Full Address'}</th>
+                  <th className="py-2.5 px-3.5 text-center">{lang === 'mr' ? 'ऑर्डर्स' : 'Orders'}</th>
+                  <th className="py-2.5 px-3.5 text-right">{lang === 'mr' ? 'कृती' : 'Actions'}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredUsers.slice(0, 8).map((user) => {
+                  const cleanPhone = (user.phone || '').replace(/\D/g, '');
+                  return (
+                    <tr key={user.id} className="hover:bg-emerald-50/30 transition-colors group">
+                      
+                      {/* 1. Name & Avatar */}
+                      <td className="py-3 px-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-100 to-emerald-50 text-[#1E5631] flex items-center justify-center font-black text-xs shrink-0 ring-1 ring-emerald-200">
+                            {(user.name || 'U').charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-900 group-hover:text-[#1E5631] transition-colors truncate">
+                              {user.name}
+                            </p>
+                            <p className="text-[10px] text-slate-400 truncate">
+                              {user.email || user.notes || `${lang === 'mr' ? 'नोंदणी:' : 'Joined:'} ${user.joinedDate || '2026'}`}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* 2. Mobile No */}
+                      <td className="py-3 px-3.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-slate-800 whitespace-nowrap">
+                            +91 {user.phone}
+                          </span>
+                          {cleanPhone && (
+                            <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                              <a
+                                href={`tel:${cleanPhone}`}
+                                title={lang === 'mr' ? 'थेट कॉल करा' : 'Call'}
+                                className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                              >
+                                <Phone className="w-3 h-3 text-[#1E5631]" />
+                              </a>
+                              <a
+                                href={`https://wa.me/91${cleanPhone.slice(-10)}?text=${encodeURIComponent(`नमस्कार ${user.name}, TreeBazzar कडून संपर्क करत आहोत.`)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="WhatsApp"
+                                className="p-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] transition-colors border border-emerald-200"
+                              >
+                                <MessageCircle className="w-3 h-3 text-[#2E7D32]" />
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* 3. Address */}
+                      <td className="py-3 px-3.5">
+                        <div className="flex items-start gap-1.5 max-w-xs sm:max-w-md">
+                          <MapPin className="w-3.5 h-3.5 text-[#2E7D32] shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-slate-700 font-medium leading-snug">
+                              {user.address || user.city || (lang === 'mr' ? 'पत्ता उपलब्ध नाही' : 'Address not specified')}
+                            </p>
+                            {user.city && user.address && !user.address.includes(user.city) && (
+                              <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">
+                                {user.city}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* 4. Orders */}
+                      <td className="py-3 px-3.5 text-center">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                          {user.totalOrders || 0} {lang === 'mr' ? 'ऑर्डर्स' : 'orders'}
+                        </span>
+                      </td>
+
+                      {/* 5. View Details */}
+                      <td className="py-3 px-3.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedUserForDetails(user)}
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-[#1E5631] hover:bg-emerald-50 hover:border-emerald-200 transition-colors cursor-pointer"
+                          title={lang === 'mr' ? 'तपशील पहा' : 'View Details'}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            <Users className="w-8 h-8 text-[#1E5631] mx-auto mb-2 opacity-70" />
+            <p className="text-xs font-bold text-slate-700">
+              {userSearch 
+                ? (lang === 'mr' ? `"${userSearch}" साठी कोणताही वापरकर्ता सापडला नाही` : `No users found matching "${userSearch}"`) 
+                : (lang === 'mr' ? 'अद्याप कोणतेही वापरकर्ते किंवा ग्राहक नोंदवलेले नाहीत' : 'No users or customers registered yet')}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-0.5 mb-3">
+              {lang === 'mr' 
+                ? 'नवीन वापरकर्त्याचे नाव, मोबाईल नंबर व पत्ता भरून नोंदणी करा.' 
+                : 'Register a new user with name, mobile no, and address.'}
+            </p>
+            {onOpenAddCustomer && (
+              <button
+                type="button"
+                onClick={onOpenAddCustomer}
+                className="px-4 py-2 bg-[#1E5631] hover:bg-[#2E7D32] text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{lang === 'mr' ? '+ नवीन वापरकर्ता जोडा' : '+ Add User'}</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Modal for User Details */}
+        {selectedUserForDetails && (
+          <CustomerDetailsModal
+            isOpen={Boolean(selectedUserForDetails)}
+            onClose={() => setSelectedUserForDetails(null)}
+            customer={selectedUserForDetails}
+            orders={orders}
+          />
+        )}
+
       </div>
 
       {/* Recent Activities Section */}

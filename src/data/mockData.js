@@ -479,7 +479,56 @@ export const INITIAL_CITIES = [];
 
 export const INITIAL_ORDERS = [];
 
-export const INITIAL_CUSTOMERS = [];
+export const INITIAL_CUSTOMERS = [
+  {
+    id: 'CUST-101',
+    name: 'रमेश मारुती शिंदे (Ramesh Shinde)',
+    phone: '9822154321',
+    email: 'ramesh.shinde@gmail.com',
+    city: 'पुणे (Pune)',
+    address: 'फ्लॅट नं. ४०२, ग्रीन व्हॅली सोसायटी, बाणेर रोड, पुणे - ४११०४५',
+    totalOrders: 3,
+    totalSpent: 4250,
+    joinedDate: '2026-09-15',
+    notes: 'फळझाडे व सेंद्रिय बागकाम खरेदीदार'
+  },
+  {
+    id: 'CUST-102',
+    name: 'सुनीता विजय पवार (Sunita Pawar)',
+    phone: '9423587654',
+    email: 'sunita.pawar@yahoo.com',
+    city: 'सातारा (Satara)',
+    address: 'प्लॉट नं. १२, संभाजी नगर, गोडोली, सातारा - ४१५००२',
+    totalOrders: 2,
+    totalSpent: 2800,
+    joinedDate: '2026-10-02',
+    notes: 'कागदी लिंबू व पेरू रोपे खरेदीदार'
+  },
+  {
+    id: 'CUST-103',
+    name: 'अनिल ज्ञानेश्वर पाटील (Anil Patil)',
+    phone: '9860123987',
+    email: 'anil.patil@rediffmail.com',
+    city: 'कोल्हापूर (Kolhapur)',
+    address: 'घर क्र. ५६, राजारामपुरी २ री गल्ली, कोल्हापूर - ४१६००८',
+    totalOrders: 5,
+    totalSpent: 8900,
+    joinedDate: '2026-08-20',
+    notes: 'मोठ्या प्रमाणावर शेतीसाठी आंबा रोपे'
+  },
+  {
+    id: 'CUST-104',
+    name: 'प्रिया सचिन कुलकर्णी (Priya Kulkarni)',
+    phone: '9764512390',
+    email: 'priya.kulkarni@gmail.com',
+    city: 'नाशिक (Nashik)',
+    address: 'बंगलो नं. ७, गंगापूर रोड, नवश्या गणपती मंदिराजवळ, नाशिक - ४२२०१३',
+    totalOrders: 1,
+    totalSpent: 1450,
+    joinedDate: '2026-11-05',
+    notes: 'टेरेस गार्डन व इनडोअर रोपे'
+  }
+];
 
 export const INITIAL_ADS = [
   {

@@ -1219,10 +1219,12 @@ function AppRoot() {
           const dummyIds = ['CUST-1', 'CUST-2', 'CUST-3', 'CUST-4', 'CUST-5', 'CUST-6'];
           const dummyNames = ['Rahul Patil', 'Amit Jadhav', 'Sneha Kulkarni', 'Sagar Shinde', 'Priya Deshmukh', 'Vikram Mohite'];
           const cleaned = parsed.filter(c => !dummyIds.includes(c.id) && !dummyNames.includes(c.name));
-          if (cleaned.length !== parsed.length) {
-            localStorage.setItem('tb_customers', JSON.stringify(cleaned));
+          if (cleaned.length > 0) {
+            if (cleaned.length !== parsed.length) {
+              localStorage.setItem('tb_customers', JSON.stringify(cleaned));
+            }
+            return cleaned;
           }
-          return cleaned;
         }
       }
     } catch (e) {
@@ -1334,11 +1336,12 @@ function AppRoot() {
       }
     }).catch(err => console.warn('Initial Firestore sync error:', err));
 
-    // 2. Real-time subscriptions for nurseries, plants, leads, orders, and ads
+    // 2. Real-time subscriptions for nurseries, plants, leads, orders, customers, and ads
     let unsubNurseries = () => {};
     let unsubPlants = () => {};
     let unsubLeads = () => {};
     let unsubOrders = () => {};
+    let unsubCustomers = () => {};
     let unsubAds = () => {};
 
     subscribeToCollection('nurseries', (data) => {
@@ -1365,6 +1368,12 @@ function AppRoot() {
       }
     }).then(unsub => { if (unsub) unsubOrders = unsub; }).catch(console.warn);
 
+    subscribeToCollection('customers', (data) => {
+      if (isSubscribed && Array.isArray(data) && data.length > 0) {
+        setCustomers(data);
+      }
+    }).then(unsub => { if (unsub) unsubCustomers = unsub; }).catch(console.warn);
+
     subscribeToCollection('ads', (data) => {
       if (isSubscribed && Array.isArray(data) && data.length > 0) {
         setAds(data);
@@ -1377,6 +1386,7 @@ function AppRoot() {
       try { unsubPlants(); } catch (e) {}
       try { unsubLeads(); } catch (e) {}
       try { unsubOrders(); } catch (e) {}
+      try { unsubCustomers(); } catch (e) {}
       try { unsubAds(); } catch (e) {}
     };
   }, []);
