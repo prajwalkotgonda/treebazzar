@@ -139,7 +139,6 @@ export default function CustomersView({
                   <th className="py-3 px-4">{lang === 'mr' ? 'पत्ता (Address)' : 'Full Address'}</th>
                   <th className="py-3 px-4">{t('thCity') || 'City / Region'}</th>
                   <th className="py-3 px-4 text-center">{t('thTotalOrders') || 'Orders'}</th>
-                  <th className="py-3 px-4 text-right">{t('thTotalSpent') || 'Total Spent'}</th>
                   <th className="py-3 px-4">{t('thJoinedDate') || 'Member Since'}</th>
                   <th className="py-3 px-4 text-right">{lang === 'mr' ? 'कृती (Actions)' : 'Actions'}</th>
                 </tr>
@@ -227,13 +226,6 @@ export default function CustomersView({
                       <td className="py-3 px-4 text-center">
                         <span className="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
                           {customerOrdersCount}
-                        </span>
-                      </td>
-
-                      {/* Total Spent */}
-                      <td className="py-3 px-4 text-right">
-                        <span className="font-black text-slate-900">
-                          ₹{Number(customer.totalSpent || 0).toLocaleString('en-IN')}
                         </span>
                       </td>
 
