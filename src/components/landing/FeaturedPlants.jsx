@@ -51,19 +51,22 @@ export default function FeaturedPlants({
         return false;
       }
 
-      // Only show plants from nurseries that have an active subscription (exclude free trial nurseries)
+      // Only show plants from nurseries that are active (paid subscribed or auto-approved active trial)
       const linkedNursery = nurseryMap[plant.nurseryId] || nurseryMap[plant.nurseryName];
       if (linkedNursery) {
-        const isNurserySubscribed = Boolean(
-          (linkedNursery.isSubscribed === true || linkedNursery.subscriptionStatus === 'active' || linkedNursery.subscriptionPlan === 'paid_annual' || linkedNursery.paymentStatus === 'paid') &&
-          !linkedNursery.isTrialActive &&
-          linkedNursery.status === 'approved' &&
-          !linkedNursery.isSuspended &&
-          linkedNursery.status !== 'suspended' &&
-          linkedNursery.status !== 'rejected' &&
-          linkedNursery.status !== 'trial'
+        if (linkedNursery.isSuspended || linkedNursery.status === 'suspended' || linkedNursery.status === 'rejected' || linkedNursery.status === 'revoked') {
+          return false;
+        }
+        if (linkedNursery.isTrialExpired) {
+          return false;
+        }
+        const isEligible = Boolean(
+          linkedNursery.isTrialActive ||
+          linkedNursery.autoApproved ||
+          ((linkedNursery.isSubscribed === true || linkedNursery.subscriptionStatus === 'active' || linkedNursery.subscriptionPlan === 'paid_annual' || linkedNursery.paymentStatus === 'paid') &&
+            linkedNursery.status === 'approved')
         );
-        if (!isNurserySubscribed) {
+        if (!isEligible) {
           return false;
         }
       }

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Store, Search, CheckCircle2, XCircle, AlertCircle, Eye, 
   Plus, Phone, MapPin, Calendar, Check, X, Edit2, Trash2, ShieldAlert, Loader2,
-  RotateCcw, Ban, Clock, CalendarPlus, LayoutGrid, ChevronRight
+  RotateCcw, Ban, Clock, CalendarPlus, LayoutGrid, ChevronRight, AlertTriangle, ArrowRight
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { BUSINESS_TYPES, getBusinessType } from '../../data/businessTypes';
@@ -79,6 +79,12 @@ export default function NurseryManagementView({
   // Tab counts
   const counts = useMemo(() => {
     const trialCount = nurseries.filter(n => n.isTrialActive && !n.isSuspended && n.status !== 'rejected').length;
+    const expiredCount = nurseries.filter(n => 
+      !n.isSuspended && 
+      n.status !== 'rejected' && 
+      n.status !== 'approved' && 
+      (n.isTrialExpired || (n.status === 'pending' && !n.isTrialActive))
+    ).length;
     const pendingCount = nurseries.filter(n => 
       !n.isSuspended && 
       n.status !== 'approved' && 
@@ -93,11 +99,22 @@ export default function NurseryManagementView({
     return {
       all: nurseries.length,
       trial: trialCount,
+      expired: expiredCount,
       pending: pendingCount,
       approved: approvedCount,
       suspended: suspendedCount,
       rejected: rejectedCount
     };
+  }, [nurseries]);
+
+  // Nurseries with expired free trial (shown prominently at top)
+  const expiredNurseries = useMemo(() => {
+    return nurseries.filter(n => 
+      !n.isSuspended && 
+      n.status !== 'rejected' && 
+      n.status !== 'approved' && 
+      (n.isTrialExpired || (n.status === 'pending' && !n.isTrialActive))
+    );
   }, [nurseries]);
 
   // Counts per 7 business types
@@ -160,6 +177,9 @@ export default function NurseryManagementView({
       // 1. Tab filter
       if (activeTab === 'trial') {
         if (!n.isTrialActive || n.isSuspended || n.status === 'rejected') return false;
+      } else if (activeTab === 'expired') {
+        if (n.isSuspended || n.status === 'rejected' || n.status === 'approved') return false;
+        if (!n.isTrialExpired && n.status !== 'pending') return false;
       } else if (activeTab === 'pending') {
         if (n.isSuspended || n.status === 'approved' || n.status === 'rejected') return false;
         if (n.isTrialActive) return false;
@@ -303,6 +323,13 @@ export default function NurseryManagementView({
 
       n._matchingProduct = null;
       return true;
+    }).sort((a, b) => {
+      // Prioritize nurseries with expired free trial at the very top as requested
+      const aExpired = !a.isSuspended && a.status !== 'rejected' && a.status !== 'approved' && (a.isTrialExpired || (a.status === 'pending' && !a.isTrialActive));
+      const bExpired = !b.isSuspended && b.status !== 'rejected' && b.status !== 'approved' && (b.isTrialExpired || (b.status === 'pending' && !b.isTrialActive));
+      if (aExpired && !bExpired) return -1;
+      if (!aExpired && bExpired) return 1;
+      return 0;
     });
   }, [nurseries, activeTab, selectedBusinessType, selectedCity, localSearch, searchQuery, plants, citiesProp, lang]);
 
@@ -404,6 +431,94 @@ export default function NurseryManagementView({
         </div>
       </div>
 
+      {/* Expired Free Trial Priority Alert Section */}
+      {expiredNurseries.length > 0 && (
+        <div className="bg-linear-to-r from-rose-50 via-amber-50 to-rose-50 border-2 border-rose-300/80 rounded-2xl p-3.5 sm:p-4 shadow-xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs animate-bounce">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-black text-rose-950 flex items-center gap-1.5">
+                    <span>{lang === 'mr' ? '⚠️ फ्री ट्रायल संपलेल्या रोपवाटिका (मुदत संपली आहे)' : '⚠️ Free Trial Expired Nurseries'}</span>
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-black bg-rose-600 text-white animate-pulse">
+                    {expiredNurseries.length}
+                  </span>
+                </div>
+                <p className="text-xs text-rose-800 font-medium mt-0.5">
+                  {lang === 'mr' 
+                    ? 'या रोपवाटिकांचा मोफत ट्रायल संपला आहे. सबस्क्रिप्शन प्लॅन मंजूर करा किंवा +३ दिवस मुदतवाढ द्या.' 
+                    : 'Free trial has ended for these nurseries. Approve their paid subscription or grant a +3 days extension.'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setActiveTab(activeTab === 'expired' ? 'all' : 'expired')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-xs ${
+                activeTab === 'expired'
+                  ? 'bg-rose-700 text-white'
+                  : 'bg-white hover:bg-rose-50 text-rose-700 border border-rose-300'
+              }`}
+            >
+              <span>{activeTab === 'expired' ? (lang === 'mr' ? 'सर्व दाखवा' : 'Show All') : (lang === 'mr' ? 'फिल्टर करा (याच पाहा)' : 'Filter Expired Only')}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Quick Action Cards for Expired Nurseries at Top */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+            {expiredNurseries.slice(0, 6).map(n => (
+              <div key={n.id} className="bg-white rounded-xl p-3 border border-rose-200/90 flex items-center justify-between gap-2 shadow-2xs">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-slate-900 truncate">
+                    {lang === 'mr' && n.nameMr ? n.nameMr : (n.name || n.nurseryName)}
+                  </p>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    {n.ownerName || n.owner} • {n.city || '-'}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700">
+                      <Clock className="w-3 h-3 text-rose-600" />
+                      {lang === 'mr' ? 'फ्री ट्रायल संपले' : 'Trial Expired'}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {n.phone || n.contactPhone}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  <button
+                    onClick={() => handleApproveWithFeedback(n.id)}
+                    disabled={processingId === n.id}
+                    title={lang === 'mr' ? 'सबस्क्रिप्शन प्लॅन मंजूर करा' : 'Approve Plan'}
+                    className="px-2.5 py-1 bg-[#1E5631] hover:bg-[#2E7D32] text-white rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
+                  >
+                    <Check className="w-3 h-3 stroke-[2.5]" />
+                    <span>{lang === 'mr' ? 'मंजूर' : 'Approve'}</span>
+                  </button>
+                  {(Number(n.trialExtensionsCount) || 0) < 2 && (
+                    <button
+                      onClick={() => onExtendTrial && onExtendTrial(n.id)}
+                      disabled={processingId === n.id}
+                      title={lang === 'mr' ? '३ दिवस मोफत वाढवा' : 'Extend +3 Days'}
+                      className="px-2 py-0.8 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer active:scale-95"
+                    >
+                      <CalendarPlus className="w-3 h-3 text-blue-600" />
+                      <span>{lang === 'mr' ? '+३ दिवस' : '+3 Days'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Filter and Tab Strip */}
       <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         
@@ -411,9 +526,9 @@ export default function NurseryManagementView({
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           {[
             { id: 'all', label: lang === 'mr' ? 'सर्व रोपवाटिका' : 'All Nurseries', count: counts.all },
-            { id: 'trial', label: lang === 'mr' ? '⏱️ फ्री ट्रायल (३ दिवस)' : '⏱️ Free Trial (3 Days)', count: counts.trial },
-            { id: 'pending', label: lang === 'mr' ? 'सबस्क्रिप्शन प्रलंबित' : 'Pending Subscription', count: counts.pending, alert: counts.pending > 0 },
-            { id: 'approved', label: lang === 'mr' ? 'मंजूर' : 'Approved', count: counts.approved },
+            { id: 'trial', label: lang === 'mr' ? '⏱️ फ्री ट्रायल (ऑटो-मंजूर)' : '⏱️ Free Trial (Auto-Approved)', count: counts.trial },
+            { id: 'expired', label: lang === 'mr' ? '⚠️ फ्री ट्रायल संपलेले' : '⚠️ Free Trial Expired', count: counts.expired, alert: counts.expired > 0 },
+            { id: 'approved', label: lang === 'mr' ? 'मंजूर (Paid Plan)' : 'Approved (Paid Plan)', count: counts.approved },
             { id: 'suspended', label: lang === 'mr' ? 'निलंबित' : 'Suspended', count: counts.suspended },
             { id: 'rejected', label: lang === 'mr' ? 'नाकारलेले' : 'Rejected', count: counts.rejected }
           ].map(tab => (
@@ -517,13 +632,25 @@ export default function NurseryManagementView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredNurseries.map(nursery => (
-                  <tr key={nursery.id} className="hover:bg-slate-50/80 transition-colors">
+                {filteredNurseries.map(nursery => {
+                  const isNurseryExpired = !nursery.isSuspended && nursery.status !== 'rejected' && nursery.status !== 'approved' && (nursery.isTrialExpired || (nursery.status === 'pending' && !nursery.isTrialActive));
+
+                  return (
+                  <tr 
+                    key={nursery.id} 
+                    className={`transition-colors ${
+                      isNurseryExpired 
+                        ? 'bg-rose-50/50 hover:bg-rose-50/80 border-l-4 border-l-rose-500' 
+                        : 'hover:bg-slate-50/80'
+                    }`}
+                  >
                     
                     {/* Nursery & Owner Name */}
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1E5631] flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                          isNurseryExpired ? 'bg-rose-100 text-rose-700' : 'bg-emerald-50 text-[#1E5631]'
+                        }`}>
                           {(nursery.name || nursery.nurseryName || 'N').charAt(0)}
                         </div>
                         <div className="min-w-0">
@@ -588,13 +715,15 @@ export default function NurseryManagementView({
                         </div>
                       )}
 
+                      {/* Active Free Trial: Clearly displays Auto-Approved and days remaining */}
                       {nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && (
                         <div className="flex flex-col gap-0.5 items-start">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/90 shadow-2xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
-                            <span>{lang === 'mr' ? 'फ्री ट्रायल चालू' : 'Free Trial'}</span>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-[#1E5631] border border-emerald-300 shadow-2xs">
+                            <CheckCircle2 className="w-3 h-3 text-[#2E7D32] shrink-0" />
+                            <span>{lang === 'mr' ? '✓ ऑटो-मंजूर (ट्रायल)' : '✓ Auto-Approved (Trial)'}</span>
                           </span>
-                          <span className="text-[10px] text-slate-500 font-semibold pl-1 flex items-center gap-1">
+                          <span className="text-[10px] text-blue-700 font-semibold pl-1 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
                             <span>
                               {lang === 'mr' 
                                 ? `${nursery.trialDaysLeft !== undefined ? nursery.trialDaysLeft : 3} दिवस बाकी` 
@@ -609,15 +738,16 @@ export default function NurseryManagementView({
                         </div>
                       )}
 
-                      {(nursery.isTrialExpired || nursery.status === 'pending') && nursery.status !== 'approved' && !nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && nursery.status !== 'revoked' && (
+                      {/* Expired Free Trial / Pending Subscription */}
+                      {isNurseryExpired && (
                         <div className="flex flex-col gap-0.5 items-start">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs">
-                            <Clock className="w-3 h-3 text-amber-600 shrink-0" />
-                            <span>{nursery.isTrialExpired ? (lang === 'mr' ? '३ दिवस संपले' : 'Trial Expired') : (lang === 'mr' ? 'प्रलंबित' : 'Pending')}</span>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs animate-pulse">
+                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                            <span>{lang === 'mr' ? '⚠️ फ्री ट्रायल संपले आहे' : '⚠️ Free Trial Expired'}</span>
                           </span>
-                          <span className="text-[10px] text-amber-800 font-semibold pl-1 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                            <span>{lang === 'mr' ? 'पेमेंट / मुदतवाढ आवश्यक' : 'Subscription Due'}</span>
+                          <span className="text-[10px] text-rose-700 font-bold pl-1 flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-rose-500 shrink-0" />
+                            <span>{lang === 'mr' ? 'प्लॅन मंजूर करा / मुदतवाढ द्या' : 'Approve Plan / Extend'}</span>
                           </span>
                         </div>
                       )}
@@ -648,11 +778,10 @@ export default function NurseryManagementView({
                     <td className="py-3 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">
                         
-                        {/* 1. Decision Actions Group */}
-                        {/* Pending / Trial Expired: Approve Subscription, +3 Days Extension, & Reject */}
-                        {((nursery.isTrialExpired || nursery.status === 'pending') && nursery.status !== 'approved' && !nursery.isTrialActive && !nursery.isSuspended) && (
+                        {/* 1. Trial Expired Actions: Approve Subscription, +3 Days Extension, & Reject */}
+                        {isNurseryExpired && (
                           <div className="flex items-center gap-1.5">
-                            {/* Option to extend +3 days free trial if owner hasn't paid yet */}
+                            {/* Option to extend +3 days free trial */}
                             {(Number(nursery.trialExtensionsCount) || 0) < 2 ? (
                               <button
                                 onClick={() => onExtendTrial && onExtendTrial(nursery.id)}
@@ -672,7 +801,7 @@ export default function NurseryManagementView({
                             <button
                               onClick={() => handleApproveWithFeedback(nursery.id)}
                               disabled={processingId === nursery.id}
-                              title={lang === 'mr' ? 'सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription'}
+                              title={lang === 'mr' ? 'सबस्क्रिप्शन प्लॅन मंजूर करा' : 'Approve Subscription'}
                               className="px-3 py-1.5 bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-60 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-xs hover:shadow"
                             >
                               {processingId === nursery.id ? (
@@ -683,7 +812,7 @@ export default function NurseryManagementView({
                               <span>
                                 {processingId === nursery.id 
                                   ? (lang === 'mr' ? 'मंजूर होत आहे...' : 'Approving...') 
-                                  : (lang === 'mr' ? 'सबस्क्रिप्शन मंजूर' : 'Approve')}
+                                  : (lang === 'mr' ? '✓ प्लॅन मंजूर करा' : 'Approve Plan')}
                               </span>
                             </button>
 
@@ -698,7 +827,7 @@ export default function NurseryManagementView({
                           </div>
                         )}
 
-                        {/* Active Free Trial Nursery Action: +3 Days Extension or Early Approval */}
+                        {/* Active Free Trial Nursery Action: Already Auto-Approved; Can extend +3 Days or upgrade to paid */}
                         {nursery.isTrialActive && !nursery.isSuspended && nursery.status !== 'rejected' && (
                           <div className="flex items-center gap-1.5">
                             {(Number(nursery.trialExtensionsCount) || 0) < 2 ? (
@@ -716,8 +845,8 @@ export default function NurseryManagementView({
                             <button
                               onClick={() => handleApproveWithFeedback(nursery.id)}
                               disabled={processingId === nursery.id}
-                              title={lang === 'mr' ? 'आताच सबस्क्रिप्शन मंजूर करा' : 'Approve Subscription'}
-                              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#1E5631] border border-emerald-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+                              title={lang === 'mr' ? 'पेड सबस्क्रिप्शन प्लॅन मंजूर करा' : 'Approve Paid Plan'}
+                              className="px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 text-[#1E5631] border border-slate-300 hover:border-emerald-300 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
                             >
                               {processingId === nursery.id ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -827,7 +956,8 @@ export default function NurseryManagementView({
                     </td>
 
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

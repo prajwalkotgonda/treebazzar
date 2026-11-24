@@ -19,7 +19,7 @@ export default function FeaturedNurseries({
 }) {
   const { lang, t } = useLanguage();
 
-  // Show ONLY nurseries that have an active paid subscription, filtered by city and searchQuery
+  // Show nurseries that have an active paid subscription or auto-approved active free trial
   const displayNurseries = useMemo(() => {
     const q = (searchQuery || '').toLowerCase().trim();
 
@@ -29,13 +29,13 @@ export default function FeaturedNurseries({
         if (n.isSuspended || n.status === 'suspended' || n.status === 'rejected' || n.status === 'revoked') {
           return false;
         }
-        // 2. Free trial nurseries MUST NOT be displayed to public visitors
-        if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_3d' || n.subscriptionPlan === 'free_trial_6d') {
+        // 2. Expired trial nurseries MUST NOT be displayed to public visitors
+        if (n.isTrialExpired) {
           return false;
         }
-        // 3. Pending approval or expired trial nurseries MUST NOT be displayed
-        if (n.status === 'pending' || n.isTrialExpired) {
-          return false;
+        // 3. Active free trial nurseries are auto-approved and displayed during trial
+        if (n.isTrialActive || n.autoApproved) {
+          return true;
         }
         // 4. Must be confirmed subscribed partner
         const isSubscribed = Boolean(

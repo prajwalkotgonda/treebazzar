@@ -1446,7 +1446,7 @@ function AppRoot() {
     });
   };
 
-  // Nursery partner registration from public landing page (3-Day Free Trial)
+  // Nursery partner registration from public landing page (3-Day Free Trial - Auto-Approved)
   const handlePartnerAddNursery = (newNurseryData) => {
     const now = new Date();
     const trialEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
@@ -1454,8 +1454,9 @@ function AppRoot() {
     const newEntry = {
       ...newNurseryData,
       id: newNurseryData.id || `nursery-${Date.now()}`,
-      status: 'trial',
-      verified: false,
+      status: 'approved', // Auto-approved on registration during 3-day free trial
+      autoApproved: true,
+      verified: true,
       isActive: true, // Active during 3-day free trial
       isTrialActive: true,
       isTrialExpired: false,
@@ -1466,7 +1467,7 @@ function AppRoot() {
       trialDaysLeft: 3,
       subscriptionPlan: 'free_trial_3d',
       subscriptionStatus: 'trial',
-      isSubscriptionApproved: false,
+      isSubscriptionApproved: true,
       isNew: true,
       registrationDate: now.toISOString().split('T')[0]
     };
@@ -1475,10 +1476,10 @@ function AppRoot() {
 
     showToast({
       type: 'success',
-      title: lang === 'mr' ? '३ दिवस मोफत ट्रायल सुरू झाले!' : '3-Day Free Trial Activated!',
+      title: lang === 'mr' ? '✓ ३ दिवस मोफत ट्रायल (ऑटो-मंजूर)!' : '✓ 3-Day Free Trial Auto-Approved!',
       message: lang === 'mr' 
-        ? `"${newEntry.name}" साठी ३ दिवस मोफत ट्रायल सुरू झाले आहे. आता ॲपमध्ये थेट वापरू शकता.` 
-        : `"${newEntry.name}" has been activated on a 3-day free trial. Ready to use!`
+        ? `"${newEntry.name}" साठी ३ दिवस मोफत ट्रायल ऑटो-मंजूर झाले आहे. आता ॲपमध्ये थेट वापरू शकता.` 
+        : `"${newEntry.name}" has been auto-approved on a 3-day free trial. Ready to use!`
     });
   };
 

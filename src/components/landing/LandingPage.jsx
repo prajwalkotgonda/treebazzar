@@ -27,12 +27,16 @@ export default function LandingPage({
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [selectedNursery, setSelectedNursery] = useState(null);
 
-  // Strictly filter only nurseries with active, paid/approved subscription
+  // Active nurseries: Paid subscribed OR auto-approved active free trial
   const subscribedNurseries = React.useMemo(() => {
     return nurseries.filter(n => {
       if (n.isSuspended || n.status === 'suspended' || n.status === 'rejected' || n.status === 'revoked') return false;
-      if (n.isTrialActive || n.status === 'trial' || n.subscriptionPlan === 'free_trial' || n.subscriptionPlan === 'free_trial_3d' || n.subscriptionPlan === 'free_trial_6d') return false;
-      if (n.status === 'pending' || n.isTrialExpired) return false;
+      // When free trial expires, nursery is hidden until subscription is approved / paid
+      if (n.isTrialExpired) return false;
+      
+      // Auto-approved active free trial nurseries are visible during trial
+      if (n.isTrialActive || n.autoApproved) return true;
+
       const isSub = Boolean(
         n.isSubscribed === true ||
         n.subscriptionStatus === 'active' ||
