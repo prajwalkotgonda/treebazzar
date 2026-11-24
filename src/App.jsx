@@ -48,6 +48,7 @@ import {
   deleteCityFromFirestore,
   saveAdToFirestore,
   deleteAdFromFirestore,
+  uploadImageToFirebaseStorage,
   clearAllFirestoreCollections
 } from './services/firebase';
 
@@ -1319,8 +1320,8 @@ function AppRoot() {
   useEffect(() => {
     let isSubscribed = true;
 
-    // 1. Initial sync from Firestore for nurseries, plants, leads, and orders
-    syncAllData().then(({ nurseries: fbNurseries, plants: fbPlants, leads: fbLeads, orders: fbOrders }) => {
+    // 1. Initial sync from Firestore for nurseries, plants, leads, orders, and ads
+    syncAllData().then(({ nurseries: fbNurseries, plants: fbPlants, leads: fbLeads, orders: fbOrders, ads: fbAds }) => {
       if (!isSubscribed) return;
       if (fbNurseries && Array.isArray(fbNurseries)) {
         setNurseries(fbNurseries);
@@ -1333,6 +1334,9 @@ function AppRoot() {
       }
       if (fbOrders && Array.isArray(fbOrders)) {
         setOrders(fbOrders);
+      }
+      if (fbAds && Array.isArray(fbAds) && fbAds.length > 0) {
+        setAds(fbAds);
       }
     }).catch(err => console.warn('Initial Firestore sync error:', err));
 
@@ -1584,16 +1588,33 @@ function AppRoot() {
   // ----------------------------------------------------
   // Branch Advertisement Actions
   // ----------------------------------------------------
-  const handleCreateAd = (newAdData) => {
-    setAds(prev => [newAdData, ...prev]);
-    saveAdToFirestore(newAdData).catch(console.warn);
+  const handleCreateAd = async (newAdData) => {
+    let finalAd = { ...newAdData };
+
+    // Ensure photo is uploaded to Firebase Storage if still a data URL
+    if (finalAd.photo && finalAd.photo.startsWith('data:')) {
+      try {
+        const downloadUrl = await uploadImageToFirebaseStorage(finalAd.photo, 'ads');
+        if (downloadUrl && downloadUrl.startsWith('http')) {
+          finalAd.photo = downloadUrl;
+          finalAd.imageUrl = downloadUrl;
+          finalAd.image = downloadUrl;
+          finalAd.photoUrl = downloadUrl;
+        }
+      } catch (err) {
+        console.warn('Storage upload error in handleCreateAd:', err);
+      }
+    }
+
+    setAds(prev => [finalAd, ...prev.filter(a => a.id !== finalAd.id)]);
+    await saveAdToFirestore(finalAd).catch(console.warn);
 
     showToast({
       type: 'success',
       title: lang === 'mr' ? 'जाहिरात तयार झाली!' : 'Ad Published Successfully!',
       message: lang === 'mr' 
-        ? `"${newAdData.branchName}" साठी नवीन जाहिरात प्रसिद्ध झाली.` 
-        : `Advertisement for "${newAdData.branchName}" is now active.`
+        ? `"${finalAd.branchName}" साठी नवीन जाहिरात फोटोसह सेव्ह झाली.` 
+        : `Advertisement for "${finalAd.branchName}" saved successfully with photo.`
     });
   };
 

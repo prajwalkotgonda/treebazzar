@@ -17,6 +17,9 @@
       import { 
         getFirestore, collection, doc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot 
       } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+      import { 
+        getStorage, ref, uploadBytes, getDownloadURL 
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
 
       // Your web app's Firebase configuration
       const firebaseConfig = {
@@ -40,10 +43,15 @@
         }).catch(() => {});
 
         const db = getFirestore(app);
+        let storage = null;
+        try {
+          storage = getStorage(app);
+        } catch (sErr) {}
 
         window.__TREEBAZZAR_FIREBASE__ = {
           app,
           db,
+          storage,
           analytics,
           collection,
           doc,
@@ -52,6 +60,9 @@
           updateDoc,
           deleteDoc,
           onSnapshot,
+          ref,
+          uploadBytes,
+          getDownloadURL,
           firebaseConfig
         };
         console.log("🌲 TreeBazzar: Firebase connected to project treebazzar-f4780 successfully!");

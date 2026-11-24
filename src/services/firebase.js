@@ -383,6 +383,32 @@ export function normalizeOrder(data, id) {
 }
 
 /**
+ * Normalize Branch Advertisement data from Firestore or local creation
+ */
+export function normalizeAd(data, docId) {
+  if (!data) return null;
+  const id = docId || data.id || `ad-${Date.now()}`;
+  const photo = data.photo || data.imageUrl || data.image || data.photoUrl || '';
+
+  return {
+    ...data,
+    id,
+    branchName: data.branchName || data.nurseryName || data.name || '',
+    mobile: data.mobile || data.phone || data.contactNumber || '',
+    photo,
+    imageUrl: photo,
+    image: photo,
+    photoUrl: photo,
+    title: data.title || '',
+    description: data.description || '',
+    badge: data.badge || 'Special Offer',
+    status: data.status || 'active',
+    createdAt: data.createdAt || new Date().toISOString(),
+    updatedAt: data.updatedAt || new Date().toISOString()
+  };
+}
+
+/**
  * Convert JS object into Firestore REST API value format
  */
 function toRestFields(obj) {
@@ -458,6 +484,7 @@ export async function fetchCollectionFromFirestore(collectionName) {
         if (collectionName === 'plants') return normalizePlant(raw, d.id);
         if (collectionName === 'leads') return normalizeLead(raw, d.id);
         if (collectionName === 'orders') return normalizeOrder(raw, d.id);
+        if (collectionName === 'ads') return normalizeAd(raw, d.id);
         return raw;
       });
     }
@@ -479,6 +506,7 @@ export async function fetchCollectionFromFirestore(collectionName) {
       if (collectionName === 'plants') return normalizePlant(raw, id);
       if (collectionName === 'leads') return normalizeLead(raw, id);
       if (collectionName === 'orders') return normalizeOrder(raw, id);
+      if (collectionName === 'ads') return normalizeAd(raw, id);
       return raw;
     });
   } catch (e) {
@@ -488,16 +516,17 @@ export async function fetchCollectionFromFirestore(collectionName) {
 }
 
 /**
- * Fetch and sync all collections (nurseries, plants, leads, orders) from Firestore
+ * Fetch and sync all collections (nurseries, plants, leads, orders, ads) from Firestore
  */
 export async function syncAllData() {
-  const [nurseries, plants, leads, orders] = await Promise.all([
+  const [nurseries, plants, leads, orders, ads] = await Promise.all([
     fetchCollectionFromFirestore('nurseries'),
     fetchCollectionFromFirestore('plants'),
     fetchCollectionFromFirestore('leads'),
-    fetchCollectionFromFirestore('orders')
+    fetchCollectionFromFirestore('orders'),
+    fetchCollectionFromFirestore('ads')
   ]);
-  return { nurseries, plants, leads, orders };
+  return { nurseries, plants, leads, orders, ads };
 }
 
 /**
@@ -557,14 +586,21 @@ export async function getFirebase() {
     }
 
     try {
-      const [appMod, firestoreMod, analyticsMod] = await Promise.all([
+      const [appMod, firestoreMod, analyticsMod, storageMod] = await Promise.all([
         import(/* @vite-ignore */ 'https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js'),
         import(/* @vite-ignore */ 'https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js'),
         import(/* @vite-ignore */ 'https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js').catch(() => null),
+        import(/* @vite-ignore */ 'https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js').catch(() => null),
       ]);
 
       appInstance = appMod.getApps().length > 0 ? appMod.getApp() : appMod.initializeApp(firebaseConfig);
       dbInstance = firestoreMod.getFirestore(appInstance);
+      let storageInstance = null;
+      if (storageMod) {
+        try {
+          storageInstance = storageMod.getStorage(appInstance);
+        } catch (stErr) {}
+      }
 
       if (analyticsMod && typeof window !== 'undefined') {
         try {
@@ -580,6 +616,7 @@ export async function getFirebase() {
       firebaseModules = {
         app: appInstance,
         db: dbInstance,
+        storage: storageInstance,
         analytics: analyticsInstance,
         collection: firestoreMod.collection,
         doc: firestoreMod.doc,
@@ -591,6 +628,9 @@ export async function getFirebase() {
         query: firestoreMod.query,
         where: firestoreMod.where,
         orderBy: firestoreMod.orderBy,
+        ref: storageMod?.ref,
+        uploadBytes: storageMod?.uploadBytes,
+        getDownloadURL: storageMod?.getDownloadURL,
         logEvent: analyticsMod?.logEvent
       };
 
@@ -637,6 +677,7 @@ export async function subscribeToCollection(collectionName, onDataReceived, onEr
           if (collectionName === 'plants') return normalizePlant(raw, d.id);
           if (collectionName === 'leads') return normalizeLead(raw, d.id);
           if (collectionName === 'orders') return normalizeOrder(raw, d.id);
+          if (collectionName === 'ads') return normalizeAd(raw, d.id);
           return raw;
         });
         onDataReceived(items);
@@ -1047,21 +1088,120 @@ export async function deleteCityFromFirestore(cityId) {
 }
 
 /**
- * Save Advertisement to Firestore
+ * Upload an image (File, Blob, or base64 dataUrl) to Firebase Storage (Blaze Plan)
+ * Bucket: treebazzar-f4780.firebasestorage.app
+ * Returns a permanent, publicly readable download URL
+ */
+export async function uploadImageToFirebaseStorage(fileOrDataUrl, pathPrefix = 'ads') {
+  if (!fileOrDataUrl) return '';
+
+  // Already a remote URL
+  if (typeof fileOrDataUrl === 'string' && (fileOrDataUrl.startsWith('http://') || fileOrDataUrl.startsWith('https://'))) {
+    return fileOrDataUrl;
+  }
+
+  let blob = null;
+  let contentType = 'image/jpeg';
+  let ext = 'jpg';
+
+  try {
+    if (fileOrDataUrl instanceof Blob || (typeof File !== 'undefined' && fileOrDataUrl instanceof File)) {
+      blob = fileOrDataUrl;
+      contentType = fileOrDataUrl.type || 'image/jpeg';
+      if (contentType.includes('png')) ext = 'png';
+      else if (contentType.includes('webp')) ext = 'webp';
+    } else if (typeof fileOrDataUrl === 'string' && fileOrDataUrl.startsWith('data:')) {
+      const match = fileOrDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (!match) {
+        console.warn('Invalid data URL supplied to uploadImageToFirebaseStorage');
+        return fileOrDataUrl;
+      }
+      contentType = match[1] || 'image/jpeg';
+      if (contentType.includes('png')) ext = 'png';
+      else if (contentType.includes('webp')) ext = 'webp';
+
+      const byteCharacters = atob(match[2]);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      blob = new Blob([byteArray], { type: contentType });
+    } else {
+      return fileOrDataUrl;
+    }
+
+    const filename = `${pathPrefix}/ad_${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+    const bucket = firebaseConfig.storageBucket || 'treebazzar-f4780.firebasestorage.app';
+
+    // 1. Direct Firebase Storage REST Upload (Fast, open CORS, works everywhere)
+    const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(filename)}&key=${firebaseConfig.apiKey}`;
+    const res = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': contentType
+      },
+      body: blob
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const token = data.downloadTokens || (data.metadata && data.metadata.firebaseStorageDownloadTokens) || '';
+      const publicUrl = token
+        ? `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(filename)}?alt=media&token=${token}`
+        : `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(filename)}?alt=media`;
+      console.log('🌲 Firebase Storage: Ad photo uploaded successfully:', publicUrl);
+      return publicUrl;
+    } else {
+      const errText = await res.text();
+      console.warn('Firebase Storage upload REST response not OK:', res.status, errText);
+    }
+  } catch (err) {
+    console.warn('Firebase Storage upload error:', err);
+  }
+
+  // Fallback: return input if upload failed
+  return typeof fileOrDataUrl === 'string' ? fileOrDataUrl : '';
+}
+
+/**
+ * Save Advertisement to Firestore (stores Firebase Storage photo URL)
  */
 export async function saveAdToFirestore(ad) {
-  const payload = sanitizePayload({
+  let photo = ad.photo || ad.imageUrl || ad.image || ad.photoUrl || '';
+
+  // If photo is still a base64 data URL, upload to Firebase Storage first
+  if (photo && photo.startsWith('data:')) {
+    try {
+      const storageUrl = await uploadImageToFirebaseStorage(photo, 'ads');
+      if (storageUrl && storageUrl.startsWith('http')) {
+        photo = storageUrl;
+      }
+    } catch (upErr) {
+      console.warn('Auto upload to storage failed during saveAdToFirestore:', upErr);
+    }
+  }
+
+  const normalized = normalizeAd({
     ...ad,
+    photo,
+    imageUrl: photo,
+    image: photo,
+    photoUrl: photo,
     updatedAt: new Date().toISOString()
-  });
+  }, ad.id);
+
+  const payload = sanitizePayload(normalized);
   const fb = await getFirebase();
   if (fb && fb.db && fb.setDoc) {
     try {
-      await fb.setDoc(fb.doc(fb.db, 'ads', ad.id), payload, { merge: true });
+      await fb.setDoc(fb.doc(fb.db, 'ads', normalized.id), payload, { merge: true });
       return true;
-    } catch (err) {}
+    } catch (err) {
+      console.warn('setDoc failed for ad, attempting REST:', err);
+    }
   }
-  return await saveDocumentViaRest('ads', ad.id, payload);
+  return await saveDocumentViaRest('ads', normalized.id, payload);
 }
 
 /**

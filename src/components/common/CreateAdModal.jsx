@@ -1,9 +1,61 @@
 import React, { useState, useRef } from 'react';
 import { 
   X, Megaphone, Building2, Phone, Image as ImageIcon, 
-  FileText, Upload, Sparkles, Tag, Check, AlertCircle, Eye
+  FileText, Upload, Sparkles, Tag, Check, AlertCircle, Eye, Loader2
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { uploadImageToFirebaseStorage } from '../../services/firebase';
+
+// Helper to compress image in browser before uploading to Firebase Storage
+function compressImage(file, maxWidth = 1280, maxHeight = 1280, quality = 0.85) {
+  return new Promise((resolve) => {
+    if (!file || !file.type?.startsWith('image/') || file.type?.includes('svg')) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              resolve(file);
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = readerEvent.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function CreateAdModal({ 
   isOpen, 
@@ -26,6 +78,9 @@ export default function CreateAdModal({
 
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadStatusText, setUploadStatusText] = useState('');
   const [uploadMode, setUploadMode] = useState('upload'); // 'upload' | 'url'
 
   if (!isOpen) return null;
@@ -73,15 +128,16 @@ export default function CreateAdModal({
       return;
     }
 
-    // Limit to 5MB
-    if (file.size > 5 * 1024 * 1024) {
+    // Allow files up to 15MB (will be automatically compressed for Firebase Storage)
+    if (file.size > 15 * 1024 * 1024) {
       setErrors(prev => ({ 
         ...prev, 
-        photo: lang === 'mr' ? 'प्रतिमेचा आकार ५ MB पेक्षा कमी असावा' : 'Image size must be under 5MB' 
+        photo: lang === 'mr' ? 'प्रतिमेचा आकार १५ MB पेक्षा कमी असावा' : 'Image size must be under 15MB' 
       }));
       return;
     }
 
+    setSelectedFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
       const dataUrl = reader.result;
@@ -93,6 +149,7 @@ export default function CreateAdModal({
   };
 
   const handleUrlChange = (val) => {
+    setSelectedFile(null);
     setFormData(prev => ({ ...prev, photo: val }));
     setPhotoPreview(val);
     if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
@@ -125,23 +182,65 @@ export default function CreateAdModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    onCreateAd({
-      id: `ad-${Date.now()}`,
-      branchName: formData.branchName.trim(),
-      mobile: formData.mobile.trim(),
-      photo: formData.photo || photoPreview,
-      title: formData.title.trim() || (lang === 'mr' ? 'विशेष जाहिरात' : 'Special Advertisement'),
-      description: formData.description.trim(),
-      badge: formData.badge.trim(),
-      status: formData.status || 'active',
-      createdAt: new Date().toISOString()
-    });
+    setIsSubmitting(true);
+    setUploadStatusText(lang === 'mr' ? 'फोटो Firebase Storage मध्ये सेव्ह होत आहे...' : 'Uploading photo to Firebase Storage...');
 
-    onClose();
+    try {
+      let finalPhotoUrl = formData.photo || photoPreview;
+
+      // Upload image to Firebase Storage (Blaze plan enabled)
+      if (selectedFile || (finalPhotoUrl && finalPhotoUrl.startsWith('data:'))) {
+        let fileToUpload = selectedFile;
+        if (selectedFile) {
+          try {
+            fileToUpload = await compressImage(selectedFile);
+          } catch (compErr) {
+            console.warn('Image compression note:', compErr);
+          }
+        }
+
+        const uploadedStorageUrl = await uploadImageToFirebaseStorage(fileToUpload || finalPhotoUrl, 'ads');
+        if (uploadedStorageUrl && uploadedStorageUrl.startsWith('http')) {
+          finalPhotoUrl = uploadedStorageUrl;
+        }
+      }
+
+      setUploadStatusText(lang === 'mr' ? 'जाहिरात डेटाबेसमध्ये सेव्ह होत आहे...' : 'Saving advertisement to database...');
+
+      const newAd = {
+        id: `ad-${Date.now()}`,
+        branchName: formData.branchName.trim(),
+        mobile: formData.mobile.trim(),
+        photo: finalPhotoUrl,
+        imageUrl: finalPhotoUrl,
+        image: finalPhotoUrl,
+        photoUrl: finalPhotoUrl,
+        title: formData.title.trim() || (lang === 'mr' ? 'विशेष जाहिरात' : 'Special Advertisement'),
+        description: formData.description.trim(),
+        badge: formData.badge.trim(),
+        status: formData.status || 'active',
+        createdAt: new Date().toISOString()
+      };
+
+      if (onCreateAd) {
+        await onCreateAd(newAd);
+      }
+
+      onClose();
+    } catch (err) {
+      console.error('Error submitting ad:', err);
+      setErrors(prev => ({
+        ...prev,
+        submit: lang === 'mr' ? 'जाहिरात सेव्ह करताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.' : 'Failed to save ad. Please try again.'
+      }));
+    } finally {
+      setIsSubmitting(false);
+      setUploadStatusText('');
+    }
   };
 
   return (
@@ -453,21 +552,39 @@ export default function CreateAdModal({
             </label>
           </div>
 
+          {errors.submit && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-center gap-2 text-rose-700 text-xs font-semibold">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{errors.submit}</span>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50"
             >
               {lang === 'mr' ? 'रद्द करा' : 'Cancel'}
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#2E7D32] text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-emerald-950/20 hover:shadow-lg transition-all cursor-pointer active:scale-95"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 rounded-xl bg-[#1E5631] hover:bg-[#2E7D32] disabled:opacity-75 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-emerald-950/20 hover:shadow-lg transition-all cursor-pointer active:scale-95"
             >
-              <Check className="w-4 h-4" />
-              <span>{lang === 'mr' ? 'जाहिरात तयार करा' : 'Create Advertisement'}</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>{uploadStatusText || (lang === 'mr' ? 'अपलोड होत आहे...' : 'Uploading...')}</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>{lang === 'mr' ? 'जाहिरात तयार करा' : 'Create Advertisement'}</span>
+                </>
+              )}
             </button>
           </div>
 
