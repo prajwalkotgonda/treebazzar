@@ -530,18 +530,7 @@ export const INITIAL_CUSTOMERS = [
   }
 ];
 
-export const INITIAL_ADS = [
-  {
-    id: 'ad-101',
-    branchName: 'हरित संजीवनी रोपवाटिका (पुणे शाखा)',
-    mobile: '9822012345',
-    photo: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80',
-    title: 'पावसाळी विशेष ऑफर - सर्व फळझाडांवर २०% सूट',
-    description: 'आमच्या शाखेत उच्च दर्जाची केशर आंबा, कागदी लिंबू, तैवान पेरू आणि चिकूची प्रमाणित कलमे उपलब्ध आहेत. थेट रोपवाटिकेत भेट द्या किंवा फोनवर संपर्क साधा.',
-    badge: 'Special Offer',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  }
-];
+// No demo ads — only Firebase-sourced ads should show on the public site
+export const INITIAL_ADS = [];
 
 
