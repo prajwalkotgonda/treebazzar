@@ -19,8 +19,34 @@ function payuDevServerPlugin() {
       server.middlewares.use(async (req, res, next) => {
         const urlPath = req.url.split('?')[0];
 
+        // Razorpay Create Order Endpoint
+        if (urlPath === '/api/create-order') {
+          try {
+            const { default: handler } = await import('./api/create-order.js');
+            return await handler(req, res);
+          } catch (err) {
+            console.error('Vite dev server error in /api/create-order:', err);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({ error: err.message }));
+          }
+        }
+
+        // Razorpay Verify Payment Signature Endpoint
+        if (urlPath === '/api/verify-payment') {
+          try {
+            const { default: handler } = await import('./api/verify-payment.js');
+            return await handler(req, res);
+          } catch (err) {
+            console.error('Vite dev server error in /api/verify-payment:', err);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({ error: err.message }));
+          }
+        }
+
         // PayU Create Payment / Hash Generation Endpoint
-        if (urlPath === '/api/payu/create-payment' || urlPath === '/api/create-order') {
+        if (urlPath === '/api/payu/create-payment') {
           try {
             const { default: handler } = await import('./api/payu-create-payment.js');
             return await handler(req, res);
@@ -33,7 +59,7 @@ function payuDevServerPlugin() {
         }
 
         // PayU Payment Verification Endpoint
-        if (urlPath === '/api/payu/verify-payment' || urlPath === '/api/verify-payment') {
+        if (urlPath === '/api/payu/verify-payment') {
           try {
             const { default: handler } = await import('./api/payu-verify-payment.js');
             return await handler(req, res);

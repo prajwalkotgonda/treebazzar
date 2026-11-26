@@ -6,6 +6,8 @@ import 'dotenv/config';
 import createPaymentHandler from './api/payu-create-payment.js';
 import verifyPaymentHandler from './api/payu-verify-payment.js';
 import payuResponseHandler from './api/payu-response.js';
+import razorpayCreateOrderHandler from './api/create-order.js';
+import razorpayVerifyPaymentHandler from './api/verify-payment.js';
 import adPhotoHandler from './api/ad-photo.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,13 +22,23 @@ const server = http.createServer(async (req, res) => {
     return adPhotoHandler(req, res);
   }
 
+  // API Route: Razorpay Create Order
+  if (urlPath === '/api/create-order') {
+    return razorpayCreateOrderHandler(req, res);
+  }
+
+  // API Route: Razorpay Verify Payment Signature
+  if (urlPath === '/api/verify-payment') {
+    return razorpayVerifyPaymentHandler(req, res);
+  }
+
   // API Route: Create PayU Payment / Order
-  if (urlPath === '/api/payu/create-payment' || urlPath === '/api/create-order') {
+  if (urlPath === '/api/payu/create-payment') {
     return createPaymentHandler(req, res);
   }
 
   // API Route: Verify PayU Payment Signature / Hash
-  if (urlPath === '/api/payu/verify-payment' || urlPath === '/api/verify-payment') {
+  if (urlPath === '/api/payu/verify-payment') {
     return verifyPaymentHandler(req, res);
   }
 
