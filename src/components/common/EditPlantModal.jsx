@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Sprout, Tag, Building2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { PLANT_CATEGORIES, FALLBACK_PLANT_IMAGE } from '../../data/mockData';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function EditPlantModal({ 
   isOpen, 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, AlertTriangle, AlertCircle, FileWarning, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function RejectModal({ nursery, isOpen, onClose, onConfirm }) {
   const { t, lang } = useLanguage();

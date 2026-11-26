@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Ban, AlertOctagon, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function SuspendConfirmModal({ nursery, isOpen, onClose, onConfirm }) {
   const { lang } = useLanguage();

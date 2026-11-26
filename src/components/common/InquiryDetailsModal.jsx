@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Phone, MessageSquare, MapPin, Calendar, Clock, Sprout, Building2, User, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function InquiryDetailsModal({ 
   inquiry, 

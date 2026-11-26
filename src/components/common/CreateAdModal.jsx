@@ -1,61 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   X, Megaphone, Building2, Phone, Image as ImageIcon, 
   FileText, Upload, Sparkles, Tag, Check, AlertCircle, Eye, Loader2
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { uploadImageToFirebaseStorage } from '../../services/firebase';
-
-// Helper to compress image in browser before uploading to Firebase Storage
-function compressImage(file, maxWidth = 1280, maxHeight = 1280, quality = 0.85) {
-  return new Promise((resolve) => {
-    if (!file || !file.type?.startsWith('image/') || file.type?.includes('svg')) {
-      resolve(file);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (readerEvent) => {
-      const img = new Image();
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth || height > maxHeight) {
-          if (width > height) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          } else {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              resolve(file);
-            }
-          },
-          'image/jpeg',
-          quality
-        );
-      };
-      img.onerror = () => resolve(file);
-      img.src = readerEvent.target.result;
-    };
-    reader.onerror = () => resolve(file);
-    reader.readAsDataURL(file);
-  });
-}
+import { compressAdPhoto, MAX_AD_PHOTO_FILE_SIZE } from '../../utils/adPhoto';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function CreateAdModal({ 
   isOpen, 
@@ -65,6 +15,7 @@ export default function CreateAdModal({
 }) {
   const { lang } = useLanguage();
   const fileInputRef = useRef(null);
+  const adIdRef = useRef(null);
 
   const [formData, setFormData] = useState({
     branchName: '',
@@ -77,13 +28,26 @@ export default function CreateAdModal({
   });
 
   const [errors, setErrors] = useState({});
-  const [photoPreview, setPhotoPreview] = useState('');
+  const [filePreview, setFilePreview] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadStatusText, setUploadStatusText] = useState('');
   const [uploadMode, setUploadMode] = useState('upload'); // 'upload' | 'url'
 
+  useEffect(() => {
+    if (!selectedFile) {
+      setFilePreview('');
+      return;
+    }
+
+    const url = URL.createObjectURL(selectedFile);
+    setFilePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selectedFile]);
+
   if (!isOpen) return null;
+
+  const photoPreview = selectedFile ? filePreview : formData.photo;
 
   // Sample presets for quick testing
   const sampleImages = [
@@ -119,6 +83,9 @@ export default function CreateAdModal({
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
+    setSelectedFile(null);
+    setFormData(prev => ({ ...prev, photo: '' }));
 
     if (!file.type.startsWith('image/')) {
       setErrors(prev => ({ 
@@ -128,30 +95,21 @@ export default function CreateAdModal({
       return;
     }
 
-    // Allow files up to 15MB (will be automatically compressed for Firebase Storage)
-    if (file.size > 15 * 1024 * 1024) {
+    if (file.size > MAX_AD_PHOTO_FILE_SIZE) {
       setErrors(prev => ({ 
         ...prev, 
-        photo: lang === 'mr' ? 'प्रतिमेचा आकार १५ MB पेक्षा कमी असावा' : 'Image size must be under 15MB' 
+        photo: lang === 'mr' ? 'प्रतिमेचा आकार १० MB पर्यंत असावा' : 'Image size must be 10 MB or less'
       }));
       return;
     }
 
     setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const dataUrl = reader.result;
-      setPhotoPreview(dataUrl);
-      setFormData(prev => ({ ...prev, photo: dataUrl }));
-      setErrors(prev => ({ ...prev, photo: '' }));
-    };
-    reader.readAsDataURL(file);
+    setErrors(prev => ({ ...prev, photo: '' }));
   };
 
   const handleUrlChange = (val) => {
     setSelectedFile(null);
     setFormData(prev => ({ ...prev, photo: val }));
-    setPhotoPreview(val);
     if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
   };
 
@@ -169,9 +127,11 @@ export default function CreateAdModal({
       newErrors.mobile = lang === 'mr' ? 'कृपया वैध १० अंकी मोबाईल नंबर टाका' : 'Enter a valid 10-digit mobile number';
     }
 
-    const currentPhoto = formData.photo || photoPreview;
-    if (!currentPhoto || !currentPhoto.trim()) {
-      newErrors.photo = lang === 'mr' ? 'जाहिरातीचा फोटो निवडणे आवश्यक आहे' : 'Ad photo is required';
+    const photoUrl = formData.photo.trim();
+    if (!selectedFile && !photoUrl) {
+      newErrors.photo = errors.photo || (lang === 'mr' ? 'जाहिरातीचा फोटो निवडणे आवश्यक आहे' : 'Ad photo is required');
+    } else if (!selectedFile && !/^https?:\/\//i.test(photoUrl)) {
+      newErrors.photo = lang === 'mr' ? 'फोटोची वैध वेब लिंक टाका' : 'Enter a valid image URL';
     }
 
     if (!formData.description.trim()) {
@@ -184,41 +144,33 @@ export default function CreateAdModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (isSubmitting || !validate()) return;
 
     setIsSubmitting(true);
-    setUploadStatusText(lang === 'mr' ? 'फोटो Firebase Storage मध्ये सेव्ह होत आहे...' : 'Uploading photo to Firebase Storage...');
 
     try {
-      let finalPhotoUrl = formData.photo || photoPreview;
-
-      // Upload image to Firebase Storage (Blaze plan enabled)
-      if (selectedFile || (finalPhotoUrl && finalPhotoUrl.startsWith('data:'))) {
-        let fileToUpload = selectedFile;
-        if (selectedFile) {
-          try {
-            fileToUpload = await compressImage(selectedFile);
-          } catch (compErr) {
-            console.warn('Image compression note:', compErr);
-          }
-        }
-
-        const uploadedStorageUrl = await uploadImageToFirebaseStorage(fileToUpload || finalPhotoUrl, 'ads');
-        if (uploadedStorageUrl && uploadedStorageUrl.startsWith('http')) {
-          finalPhotoUrl = uploadedStorageUrl;
+      let photoData;
+      if (selectedFile) {
+        setUploadStatusText(lang === 'mr' ? 'फोटो कॉम्प्रेस होत आहे...' : 'Compressing photo...');
+        try {
+          photoData = await compressAdPhoto(selectedFile);
+        } catch {
+          setErrors(prev => ({
+            ...prev,
+            photo: lang === 'mr' ? 'फोटो उघडता आला नाही. दुसरा फोटो निवडा.' : 'Could not process the photo. Choose another image.'
+          }));
+          return;
         }
       }
 
       setUploadStatusText(lang === 'mr' ? 'जाहिरात डेटाबेसमध्ये सेव्ह होत आहे...' : 'Saving advertisement to database...');
 
+      adIdRef.current ??= `ad-${crypto.randomUUID()}`;
       const newAd = {
-        id: `ad-${Date.now()}`,
+        id: adIdRef.current,
         branchName: formData.branchName.trim(),
         mobile: formData.mobile.trim(),
-        photo: finalPhotoUrl,
-        imageUrl: finalPhotoUrl,
-        image: finalPhotoUrl,
-        photoUrl: finalPhotoUrl,
+        photo: formData.photo.trim(),
         title: formData.title.trim() || (lang === 'mr' ? 'विशेष जाहिरात' : 'Special Advertisement'),
         description: formData.description.trim(),
         badge: formData.badge.trim(),
@@ -227,7 +179,7 @@ export default function CreateAdModal({
       };
 
       if (onCreateAd) {
-        await onCreateAd(newAd);
+        await onCreateAd(newAd, photoData);
       }
 
       onClose();
@@ -403,7 +355,7 @@ export default function CreateAdModal({
                     {lang === 'mr' ? 'डिव्हाइसमधून फोटो निवडा' : 'Choose photo from device'}
                   </span>
                   <span className="text-[10px] text-slate-400">
-                    JPG, PNG, WebP (Max 5MB)
+                    {lang === 'mr' ? 'JPG, PNG, WebP (१० MB पर्यंत)' : 'JPG, PNG, WebP (up to 10 MB)'}
                   </span>
                 </button>
               </div>
@@ -441,14 +393,10 @@ export default function CreateAdModal({
                   src={photoPreview} 
                   alt="Preview" 
                   className="w-full h-40 object-cover"
-                  onError={() => setPhotoPreview('')}
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    setPhotoPreview('');
-                    setFormData(prev => ({ ...prev, photo: '' }));
-                  }}
+                  onClick={() => handleUrlChange('')}
                   className="absolute top-2 right-2 p-1 rounded-full bg-slate-900/70 text-white hover:bg-rose-600 transition-colors"
                   title="Remove Image"
                 >

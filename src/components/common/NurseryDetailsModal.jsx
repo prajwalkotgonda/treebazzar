@@ -8,6 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
 import { initiatePayUCheckout, simulatePayUTestPayment } from '../../services/payu';
 import { getBusinessType } from '../../data/businessTypes';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function NurseryDetailsModal({ 
   nursery, 

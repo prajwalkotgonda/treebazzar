@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Store, MapPin, Phone, User, Check, Building2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { BUSINESS_TYPES } from '../../data/businessTypes';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function EditNurseryModal({ 
   isOpen, 

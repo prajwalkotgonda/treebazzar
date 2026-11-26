@@ -4,6 +4,7 @@ import {
   IndianRupee, CheckCircle2, Clock, Sprout, Tag, ShieldCheck 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function OrderDetailsModal({ 
   isOpen, 

@@ -7,6 +7,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
 import { initiatePayUCheckout, simulatePayUTestPayment } from '../../services/payu';
 import { BUSINESS_TYPES } from '../../data/businessTypes';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities = [] }) {
   const { lang } = useLanguage();
@@ -31,6 +32,9 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
   const [isAuthFailed, setIsAuthFailed] = useState(false);
   const [paymentSuccessData, setPaymentSuccessData] = useState(null);
   const [errors, setErrors] = useState({});
+
+  useBodyScrollLock(isOpen);
+
 
   if (!isOpen) return null;
 

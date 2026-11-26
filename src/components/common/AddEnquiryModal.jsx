@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, MessageSquare, Check, Phone, User, Store } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function AddEnquiryModal({ 
   isOpen, 
@@ -24,6 +25,9 @@ export default function AddEnquiryModal({
   });
 
   const [errors, setErrors] = useState({});
+
+  useBodyScrollLock(isOpen);
+
 
   if (!isOpen) return null;
 

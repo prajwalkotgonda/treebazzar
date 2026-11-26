@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, RotateCcw, AlertTriangle, AlertCircle, Loader2, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function RevokeConfirmModal({ nursery, isOpen, onClose, onConfirm }) {
   const { lang } = useLanguage();

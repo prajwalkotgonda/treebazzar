@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Users, Check, MapPin, Phone, Mail } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function AddCustomerModal({ 
   isOpen, 
@@ -20,6 +21,9 @@ export default function AddCustomerModal({
   });
 
   const [errors, setErrors] = useState({});
+
+  useBodyScrollLock(isOpen);
+
 
   if (!isOpen) return null;
 

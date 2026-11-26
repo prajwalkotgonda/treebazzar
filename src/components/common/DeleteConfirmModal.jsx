@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle, X, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function DeleteConfirmModal({ 
   isOpen, 
@@ -12,6 +13,9 @@ export default function DeleteConfirmModal({
 }) {
   const { t, lang } = useLanguage();
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useBodyScrollLock(isOpen);
+
 
   if (!isOpen) return null;
 

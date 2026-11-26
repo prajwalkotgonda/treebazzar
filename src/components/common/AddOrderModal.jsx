@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, User, Store, Sprout, Check, MapPin, IndianRupee } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function AddOrderModal({ 
   isOpen, 
@@ -70,6 +71,9 @@ export default function AddOrderModal({
       }));
     }
   };
+
+  useBodyScrollLock(isOpen);
+
 
   if (!isOpen) return null;
 

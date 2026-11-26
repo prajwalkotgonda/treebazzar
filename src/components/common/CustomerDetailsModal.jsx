@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Users, Phone, Mail, MapPin, Calendar, ShoppingBag, IndianRupee, MessageCircle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export default function CustomerDetailsModal({ 
   isOpen, 
