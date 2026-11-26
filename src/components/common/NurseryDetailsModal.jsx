@@ -198,7 +198,7 @@ export default function NurseryDetailsModal({
                       ) : (
                         <CreditCard className="w-4 h-4 text-emerald-200" />
                       )}
-                      <span>{lang === 'mr' ? 'पेमेंट भरा (PayU ₹१००)' : 'Pay ₹100 Subscription (PayU)'}</span>
+                      <span>{lang === 'mr' ? 'पेमेंट भरा (Razorpay ₹१००)' : 'Pay ₹100 Subscription (Razorpay)'}</span>
                     </button>
 
                     {/* Admin Action: +3 Days Free Extension */}
@@ -320,7 +320,7 @@ export default function NurseryDetailsModal({
             </div>
           </div>
 
-          {/* PayU Registration Payment Status Card */}
+          {/* Razorpay Registration Payment Status Card */}
           <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
             isPaid 
               ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
@@ -378,25 +378,6 @@ export default function NurseryDetailsModal({
               paymentMsg.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
             }`}>
               <div className="leading-relaxed">{paymentMsg.text}</div>
-              {paymentMsg.type === 'error' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const sim = simulatePayUTestPayment({
-                      amountInRupees: 100,
-                      nurseryName: nursery.name || nursery.nurseryName,
-                      ownerName: nursery.ownerName || nursery.owner
-                    });
-                    nursery.paymentStatus = 'paid';
-                    nursery.payuPaymentId = sim.paymentId;
-                    nursery.payuTxnId = sim.txnid;
-                    setPaymentMsg({ type: 'success', text: `PayU Test Verified! ID: ${sim.paymentId}` });
-                  }}
-                  className="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold cursor-pointer transition-all active:scale-95 inline-block"
-                >
-                  {lang === 'mr' ? '⚡ चाचणी पडताळणीने फी पूर्ण करा' : '⚡ Complete via Test Verification'}
-                </button>
-              )}
             </div>
           )}
 

@@ -319,7 +319,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
           </div>
 
           {/* ============================================================== */}
-          {/* PAYU ₹100 REGISTRATION PAYMENT SECTION                         */}
+          {/* RAZORPAY ₹100 REGISTRATION PAYMENT SECTION                     */}
           {/* ============================================================== */}
           <div className="pt-2">
             <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-white rounded-2xl p-4 border border-emerald-200/80 shadow-sm">
@@ -334,7 +334,7 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
                         {lang === 'mr' ? 'नोंदणी व लिस्टिंग फी' : 'Registration & Listing Fee'}
                       </span>
                       <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                        PayU Verified
+                        Razorpay Verified
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-600 mt-0.5">
