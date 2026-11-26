@@ -39,6 +39,7 @@ export default function EditOrderModal({
     }
   }, [order]);
 
+  useBodyScrollLock(isOpen);
   if (!isOpen || !order) return null;
 
   const totalAmount = (Number(formData.quantity) || 1) * (Number(formData.unitPrice) || 0);
@@ -65,7 +66,7 @@ export default function EditOrderModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overscroll-contain">
       <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-150">
         
         {/* Header */}

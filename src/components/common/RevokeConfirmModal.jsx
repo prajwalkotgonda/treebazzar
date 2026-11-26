@@ -9,6 +9,7 @@ export default function RevokeConfirmModal({ nursery, isOpen, onClose, onConfirm
   const [customNotes, setCustomNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useBodyScrollLock(isOpen);
   if (!isOpen || !nursery) return null;
 
   const nurseryName = lang === 'mr' && nursery.nameMr ? nursery.nameMr : (nursery.name || nursery.nurseryName || 'Nursery');
@@ -61,7 +62,7 @@ export default function RevokeConfirmModal({ nursery, isOpen, onClose, onConfirm
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overscroll-contain">
       <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-amber-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-150">
         
         {/* Header */}

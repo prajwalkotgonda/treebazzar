@@ -50,6 +50,7 @@ export default function EditPlantModal({
     }
   }, [plant, nurseries]);
 
+  useBodyScrollLock(isOpen);
   if (!isOpen || !plant) return null;
 
   const validate = () => {

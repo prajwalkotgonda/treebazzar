@@ -194,8 +194,8 @@ export default function AddNurseryModal({ isOpen, onClose, onAddNursery, cities 
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 my-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-slate-900/60 backdrop-blur-sm flex items-start justify-center p-4 sm:p-6">
+      <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 my-auto">
         
         {/* Header */}
         <div className="px-6 py-4 bg-gradient-to-r from-[#1E5631] to-[#2E7D32] text-white flex items-center justify-between">

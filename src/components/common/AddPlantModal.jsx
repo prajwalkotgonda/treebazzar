@@ -41,6 +41,7 @@ export default function AddPlantModal({
     }
   }, [isOpen, nurseries]);
 
+  useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
   const validate = () => {

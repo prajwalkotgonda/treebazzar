@@ -45,6 +45,7 @@ export default function CreateAdModal({
     return () => URL.revokeObjectURL(url);
   }, [selectedFile]);
 
+  useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
   const photoPreview = selectedFile ? filePreview : formData.photo;
@@ -196,7 +197,7 @@ export default function CreateAdModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200 overscroll-contain">
       <div className="bg-white rounded-2xl max-w-2xl w-full my-6 flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
         
         {/* Header */}

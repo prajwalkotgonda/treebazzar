@@ -11,6 +11,7 @@ export default function InquiryDetailsModal({
 }) {
   const { t, lang } = useLanguage();
 
+  useBodyScrollLock(isOpen);
   if (!isOpen || !inquiry) return null;
 
   const isWhatsApp = inquiry.inquiryType === 'WhatsApp';
