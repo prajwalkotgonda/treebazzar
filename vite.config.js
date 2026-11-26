@@ -1,6 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import 'dotenv/config'
+import adPhotoHandler from './api/ad-photo.js'
+
+function configureAdPhotoRoute(server) {
+  server.middlewares.use((req, res, next) => {
+    if (req.url.split('?')[0] === '/api/ad-photo') {
+      return adPhotoHandler(req, res);
+    }
+    next();
+  });
+}
 
 function payuDevServerPlugin() {
   return {
@@ -63,7 +73,15 @@ function payuDevServerPlugin() {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), payuDevServerPlugin()],
+  plugins: [
+    react(),
+    payuDevServerPlugin(),
+    {
+      name: 'ad-photo-api',
+      configureServer: configureAdPhotoRoute,
+      configurePreviewServer: configureAdPhotoRoute,
+    }
+  ],
   server: {
     port: 3000,
     open: false

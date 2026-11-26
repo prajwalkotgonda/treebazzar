@@ -48,7 +48,6 @@ import {
   deleteCityFromFirestore,
   saveAdToFirestore,
   deleteAdFromFirestore,
-  uploadImageToFirebaseStorage,
   clearAllFirestoreCollections
 } from './services/firebase';
 
@@ -1588,26 +1587,11 @@ function AppRoot() {
   // ----------------------------------------------------
   // Branch Advertisement Actions
   // ----------------------------------------------------
-  const handleCreateAd = async (newAdData) => {
-    let finalAd = { ...newAdData };
-
-    // Ensure photo is uploaded to Firebase Storage if still a data URL
-    if (finalAd.photo && finalAd.photo.startsWith('data:')) {
-      try {
-        const downloadUrl = await uploadImageToFirebaseStorage(finalAd.photo, 'ads');
-        if (downloadUrl && downloadUrl.startsWith('http')) {
-          finalAd.photo = downloadUrl;
-          finalAd.imageUrl = downloadUrl;
-          finalAd.image = downloadUrl;
-          finalAd.photoUrl = downloadUrl;
-        }
-      } catch (err) {
-        console.warn('Storage upload error in handleCreateAd:', err);
-      }
-    }
+  const handleCreateAd = async (newAdData, photoData) => {
+    const finalAd = await saveAdToFirestore(newAdData, photoData ?? '');
+    if (!finalAd) throw new Error('Firestore rejected the ad');
 
     setAds(prev => [finalAd, ...prev.filter(a => a.id !== finalAd.id)]);
-    await saveAdToFirestore(finalAd).catch(console.warn);
 
     showToast({
       type: 'success',

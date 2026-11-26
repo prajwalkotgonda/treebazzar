@@ -2,6 +2,8 @@
 // Configured for project: treebazzar-f4780
 // Full bidirectional real-time synchronization between Mobile App & Web Admin
 
+import { MAX_AD_PHOTO_DATA_LENGTH } from '../utils/adPhoto.js';
+
 export const firebaseConfig = {
   apiKey: "AIzaSyC3FcxbOPpRqIoknEvbLdv84s97EBrxw4o",
   authDomain: "treebazzar-f4780.firebaseapp.com",
@@ -387,11 +389,13 @@ export function normalizeOrder(data, id) {
  */
 export function normalizeAd(data, docId) {
   if (!data) return null;
-  const id = docId || data.id || `ad-${Date.now()}`;
-  const photo = data.photo || data.imageUrl || data.image || data.photoUrl || '';
+  // Keep the image payload out of React state and the localStorage ad cache.
+  const { photoData, ...ad } = data;
+  const id = docId || ad.id || `ad-${Date.now()}`;
+  const photo = ad.photo || ad.imageUrl || ad.image || ad.photoUrl || '';
 
   return {
-    ...data,
+    ...ad,
     id,
     branchName: data.branchName || data.nurseryName || data.name || '',
     mobile: data.mobile || data.phone || data.contactNumber || '',
@@ -532,11 +536,16 @@ export async function syncAllData() {
 /**
  * REST API fallback to save document directly to Firestore
  */
-async function saveDocumentViaRest(collectionName, docId, data) {
+async function saveDocumentViaRest(collectionName, docId, data, { merge = false } = {}) {
   if (typeof fetch === 'undefined') return false;
   try {
     const fields = toRestFields(sanitizePayload(data));
-    const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/${collectionName}/${docId}?key=${firebaseConfig.apiKey}`;
+    const url = new URL(`https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/${collectionName}/${docId}?key=${firebaseConfig.apiKey}`);
+    if (merge) {
+      for (const field of Object.keys(fields)) {
+        url.searchParams.append('updateMask.fieldPaths', field);
+      }
+    }
     const res = await fetch(url, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -1088,120 +1097,33 @@ export async function deleteCityFromFirestore(cityId) {
 }
 
 /**
- * Upload an image (File, Blob, or base64 dataUrl) to Firebase Storage (Blaze Plan)
- * Bucket: treebazzar-f4780.firebasestorage.app
- * Returns a permanent, publicly readable download URL
+ * Save an ad and its compressed photo to the same Firestore document.
  */
-export async function uploadImageToFirebaseStorage(fileOrDataUrl, pathPrefix = 'ads') {
-  if (!fileOrDataUrl) return '';
-
-  // Already a remote URL
-  if (typeof fileOrDataUrl === 'string' && (fileOrDataUrl.startsWith('http://') || fileOrDataUrl.startsWith('https://'))) {
-    return fileOrDataUrl;
+export async function saveAdToFirestore(ad, photoData) {
+  const normalized = normalizeAd({ ...ad, updatedAt: new Date().toISOString() }, ad.id);
+  if (photoData) {
+    if (photoData.length > MAX_AD_PHOTO_DATA_LENGTH) {
+      throw new Error('Compressed ad photo exceeds the Firestore size budget');
+    }
+    const origin = import.meta.env?.VITE_AD_IMAGE_BASE_URL || window.location.origin;
+    const photoUrl = new URL('/api/ad-photo', origin);
+    photoUrl.searchParams.set('id', normalized.id);
+    const photo = photoUrl.href;
+    Object.assign(normalized, { photo, photoUrl: photo, imageUrl: photo, image: photo });
   }
 
-  let blob = null;
-  let contentType = 'image/jpeg';
-  let ext = 'jpg';
-
-  try {
-    if (fileOrDataUrl instanceof Blob || (typeof File !== 'undefined' && fileOrDataUrl instanceof File)) {
-      blob = fileOrDataUrl;
-      contentType = fileOrDataUrl.type || 'image/jpeg';
-      if (contentType.includes('png')) ext = 'png';
-      else if (contentType.includes('webp')) ext = 'webp';
-    } else if (typeof fileOrDataUrl === 'string' && fileOrDataUrl.startsWith('data:')) {
-      const match = fileOrDataUrl.match(/^data:([^;]+);base64,(.+)$/);
-      if (!match) {
-        console.warn('Invalid data URL supplied to uploadImageToFirebaseStorage');
-        return fileOrDataUrl;
-      }
-      contentType = match[1] || 'image/jpeg';
-      if (contentType.includes('png')) ext = 'png';
-      else if (contentType.includes('webp')) ext = 'webp';
-
-      const byteCharacters = atob(match[2]);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      blob = new Blob([byteArray], { type: contentType });
-    } else {
-      return fileOrDataUrl;
-    }
-
-    const filename = `${pathPrefix}/ad_${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
-    const bucket = firebaseConfig.storageBucket || 'treebazzar-f4780.firebasestorage.app';
-
-    // 1. Direct Firebase Storage REST Upload (Fast, open CORS, works everywhere)
-    const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(filename)}&key=${firebaseConfig.apiKey}`;
-    const res = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': contentType
-      },
-      body: blob
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      const token = data.downloadTokens || (data.metadata && data.metadata.firebaseStorageDownloadTokens) || '';
-      const publicUrl = token
-        ? `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(filename)}?alt=media&token=${token}`
-        : `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(filename)}?alt=media`;
-      console.log('🌲 Firebase Storage: Ad photo uploaded successfully:', publicUrl);
-      return publicUrl;
-    } else {
-      const errText = await res.text();
-      console.warn('Firebase Storage upload REST response not OK:', res.status, errText);
-    }
-  } catch (err) {
-    console.warn('Firebase Storage upload error:', err);
-  }
-
-  // Fallback: return input if upload failed
-  return typeof fileOrDataUrl === 'string' ? fileOrDataUrl : '';
-}
-
-/**
- * Save Advertisement to Firestore (stores Firebase Storage photo URL)
- */
-export async function saveAdToFirestore(ad) {
-  let photo = ad.photo || ad.imageUrl || ad.image || ad.photoUrl || '';
-
-  // If photo is still a base64 data URL, upload to Firebase Storage first
-  if (photo && photo.startsWith('data:')) {
-    try {
-      const storageUrl = await uploadImageToFirebaseStorage(photo, 'ads');
-      if (storageUrl && storageUrl.startsWith('http')) {
-        photo = storageUrl;
-      }
-    } catch (upErr) {
-      console.warn('Auto upload to storage failed during saveAdToFirestore:', upErr);
-    }
-  }
-
-  const normalized = normalizeAd({
-    ...ad,
-    photo,
-    imageUrl: photo,
-    image: photo,
-    photoUrl: photo,
-    updatedAt: new Date().toISOString()
-  }, ad.id);
-
-  const payload = sanitizePayload(normalized);
+  const payload = sanitizePayload({ ...normalized, photoData });
   const fb = await getFirebase();
   if (fb && fb.db && fb.setDoc) {
     try {
       await fb.setDoc(fb.doc(fb.db, 'ads', normalized.id), payload, { merge: true });
-      return true;
+      return normalized;
     } catch (err) {
       console.warn('setDoc failed for ad, attempting REST:', err);
     }
   }
-  return await saveDocumentViaRest('ads', normalized.id, payload);
+  const saved = await saveDocumentViaRest('ads', normalized.id, payload, { merge: true });
+  return saved ? normalized : null;
 }
 
 /**

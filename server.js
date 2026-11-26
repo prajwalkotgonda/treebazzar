@@ -6,6 +6,7 @@ import 'dotenv/config';
 import createPaymentHandler from './api/payu-create-payment.js';
 import verifyPaymentHandler from './api/payu-verify-payment.js';
 import payuResponseHandler from './api/payu-response.js';
+import adPhotoHandler from './api/ad-photo.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +15,10 @@ const PORT = process.env.PORT || 5000;
 
 const server = http.createServer(async (req, res) => {
   const urlPath = req.url.split('?')[0];
+
+  if (urlPath === '/api/ad-photo') {
+    return adPhotoHandler(req, res);
+  }
 
   // API Route: Create PayU Payment / Order
   if (urlPath === '/api/payu/create-payment' || urlPath === '/api/create-order') {
