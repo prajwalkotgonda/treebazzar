@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { FALLBACK_NURSERY_IMAGE } from '../../data/mockData';
-import { initiatePayUCheckout, simulatePayUTestPayment } from '../../services/payu';
+import { initiateRazorpayCheckout } from '../../services/razorpay';
 import { getBusinessType } from '../../data/businessTypes';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
@@ -48,7 +48,7 @@ export default function NurseryDetailsModal({
     setPayingFee(true);
     setPaymentMsg(null);
 
-    await initiatePayUCheckout({
+    await initiateRazorpayCheckout({
       amountInRupees: 100,
       nurseryName: nursery.name || nursery.nurseryName,
       ownerName: nursery.ownerName || nursery.owner,
@@ -57,23 +57,13 @@ export default function NurseryDetailsModal({
       onSuccess: (res) => {
         setPayingFee(false);
         nursery.paymentStatus = 'paid';
-        nursery.payuPaymentId = res.paymentId;
-        nursery.payuTxnId = res.txnid || res.orderId;
-        setPaymentMsg({ type: 'success', text: `PayU Payment verified! ID: ${res.paymentId}` });
+        nursery.razorpayPaymentId = res.paymentId;
+        nursery.razorpayOrderId = res.orderId;
+        setPaymentMsg({ type: 'success', text: `Razorpay Payment verified! ID: ${res.paymentId}` });
       },
       onError: (err) => {
         setPayingFee(false);
-        const isRate = String(err?.message || '').toLowerCase().includes('too many requests') || String(err?.message || '').includes('60 seconds');
-        if (isRate) {
-          setPaymentMsg({ 
-            type: 'error', 
-            text: lang === 'mr' 
-              ? 'PayU चाचणी सर्व्हर दरमर्यादा (Rate limit: 60s): १ मिनिटानंतर पुन्हा प्रयत्न करा किंवा खालील चाचणी बटनाने पडताळणी पूर्ण करा.' 
-              : 'PayU test rate limit (60s). Retry in 1 min or use instant test verification.' 
-          });
-        } else {
-          setPaymentMsg({ type: 'error', text: err.message || 'Payment failed' });
-        }
+        setPaymentMsg({ type: 'error', text: err?.message || 'Payment failed' });
       },
       onDismiss: () => {
         setPayingFee(false);
@@ -235,24 +225,16 @@ export default function NurseryDetailsModal({
                       </>
                     )}
 
-                    {/* Instant 1-Click Test Verification */}
+                    {/* Pay via Razorpay */}
                     <button
                       type="button"
-                      onClick={() => {
-                        const res = simulatePayUTestPayment({
-                          amount: 100,
-                          nurseryName: nursery.name || nursery.nurseryName,
-                          ownerName: nursery.ownerName || nursery.owner,
-                          phone: nursery.ownerPhone || nursery.phone
-                        });
-                        nursery.paymentStatus = 'paid';
-                        nursery.payuPaymentId = res.paymentId;
-                        nursery.payuTxnId = res.txnid;
-                        setPaymentMsg({ type: 'success', text: `PayU Test Payment Verified! ID: ${res.paymentId}` });
-                      }}
-                      className="px-3 py-2 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                      onClick={handlePayFee}
+                      disabled={payingFee}
+                      className="px-3 py-2 bg-[#1E5631] hover:bg-[#184729] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs disabled:opacity-50"
                     >
-                      {lang === 'mr' ? '⚡ १-क्लिक चाचणी पेमेंट (Instant Test)' : '⚡ 1-Click Test Verify'}
+                      {payingFee
+                        ? (lang === 'mr' ? 'Razorpay उघडत आहे...' : 'Opening Razorpay...')
+                        : (lang === 'mr' ? '₹१०० भरा (Razorpay)' : 'Pay ₹100 (Razorpay)')}
                     </button>
                   </div>
 
@@ -363,8 +345,8 @@ export default function NurseryDetailsModal({
                 </div>
                 <p className="text-[11px] opacity-80 mt-0.5">
                   {isPaid 
-                    ? `Verified via PayU • ID: ${nursery.payuPaymentId || nursery.razorpayPaymentId || 'Verified'}`
-                    : (lang === 'mr' ? 'नोंदणी शुल्क भरले नसल्यास आता PayU द्वारे भरू शकता.' : 'One-time registration fee can be settled via PayU.')}
+                    ? `Verified via Razorpay • ID: ${nursery.razorpayPaymentId || nursery.payuPaymentId || 'Verified'}`
+                    : (lang === 'mr' ? 'नोंदणी शुल्क भरले नसल्यास आता Razorpay द्वारे भरू शकता.' : 'One-time registration fee can be settled via Razorpay.')}
                 </p>
               </div>
             </div>
@@ -379,12 +361,12 @@ export default function NurseryDetailsModal({
                 {payingFee ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                    <span>Connecting PayU...</span>
+                    <span>Opening Razorpay...</span>
                   </>
                 ) : (
                   <>
                     <CreditCard className="w-3.5 h-3.5 text-emerald-300" />
-                    <span>{lang === 'mr' ? '₹१०० भरा (PayU)' : 'Pay ₹100 (PayU)'}</span>
+                    <span>{lang === 'mr' ? '₹१०० भरा (Razorpay)' : 'Pay ₹100 (Razorpay)'}</span>
                   </>
                 )}
               </button>
